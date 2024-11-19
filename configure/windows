@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [[ $0 != $BASH_SOURCE ]]; then
+    echo "do not source this script"
+    return 1
+fi
+
+# export CC=`(which clang.exe)`
+# export CXX=`(which clang++.exe)`
+export TRIPLET="-DVCPKG_TARGET_TRIPLET=x86-windows-static -DVCPKG_HOST_TRIPLET=x86-windows-static"
+
+SCRIPT_PATH=`(dirname $BASH_SOURCE)`
+REPO_PATH=`(realpath $SCRIPT_PATH/..)`
+cd $REPO_PATH
+
+configure/command $@
