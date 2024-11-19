@@ -7,11 +7,182 @@
 
 namespace nil::xit::gtest
 {
+    template <typename T>
+    auto from_data(T data)
+    {
+        struct Loader final
+        {
+            auto operator()(std::string_view /* tag */) const
+            {
+                return data;
+            }
+
+            auto operator()() const
+            {
+                return data;
+            }
+
+            T data;
+        };
+
+        return Loader{std::move(data)};
+    }
+
+    template <typename C, typename M>
+    auto from_member(M C::*member_ptr)
+    {
+        struct Accessor
+        {
+            M get(const C& data) const
+            {
+                return data.*member_ptr;
+            }
+
+            void set(C& data, M new_data) const
+            {
+                data.*member_ptr = std::move(new_data);
+            }
+
+            M C::*member_ptr;
+        };
+
+        return Accessor{member_ptr};
+    }
+
+    template <typename... T>
+        requires(std::is_same_v<T, std::remove_cvref_t<T>> && ...)
+    struct type
+    {
+    };
+
+    template <size_t N>
+    struct StringLiteral
+    {
+        // NOLINTNEXTLINE
+        constexpr StringLiteral(const char (&str)[N])
+        {
+            std::copy_n(&str[0], N, &value[0]);
+        }
+
+        // NOLINTNEXTLINE
+        char value[N];
+    };
+
+    template <StringLiteral S, typename... T>
+    struct Frame;
+
+    template <StringLiteral S, typename T>
+    struct Frame<S, T>
+    {
+        using type = T;
+        static constexpr auto* value = &S.value[0];
+    };
+
+    template <typename... T>
+    struct InputFrames;
+    template <typename... T>
+    struct OutputFrames;
+
+    template <typename... T>
+    struct InputData
+    {
+        std::tuple<const T* const...> data;
+    };
+
+    template <typename... T>
+    struct OutputData
+    {
+        std::tuple<T* const...> data;
+    };
+
+    template <std::size_t I, typename... T>
+        requires(I < sizeof...(T))
+    const auto& get(const InputData<T...>& o)
+    {
+        return *std::get<I>(o.data);
+    }
+
+    template <std::size_t I, typename... T>
+        requires(I < sizeof...(T))
+    auto& get(OutputData<T...>& o)
+    {
+        return *std::get<I>(o.data);
+    }
+
+    template <typename I, typename O>
+    struct Test;
+
+    template <typename... I, typename... O>
+    struct Test<InputFrames<I...>, OutputFrames<O...>>
+    {
+        Test() = default;
+        virtual ~Test() noexcept = default;
+        Test(Test&&) = delete;
+        Test(const Test&) = delete;
+        Test& operator=(Test&&) = delete;
+        Test& operator=(const Test&) = delete;
+
+        using base_t = Test<InputFrames<I...>, OutputFrames<O...>>;
+        using inputs_t = InputData<typename I::type...>;
+        using outputs_t = OutputData<typename O::type...>;
+
+        virtual void setup() {};
+        virtual void teardown() {};
+        virtual void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) = 0;
+    };
+
+    template <StringLiteral... T>
+    struct Input;
+    template <StringLiteral... T>
+    struct Output;
+
+    template <StringLiteral... I, StringLiteral... O>
+    struct Test<Input<I...>, Output<O...>>
+        : Test<InputFrames<Frame<I>...>, OutputFrames<Frame<O>...>>
+    {
+    };
+
     namespace builders
     {
         using nil::xit::test::App;
-        using nil::xit::test::from_data;
-        using nil::xit::test::from_member;
+
+        template <typename P, typename... I, typename... O>
+        void install(
+            App& app,
+            std::string_view tag,
+            type<Test<InputFrames<I...>, OutputFrames<O...>>> /* type */
+        )
+        {
+            using base_t = Test<InputFrames<I...>, OutputFrames<O...>>;
+            app.add_node(
+                tag,
+                [](const typename I::type&... args) -> std::tuple<typename O::type...>
+                {
+                    using inputs_t = typename base_t::inputs_t;
+                    using outputs_t = typename base_t::outputs_t;
+                    std::tuple<typename O::type...> result;
+                    try
+                    {
+                        P p;
+                        p.setup();
+                        auto inputs = inputs_t{{&args...}};
+                        auto outputs
+                            = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
+                        p.run(inputs, outputs);
+                        p.teardown();
+                    }
+                    catch (const std::exception&)
+                    {
+                    }
+                    catch (...)
+                    {
+                    }
+                    return result;
+                },
+                std::make_tuple(app.get_input<typename I::type>(I::value)...), // NOLINT
+                std::make_tuple(app.get_output<typename O::type>(O::value)...) // NOLINT
+            );
+        }
 
         template <typename Accessor, typename T>
         concept is_compatible_accessor = requires(const Accessor& accessor) {
@@ -110,7 +281,7 @@ namespace nil::xit::gtest
                     template <typename U>
                     Frame<T>& value(std::string value_id, U T::*member)
                     {
-                        return value(std::move(value_id), nil::xit::test::from_member(member));
+                        return value(std::move(value_id), from_member(member));
                     }
 
                     Frame<T>& value(std::string value_id)
@@ -403,11 +574,7 @@ namespace nil::xit::gtest
             }
 
             template <typename T>
-            auto& create_output(
-                std::string id,
-                std::filesystem::path file,
-                test::type<T> /* type */ = {}
-            )
+            auto& create_output(std::string id, std::filesystem::path file, type<T> /* type */ = {})
             {
                 return static_cast<output::Frame<T>&>(*frames.emplace_back(
                     std::make_unique<output::Frame<T>>(std::move(id), std::move(file))
@@ -443,7 +610,11 @@ namespace nil::xit::gtest
                                     + '['                            //
                                     + dir.path().filename().string() //
                                     + ']';
-                                app.install<T>(tag, nil::xit::test::type<typename T::base_t>());
+                                nil::xit::gtest::builders::install<T>(
+                                    app,
+                                    tag,
+                                    type<typename T::base_t>()
+                                );
                             }
                         }
                     }
@@ -536,6 +707,34 @@ namespace nil::xit::gtest
     int main(int argc, const char** argv);
 }
 
+template <typename... T>
+struct std::tuple_size<nil::xit::gtest::InputData<T...>>
+    : std::integral_constant<std::size_t, sizeof...(T)>
+{
+};
+
+template <typename... T>
+struct std::tuple_size<nil::xit::gtest::OutputData<T...>>
+    : std::integral_constant<std::size_t, sizeof...(T)>
+{
+};
+
+template <std::size_t I, typename... T>
+    requires(I < sizeof...(T))
+struct std::tuple_element<I, nil::xit::gtest::InputData<T...>>
+{
+    using type = std::remove_cvref_t<
+        decltype(*std::get<I>(std::declval<nil::xit::gtest::InputData<T...>>().data))>;
+};
+
+template <std::size_t I, typename... T>
+    requires(I < sizeof...(T))
+struct std::tuple_element<I, nil::xit::gtest::OutputData<T...>>
+{
+    using type = std::remove_cvref_t<
+        decltype(*std::get<I>(std::declval<nil::xit::gtest::OutputData<T...>>().data))>;
+};
+
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_WRAP(A) A
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -570,8 +769,8 @@ namespace nil::xit::gtest
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_FRAME_DETAIL(ID, IMPL)                                                                 \
     template <>                                                                                    \
-    struct nil::xit::test::Frame<ID>                                                               \
-        : nil::xit::test::                                                                         \
+    struct nil::xit::gtest::Frame<ID>                                                              \
+        : nil::xit::gtest::                                                                        \
               Frame<ID, std::remove_cvref_t<decltype(nil::xit::gtest::get_instance().IMPL)>::type> \
     {                                                                                              \
     };                                                                                             \

@@ -1,27 +1,10 @@
 #include <nil/xit/test.hpp>
 
+// TODO: use better runner like asio/parallel
 #include <nil/gate/runners/NonBlocking.hpp>
 
 namespace nil::xit::test
 {
-    namespace transparent
-    {
-        std::size_t Hash::operator()(std::string_view s) const
-        {
-            return std::hash<std::string_view>()(s);
-        }
-
-        bool Equal::operator()(std::string_view l, std::string_view r) const
-        {
-            return l == r;
-        }
-    }
-
-    bool RerunTag::operator==(const RerunTag& /* o */) const
-    {
-        return false;
-    }
-
     App::App(nil::service::S& service, std::string_view app_name)
         : xit(nil::xit::make_core(service))
     {

@@ -58,9 +58,9 @@ XIT_FRAME_OUTPUT("view_frame", "gui/ViewFrame.svelte", nlohmann::json)
     .value("value-x", from_json_ptr("/x"))
     .value("value-y", from_json_ptr("/y"));
 
-using Sample = nil::xit::test::Test<
-    nil::xit::test::Input<"input_frame", "slider_frame">,
-    nil::xit::test::Output<"view_frame">>;
+using Sample = nil::xit::gtest::Test<
+    nil::xit::gtest::Input<"input_frame", "slider_frame">,
+    nil::xit::gtest::Output<"view_frame">>;
 
 XIT_TEST(Sample, Demo, "files")
 {
