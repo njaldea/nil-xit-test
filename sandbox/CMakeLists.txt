@@ -5,6 +5,7 @@ if(NOT ENABLE_SANDBOX)
     return()
 endif()
 
+find_package(nil-clix CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 add_executable(
@@ -17,4 +18,5 @@ add_executable(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE xit-test)
+target_link_libraries(${PROJECT_NAME} PRIVATE nil::clix)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)

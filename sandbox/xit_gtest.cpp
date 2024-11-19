@@ -1,5 +1,11 @@
 #include "xit_gtest.hpp"
 
+#include <nil/clix.hpp>
+#include <nil/clix/node.hpp>
+#include <nil/clix/structs.hpp>
+
+#include <iostream>
+
 namespace nil::xit::gtest
 {
     namespace builders
@@ -37,24 +43,51 @@ namespace nil::xit::gtest
 
     int main(int argc, const char** argv)
     {
-        // TODO: headless option. use nil/clix
-        (void)argc;
-        (void)argv;
-        auto& instance = nil::xit::gtest::get_instance();
+        auto node = nil::clix::create_node();
+        flag(node, "help", {.skey = 'h', .msg = "show this help"});
+        sub(node,
+            "gui",
+            "run in gui mode",
+            [](nil::clix::Node& sub_node)
+            {
+                number(sub_node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
+                use(sub_node,
+                    [](const nil::clix::Options& options)
+                    {
+                        auto& instance = nil::xit::gtest::get_instance();
 
-        const auto http_server = nil::xit::make_server({
-            .source_path = instance.paths.server,
-            .port = 1101,
-            .buffer_size = 1024ul * 1024ul * 100ul //
-        });
+                        const auto http_server = nil::xit::make_server({
+                            .source_path = instance.paths.server,
+                            .port = std::uint16_t(number(options, "port")),
+                            .buffer_size = 1024ul * 1024ul * 100ul //
+                        });
 
-        nil::xit::test::App app(http_server, "nil-xit-gtest");
-        instance.frame_builder.install(app, instance.paths.ui);
-        instance.test_builder.install(app, instance.paths.test);
-        instance.main_builder.install(app, instance.paths.main_ui);
+                        on_ready(
+                            http_server,
+                            [](const nil::service::ID& id) { std::cout << id.text << std::endl; }
+                        );
 
-        start(http_server);
-        return 0;
+                        nil::xit::test::App app(http_server, "nil-xit-gtest");
+                        instance.frame_builder.install(app, instance.paths.ui);
+                        instance.test_builder.install(app, instance.paths.test);
+                        instance.main_builder.install(app, instance.paths.main_ui);
+
+                        start(http_server);
+                        return 0;
+                    });
+            });
+        use(node,
+            [](const nil::clix::Options& options)
+            {
+                if (flag(options, "help"))
+                {
+                    help(options, std::cout);
+                    return 0;
+                }
+                std::cout << "headless mode impl here" << std::endl;
+                return 0;
+            });
+        return nil::clix::run(node, argc, argv);
     }
 }
 
