@@ -2,8 +2,11 @@
 
 #include <nil/xit/test.hpp>
 
+#include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
+#include <type_traits>
 
 namespace nil::xit::gtest
 {
@@ -68,52 +71,32 @@ namespace nil::xit::gtest
         char value[N];
     };
 
-    template <StringLiteral S, typename... T>
+    template <StringLiteral S>
     struct Frame;
 
-    template <StringLiteral S, typename T>
-    struct Frame<S, T>
-    {
-        using type = T;
-        static constexpr auto* value = &S.value[0];
-    };
-
     template <typename... T>
-    struct InputFrames;
-    template <typename... T>
-    struct OutputFrames;
-
-    template <typename... T>
-    struct InputData
-    {
-        std::tuple<const T* const...> data;
-    };
-
-    template <typename... T>
-    struct OutputData
+    struct Data
     {
         std::tuple<T* const...> data;
     };
 
     template <std::size_t I, typename... T>
         requires(I < sizeof...(T))
-    const auto& get(const InputData<T...>& o)
+    auto& get(const Data<T...>& o)
     {
         return *std::get<I>(o.data);
     }
 
-    template <std::size_t I, typename... T>
-        requires(I < sizeof...(T))
-    auto& get(OutputData<T...>& o)
-    {
-        return *std::get<I>(o.data);
-    }
+    template <StringLiteral... T>
+    struct Input;
+    template <StringLiteral... T>
+    struct Output;
 
     template <typename I, typename O>
     struct Test;
 
-    template <typename... I, typename... O>
-    struct Test<InputFrames<I...>, OutputFrames<O...>>
+    template <StringLiteral... I, StringLiteral... O>
+    struct Test<Input<I...>, Output<O...>>
     {
         Test() = default;
         virtual ~Test() noexcept = default;
@@ -122,45 +105,76 @@ namespace nil::xit::gtest
         Test& operator=(Test&&) = delete;
         Test& operator=(const Test&) = delete;
 
-        using base_t = Test<InputFrames<I...>, OutputFrames<O...>>;
-        using inputs_t = InputData<typename I::type...>;
-        using outputs_t = OutputData<typename O::type...>;
+        using base_t = Test<Input<I...>, Output<O...>>;
+        using inputs_t = Data<const typename Frame<I>::type...>;
+        using outputs_t = Data<typename Frame<O>::type...>;
 
         virtual void setup() {};
         virtual void teardown() {};
         virtual void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) = 0;
     };
 
-    template <StringLiteral... T>
-    struct Input;
-    template <StringLiteral... T>
-    struct Output;
-
-    template <StringLiteral... I, StringLiteral... O>
-    struct Test<Input<I...>, Output<O...>>
-        : Test<InputFrames<Frame<I>...>, OutputFrames<Frame<O>...>>
+    namespace headless
     {
-    };
+        struct ICache
+        {
+            ICache() = default;
+            virtual ~ICache() = default;
+            ICache(ICache&&) = delete;
+            ICache(const ICache&) = delete;
+            ICache& operator=(ICache&&) = delete;
+            ICache& operator=(const ICache&) = delete;
+        };
+
+        template <typename T>
+        struct Cache: ICache
+        {
+            virtual T get(std::string_view) const = 0;
+        };
+
+        struct Inputs
+        {
+            template <typename T>
+            T get(std::string_view id, const std::string& tag) const
+            {
+                if (const auto it = values.find(id); it != values.end())
+                {
+                    return static_cast<Cache<T>*>(it->second.get())->get(tag);
+                }
+                return T();
+            }
+
+            test::transparent::hash_map<std::unique_ptr<ICache>> values;
+        };
+    }
 
     namespace builders
     {
         using nil::xit::test::App;
 
-        template <typename P, typename... I, typename... O>
+        std::string to_tag(
+            const std::string& suite_id,
+            const std::string& test_id,
+            const std::string& dir
+        );
+
+        template <typename P, StringLiteral... I, StringLiteral... O>
         void install(
             App& app,
-            std::string_view tag,
-            type<Test<InputFrames<I...>, OutputFrames<O...>>> /* type */
+            type<Test<Input<I...>, Output<O...>>> /* type */,
+            const std::string& suite_id,
+            const std::string& test_id,
+            const std::string& dir
         )
         {
-            using base_t = Test<InputFrames<I...>, OutputFrames<O...>>;
+            using base_t = Test<Input<I...>, Output<O...>>;
             app.add_node(
-                tag,
-                [](const typename I::type&... args) -> std::tuple<typename O::type...>
+                to_tag(suite_id, test_id, dir),
+                [](const typename Frame<I>::type&... args) -> std::tuple<typename Frame<O>::type...>
                 {
                     using inputs_t = typename base_t::inputs_t;
                     using outputs_t = typename base_t::outputs_t;
-                    std::tuple<typename O::type...> result;
+                    std::tuple<typename Frame<O>::type...> result;
                     try
                     {
                         P p;
@@ -179,8 +193,97 @@ namespace nil::xit::gtest
                     }
                     return result;
                 },
-                std::make_tuple(app.get_input<typename I::type>(I::value)...), // NOLINT
-                std::make_tuple(app.get_output<typename O::type>(O::value)...) // NOLINT
+                std::make_tuple(app.get_input<typename Frame<I>::type>(Frame<I>::value)...),
+                std::make_tuple(app.get_output<typename Frame<O>::type>(Frame<O>::value)...)
+            );
+        }
+
+        template <typename P, StringLiteral... I, StringLiteral... O>
+        void install(
+            headless::Inputs& inputs,
+            type<Test<Input<I...>, Output<O...>>> /* type */,
+            const std::string& suite_id,
+            const std::string& test_id,
+            const std::string& dir,
+            const char* file,
+            int line
+        )
+        {
+            using base_t = Test<Input<I...>, Output<O...>>;
+
+            class XitTest: public ::testing::Test
+            {
+            public:
+                XitTest(std::string init_tag, headless::Inputs* init_inputs)
+                    : tag(std::move(init_tag))
+                    , inputs(init_inputs)
+                {
+                }
+
+                ~XitTest() override = default;
+                XitTest(const XitTest&) = delete;
+                XitTest& operator=(const XitTest&) = delete;
+                XitTest(XitTest&&) noexcept = delete;
+                XitTest& operator=(XitTest&&) noexcept = delete;
+
+            private:
+                void TestBody() override
+                {
+                    using inputs_t = typename base_t::inputs_t;
+                    using outputs_t = typename base_t::outputs_t;
+                    auto input_data = std::make_tuple( //
+                        inputs->get<typename Frame<I>::type>(Frame<I>::value, tag)...
+                    );
+                    auto output_data = std::make_tuple( //
+                        typename Frame<O>::type()...
+                    );
+                    auto i = std::apply(
+                        [](const auto&... ii) { return inputs_t{{&ii...}}; },
+                        input_data //
+                    );
+                    auto o = std::apply(
+                        [](auto&... oo) { return outputs_t{{&oo...}}; },
+                        output_data //
+                    );
+                    P p;
+                    p.setup();
+                    p.run(i, o);
+                    p.teardown();
+                }
+
+                std::string tag;
+                headless::Inputs* inputs;
+            };
+
+            struct Factory: ::testing::internal::TestFactoryBase
+            {
+                Factory(std::string init_tag, headless::Inputs* init_inputs)
+                    : tag(std::move(init_tag))
+                    , inputs(init_inputs)
+                {
+                }
+
+                ::testing::Test* CreateTest() override
+                {
+                    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+                    return new XitTest(tag, inputs);
+                }
+
+                std::string tag;
+                headless::Inputs* inputs;
+            };
+
+            testing::internal::MakeAndRegisterTestInfo(
+                suite_id,
+                (test_id + '[' + dir + ']').c_str(),
+                nullptr,
+                nullptr,
+                ::testing::internal::CodeLocation(file, line),
+                ::testing::internal::GetTestTypeId(),
+                ::testing::internal::SuiteApiResolver<XitTest>::GetSetUpCaseOrSuite(file, line),
+                ::testing::internal::SuiteApiResolver<XitTest>::GetTearDownCaseOrSuite(file, line),
+                // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+                new Factory(to_tag(suite_id, test_id, dir), &inputs)
             );
         }
 
@@ -216,13 +319,20 @@ namespace nil::xit::gtest
 
         namespace input
         {
+            struct Frame: IFrame
+            {
+                using IFrame::install;
+                virtual void install(headless::Inputs& inputs) = 0;
+            };
+
             namespace tagged
             {
                 using nil::xit::test::frame::input::tagged::Info;
 
                 template <typename T>
-                struct Frame final: IFrame
+                class Frame final: public input::Frame
                 {
+                public:
                     using type = T;
 
                     Frame(
@@ -230,8 +340,7 @@ namespace nil::xit::gtest
                         std::filesystem::path init_file,
                         std::function<T(std::string_view)> init_initializer
                     )
-                        : IFrame()
-                        , id(std::move(init_id))
+                        : id(std::move(init_id))
                         , file(std::move(init_file))
                         , initializer(std::move(init_initializer))
                     {
@@ -244,6 +353,26 @@ namespace nil::xit::gtest
                         {
                             value_installer(*frame);
                         }
+                    }
+
+                    void install(headless::Inputs& inputs) override
+                    {
+                        struct Cache: headless::Cache<T>
+                        {
+                            explicit Cache(std::function<T(std::string_view)> init_initializer)
+                                : initializer(std::move(init_initializer))
+                            {
+                            }
+
+                            T get(std::string_view tag) const
+                            {
+                                return initializer(tag);
+                            }
+
+                            std::function<T(std::string_view)> initializer;
+                        };
+
+                        inputs.values.emplace(id, std::make_unique<Cache>(initializer));
                     }
 
                     template <typename Getter, typename Setter>
@@ -293,6 +422,7 @@ namespace nil::xit::gtest
                         );
                     }
 
+                private:
                     std::string id;
                     std::filesystem::path file;
                     std::function<T(std::string_view)> initializer;
@@ -305,8 +435,9 @@ namespace nil::xit::gtest
                 using nil::xit::test::frame::input::unique::Info;
 
                 template <typename T>
-                struct Frame final: IFrame
+                class Frame final: public input::Frame
                 {
+                public:
                     using type = T;
 
                     Frame(
@@ -314,8 +445,7 @@ namespace nil::xit::gtest
                         std::filesystem::path init_file,
                         std::function<T()> init_initializer
                     )
-                        : IFrame()
-                        , id(std::move(init_id))
+                        : id(std::move(init_id))
                         , file(std::move(init_file))
                         , initializer(std::move(init_initializer))
                     {
@@ -328,6 +458,26 @@ namespace nil::xit::gtest
                         {
                             value_installer(*frame);
                         }
+                    }
+
+                    void install(headless::Inputs& inputs) override
+                    {
+                        struct Cache: headless::Cache<T>
+                        {
+                            explicit Cache(std::function<T()> init_initializer)
+                                : initializer(std::move(init_initializer))
+                            {
+                            }
+
+                            T get(std::string_view /* tag */) const override
+                            {
+                                return initializer();
+                            }
+
+                            std::function<T()> initializer;
+                        };
+
+                        inputs.values.emplace(id, std::make_unique<Cache>(initializer));
                     }
 
                     template <typename Getter, typename Setter>
@@ -376,6 +526,7 @@ namespace nil::xit::gtest
                         );
                     }
 
+                private:
                     std::string id;
                     std::filesystem::path file;
                     std::function<T()> initializer;
@@ -389,8 +540,9 @@ namespace nil::xit::gtest
             using nil::xit::test::frame::output::Info;
 
             template <typename T>
-            struct Frame final: IFrame
+            class Frame final: public IFrame
             {
+            public:
                 using type = T;
 
                 Frame(std::string init_id, std::filesystem::path init_file)
@@ -447,6 +599,7 @@ namespace nil::xit::gtest
                     return value(std::move(value_id), [](const T& value) { return value; });
                 }
 
+            private:
                 std::string id;
                 std::filesystem::path file;
                 std::vector<std::function<void(Info<T>&)>> values;
@@ -532,7 +685,7 @@ namespace nil::xit::gtest
             {
                 using type = decltype(initializer(std::declval<std::string_view>()));
                 return static_cast<input::tagged::Frame<type>&>(
-                    *frames.emplace_back(std::make_unique<input::tagged::Frame<type>>(
+                    *input_frames.emplace_back(std::make_unique<input::tagged::Frame<type>>(
                         std::move(id),
                         std::move(file),
                         std::move(initializer)
@@ -565,7 +718,7 @@ namespace nil::xit::gtest
             {
                 using type = decltype(initializer());
                 return static_cast<input::unique::Frame<type>&>(
-                    *frames.emplace_back(std::make_unique<input::unique::Frame<type>>(
+                    *input_frames.emplace_back(std::make_unique<input::unique::Frame<type>>(
                         std::move(id),
                         std::move(file),
                         std::move(initializer)
@@ -576,44 +729,68 @@ namespace nil::xit::gtest
             template <typename T>
             auto& create_output(std::string id, std::filesystem::path file, type<T> /* type */ = {})
             {
-                return static_cast<output::Frame<T>&>(*frames.emplace_back(
+                return static_cast<output::Frame<T>&>(*output_frames.emplace_back(
                     std::make_unique<output::Frame<T>>(std::move(id), std::move(file))
                 ));
             }
 
             void install(App& app, const std::filesystem::path& path) const;
+            void install(headless::Inputs& inputs) const;
 
         private:
-            std::vector<std::unique_ptr<IFrame>> frames;
+            std::vector<std::unique_ptr<input::Frame>> input_frames;
+            std::vector<std::unique_ptr<IFrame>> output_frames;
         };
 
         class TestBuilder final
         {
         public:
             template <typename T>
-            void add_test(std::string suite_id, std::string test_id, std::filesystem::path path)
+            void add_test(
+                const std::string& suite_id,
+                const std::string& test_id,
+                const std::filesystem::path& path,
+                const char* file,
+                int line
+            )
             {
-                tests.emplace_back(
-                    [suite_id = std::move(suite_id),
-                     test_id = std::move(test_id),
-                     path = std::move(path)](App& app, const std::filesystem::path& relative_path)
+                tests_ui.emplace_back(
+                    [suite_id, test_id, path] //
+                    (App & app, const std::filesystem::path& relative_path)
                     {
                         for (const auto& dir :
                              std::filesystem::directory_iterator(relative_path / path))
                         {
                             if (dir.is_directory())
                             {
-                                auto tag                             //
-                                    = suite_id                       //
-                                    + '.'                            //
-                                    + test_id                        // NOLINT
-                                    + '['                            //
-                                    + dir.path().filename().string() //
-                                    + ']';
                                 nil::xit::gtest::builders::install<T>(
                                     app,
-                                    tag,
-                                    type<typename T::base_t>()
+                                    type<typename T::base_t>(),
+                                    suite_id,
+                                    test_id,
+                                    dir.path().filename().string()
+                                );
+                            }
+                        }
+                    }
+                );
+                tests_headless.emplace_back(
+                    [suite_id, test_id, path, file, line] //
+                    (headless::Inputs & inputs, const std::filesystem::path& relative_path)
+                    {
+                        for (const auto& dir :
+                             std::filesystem::directory_iterator(relative_path / path))
+                        {
+                            if (dir.is_directory())
+                            {
+                                nil::xit::gtest::builders::install<T>(
+                                    inputs,
+                                    type<typename T::base_t>(),
+                                    suite_id,
+                                    test_id,
+                                    dir.path().filename().string(),
+                                    file,
+                                    line
                                 );
                             }
                         }
@@ -622,9 +799,12 @@ namespace nil::xit::gtest
             }
 
             void install(App& app, const std::filesystem::path& path) const;
+            void install(headless::Inputs& inputs, const std::filesystem::path& path) const;
 
         private:
-            std::vector<std::function<void(App&, const std::filesystem::path&)>> tests;
+            std::vector<std::function<void(App&, const std::filesystem::path&)>> tests_ui;
+            std::vector<std::function<void(headless::Inputs&, const std::filesystem::path&)>>
+                tests_headless;
         };
     }
 
@@ -708,31 +888,17 @@ namespace nil::xit::gtest
 }
 
 template <typename... T>
-struct std::tuple_size<nil::xit::gtest::InputData<T...>>
-    : std::integral_constant<std::size_t, sizeof...(T)>
-{
-};
-
-template <typename... T>
-struct std::tuple_size<nil::xit::gtest::OutputData<T...>>
+struct std::tuple_size<nil::xit::gtest::Data<T...>>
     : std::integral_constant<std::size_t, sizeof...(T)>
 {
 };
 
 template <std::size_t I, typename... T>
     requires(I < sizeof...(T))
-struct std::tuple_element<I, nil::xit::gtest::InputData<T...>>
+struct std::tuple_element<I, nil::xit::gtest::Data<T...>>
 {
-    using type = std::remove_cvref_t<
-        decltype(*std::get<I>(std::declval<nil::xit::gtest::InputData<T...>>().data))>;
-};
-
-template <std::size_t I, typename... T>
-    requires(I < sizeof...(T))
-struct std::tuple_element<I, nil::xit::gtest::OutputData<T...>>
-{
-    using type = std::remove_cvref_t<
-        decltype(*std::get<I>(std::declval<nil::xit::gtest::OutputData<T...>>().data))>;
+    using type = std::remove_cvref_t< //
+        decltype(*std::get<I>(std::declval<nil::xit::gtest::Data<T...>>().data))>;
 };
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -748,14 +914,15 @@ struct std::tuple_element<I, nil::xit::gtest::OutputData<T...>>
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_TEST(SUITE, CASE, DIRECTORY)                                                           \
-    struct xit_test_##SUITE##_##CASE: XIT_WRAP(SUITE)                                              \
+    struct xit_test_##SUITE##_##CASE final: XIT_WRAP(SUITE)                                        \
     {                                                                                              \
         void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) override;                     \
     };                                                                                             \
-    const auto v_xit_test_##SUITE##_##CASE                                                         \
-        = XIT_IIFE(nil::xit::gtest::get_instance()                                                 \
-                       .test_builder.add_test<xit_test_##SUITE##_##CASE>(#SUITE, #CASE, DIRECTORY) \
-        );                                                                                         \
+    const auto v_xit_test_##SUITE##_##CASE = XIT_IIFE(                                             \
+        nil::xit::gtest::get_instance()                                                            \
+            .test_builder                                                                          \
+            .add_test<xit_test_##SUITE##_##CASE>(#SUITE, #CASE, DIRECTORY, __FILE__, __LINE__)     \
+    );                                                                                             \
     void xit_test_##SUITE##_##CASE::run(const inputs_t& xit_inputs, outputs_t& xit_outputs)
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
@@ -770,9 +937,9 @@ struct std::tuple_element<I, nil::xit::gtest::OutputData<T...>>
 #define XIT_FRAME_DETAIL(ID, IMPL)                                                                 \
     template <>                                                                                    \
     struct nil::xit::gtest::Frame<ID>                                                              \
-        : nil::xit::gtest::                                                                        \
-              Frame<ID, std::remove_cvref_t<decltype(nil::xit::gtest::get_instance().IMPL)>::type> \
     {                                                                                              \
+        using type = std::remove_cvref_t<decltype(nil::xit::gtest::get_instance().IMPL)>::type;    \
+        static constexpr auto* value = ID;                                                         \
     };                                                                                             \
     const auto& XIT_CONCAT(xit_test_frame_, __COUNTER__) = nil::xit::gtest::get_instance().IMPL
 

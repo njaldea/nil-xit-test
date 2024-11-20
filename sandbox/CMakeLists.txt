@@ -7,6 +7,7 @@ endif()
 
 find_package(nil-clix CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 add_executable(
     ${PROJECT_NAME}
@@ -19,4 +20,5 @@ add_executable(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE xit-test)
 target_link_libraries(${PROJECT_NAME} PRIVATE nil::clix)
+target_link_libraries(${PROJECT_NAME} PRIVATE GTest::gtest)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
