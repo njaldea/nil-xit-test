@@ -49,7 +49,12 @@ XIT_FRAME_TAGGED_INPUT(
 )
     .value("value");
 
-XIT_FRAME_UNIQUE_INPUT("slider_frame", "gui/Slider.svelte", Ranges(3, 2, 1))
+// XIT_FRAME_UNIQUE_INPUT("slider_frame", "gui/Slider.svelte", Ranges(3, 2, 1))
+XIT_FRAME_UNIQUE_INPUT(
+    "slider_frame",
+    "gui/Slider.svelte",
+    from_file("files", "slider_frame", &as_range)
+)
     .value("value-1", &Ranges::v1)
     .value("value-2", &Ranges::v2)
     .value("value-3", &Ranges::v3);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "xit_gtest.hpp"
+#include <nil/xit/gtest.hpp>
 
 #include <nil/xit/buffer_type.hpp>
 
@@ -50,4 +50,6 @@ auto from_json_ptr(const std::string& json_ptr)
     return Accessor{nlohmann::json::json_pointer(json_ptr)};
 }
 
+using nil::xit::gtest::from_data;
 using nil::xit::gtest::from_file;
+using nil::xit::gtest::from_member;

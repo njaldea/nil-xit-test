@@ -1,14 +1,18 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "dependencies": [ "nil-xit", "nil-gate" ],
+    "dependencies": ["nil-xit", "nil-gate"],
     "features": {
+        "gtest": {
+            "description": "GTest adapter",
+            "dependencies": ["nil-clix", "gtest"]
+        },
         "test": {
             "description": "Enable tests",
             "dependencies": ["gtest"]
         },
         "sandbox": {
             "description": "sandbox",
-            "dependencies": ["nlohmann-json", "nil-clix"]
+            "dependencies": ["nlohmann-json"]
         }
     }
 }

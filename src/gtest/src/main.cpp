@@ -1,4 +1,4 @@
-#include "xit_gtest.hpp"
+#include <nil/xit/gtest.hpp>
 
 #include <nil/service/ID.hpp>
 #include <nil/service/structs.hpp>
@@ -13,68 +13,6 @@
 
 namespace nil::xit::gtest
 {
-    namespace builders
-    {
-        std::string to_tag(
-            const std::string& suite_id,
-            const std::string& test_id,
-            const std::string& dir
-        )
-        {
-            return suite_id + '.' + test_id + '[' + dir + ']';
-        }
-
-        void MainBuilder::install(App& app, const std::filesystem::path& path) const
-        {
-            if (frame)
-            {
-                frame->install(app, path);
-            }
-        }
-
-        void FrameBuilder::install(App& app, const std::filesystem::path& path) const
-        {
-            for (const auto& frame : input_frames)
-            {
-                frame->install(app, path);
-            }
-            for (const auto& frame : output_frames)
-            {
-                frame->install(app, path);
-            }
-        }
-
-        void FrameBuilder::install(headless::Inputs& inputs) const
-        {
-            for (const auto& frame : input_frames)
-            {
-                frame->install(inputs);
-            }
-        }
-
-        void TestBuilder::install(App& app, const std::filesystem::path& path) const
-        {
-            for (const auto& t : tests_ui)
-            {
-                t(app, path);
-            }
-        }
-
-        void TestBuilder::install(headless::Inputs& inputs, const std::filesystem::path& path) const
-        {
-            for (const auto& t : tests_headless)
-            {
-                t(inputs, path);
-            }
-        }
-    }
-
-    inline Instances& get_instance()
-    {
-        static auto instance = Instances{};
-        return instance;
-    }
-
     int main(int argc, const char** argv)
     {
         auto node = nil::clix::create_node();
