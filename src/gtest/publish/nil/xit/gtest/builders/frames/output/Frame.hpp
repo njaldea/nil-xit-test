@@ -52,14 +52,14 @@ namespace nil::xit::gtest::builders::output
         {
             return value(
                 std::move(value_id),
-                [accessor](const T& value) { return accessor.get(value); }
+                [accessor = std::move(accessor)](const T& value) { return accessor.get(value); }
             );
         }
 
         template <typename U>
         Frame<T>& value(std::string value_id, U T::*member)
         {
-            return value(std::move(value_id), from_member(member));
+            return value(std::move(value_id), [member](const T& value) { return value.*member; });
         }
 
         Frame<T>& value(std::string value_id)

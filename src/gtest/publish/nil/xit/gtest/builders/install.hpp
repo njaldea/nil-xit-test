@@ -4,6 +4,8 @@
 #include "../headless/Inputs.hpp"
 #include "../type.hpp"
 
+#include <nil/xit/test/App.hpp>
+
 #include <gtest/gtest.h>
 
 #include <string>

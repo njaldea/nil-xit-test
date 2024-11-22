@@ -33,6 +33,50 @@ namespace nil::xit::test::frame::input::unique
             return info.input;
         }
 
+        template <typename V, typename Accessor>
+            requires requires(const Accessor& accessor) {
+                { accessor.get(std::declval<const T&>()) } -> std::same_as<V>;
+                { accessor.set(std::declval<T&>(), std::declval<V>()) } -> std::same_as<void>;
+            }
+        void add_value(std::string id, Accessor accessor)
+        {
+            struct XitAccessor: nil::xit::unique::IAccessor<V>
+            {
+                XitAccessor(Info* init_parent, Accessor init_accessor)
+                    : parent(init_parent)
+                    , accessor(std::move(init_accessor))
+                {
+                }
+
+                V get() const override
+                {
+                    if (!parent->info.data.has_value())
+                    {
+                        parent->info.data = parent->initializer();
+                        parent->info.input->set_value(parent->info.data.value());
+                        parent->gate->commit();
+                    }
+                    return accessor.get(parent->info.data.value());
+                }
+
+                void set(V new_data) const override
+                {
+                    accessor.set(parent->info.data.value(), std::move(new_data));
+                    parent->info.input->set_value(parent->info.data.value());
+                    parent->gate->commit();
+                }
+
+                Info* parent;
+                Accessor accessor;
+            };
+
+            nil::xit::unique::add_value(
+                *frame,
+                std::move(id),
+                std::make_unique<XitAccessor>(this, std::move(accessor))
+            );
+        }
+
         template <typename V, typename Getter, typename Setter>
             requires requires(Getter g, Setter s) {
                 { g(std::declval<const T&>()) } -> std::same_as<V>;
@@ -40,26 +84,29 @@ namespace nil::xit::test::frame::input::unique
             }
         void add_value(std::string id, Getter getter, Setter setter)
         {
-            nil::xit::unique::add_value(
-                *frame,
-                id,
-                [this, getter = std::move(getter)]()
+            struct Accessor
+            {
+                Accessor(Getter init_getter, Setter init_setter)
+                    : getter(std::move(init_getter))
+                    , setter(std::move(init_setter))
                 {
-                    if (!info.data.has_value())
-                    {
-                        info.data = this->initializer();
-                        info.input->set_value(info.data.value());
-                        gate->commit();
-                    }
-                    return getter(info.data.value());
-                },
-                [this, setter = std::move(setter)](V new_data)
-                {
-                    setter(info.data.value(), std::move(new_data));
-                    info.input->set_value(info.data.value());
-                    gate->commit();
                 }
-            );
+
+                V get(const T& value) const
+                {
+                    return getter(value);
+                }
+
+                void set(T& value, V new_value) const
+                {
+                    setter(value, std::move(new_value));
+                }
+
+                Getter getter;
+                Setter setter;
+            };
+
+            add_value<V>(std::move(id), Accessor(std::move(getter), std::move(setter)));
         }
     };
 }

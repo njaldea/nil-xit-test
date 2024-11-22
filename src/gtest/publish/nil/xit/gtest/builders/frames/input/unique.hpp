@@ -79,12 +79,11 @@ namespace nil::xit::gtest::builders::input::unique
         Frame<T>& value(std::string value_id, Accessor accessor)
         {
             using getter_return_t = decltype(accessor.get(std::declval<const T&>()));
-            return value(
-                std::move(value_id),
-                [accessor](const T& value) { return accessor.get(value); },
-                [accessor](T& value, getter_return_t new_value)
-                { return accessor.set(value, std::move(new_value)); }
+            values.emplace_back( //
+                [value_id = std::move(value_id), accessor = std::move(accessor)](Info<T>& info)
+                { info.template add_value<getter_return_t>(value_id, accessor); }
             );
+            return *this;
         }
 
         template <typename U>

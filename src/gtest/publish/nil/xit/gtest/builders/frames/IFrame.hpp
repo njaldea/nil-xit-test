@@ -35,5 +35,4 @@ namespace nil::xit::gtest::builders
             setter(std::declval<T&>(), std::declval<decltype(getter(std::declval<const T&>()))>())
         } -> std::same_as<void>;
     };
-
 }

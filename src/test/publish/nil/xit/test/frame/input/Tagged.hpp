@@ -37,6 +37,59 @@ namespace nil::xit::test::frame::input::tagged
                 .first->second.input;
         }
 
+        template <typename V, typename Accessor>
+            requires requires(const Accessor& accessor) {
+                { accessor.get(std::declval<const T&>()) } -> std::same_as<V>;
+                { accessor.set(std::declval<T&>(), std::declval<V>()) } -> std::same_as<void>;
+            }
+        void add_value(std::string id, Accessor accessor)
+        {
+            struct XitAccessor: nil::xit::tagged::IAccessor<V>
+            {
+                XitAccessor(Info* init_parent, Accessor init_accessor)
+                    : parent(init_parent)
+                    , accessor(std::move(init_accessor))
+                {
+                }
+
+                V get(std::string_view tag) const override
+                {
+                    if (auto it = parent->info.find(tag); it != parent->info.end())
+                    {
+                        auto& entry = it->second;
+                        if (!entry.data.has_value())
+                        {
+                            entry.data = parent->initializer(tag);
+                            entry.input->set_value(entry.data.value());
+                            parent->gate->commit();
+                        }
+                        return accessor.get(entry.data.value());
+                    }
+                    return V();
+                }
+
+                void set(std::string_view tag, V new_data) const override
+                {
+                    if (auto it = parent->info.find(tag); it != parent->info.end())
+                    {
+                        auto& entry = it->second;
+                        accessor.set(entry.data.value(), std::move(new_data));
+                        entry.input->set_value(entry.data.value());
+                        parent->gate->commit();
+                    }
+                }
+
+                Info* parent;
+                Accessor accessor;
+            };
+
+            nil::xit::tagged::add_value(
+                *frame,
+                std::move(id),
+                std::make_unique<XitAccessor>(this, std::move(accessor))
+            );
+        }
+
         template <typename V, typename Getter, typename Setter>
             requires requires(Getter g, Setter s) {
                 { g(std::declval<const T&>()) } -> std::same_as<V>;
@@ -44,35 +97,29 @@ namespace nil::xit::test::frame::input::tagged
             }
         void add_value(std::string id, Getter getter, Setter setter)
         {
-            nil::xit::tagged::add_value(
-                *frame,
-                id,
-                [this, getter = std::move(getter)](std::string_view tag)
+            struct Accessor
+            {
+                Accessor(Getter init_getter, Setter init_setter)
+                    : getter(std::move(init_getter))
+                    , setter(std::move(init_setter))
                 {
-                    if (auto it = info.find(tag); it != info.end())
-                    {
-                        auto& entry = it->second;
-                        if (!entry.data.has_value())
-                        {
-                            entry.data = initializer(tag);
-                            entry.input->set_value(entry.data.value());
-                            gate->commit();
-                        }
-                        return getter(entry.data.value());
-                    }
-                    return V();
-                },
-                [this, setter = std::move(setter)](std::string_view tag, V new_data)
-                {
-                    if (auto it = info.find(tag); it != info.end())
-                    {
-                        auto& entry = it->second;
-                        setter(entry.data.value(), std::move(new_data));
-                        entry.input->set_value(entry.data.value());
-                        gate->commit();
-                    }
                 }
-            );
+
+                V get(const T& value) const
+                {
+                    return getter(value);
+                }
+
+                void set(T& value, V new_value) const
+                {
+                    setter(value, std::move(new_value));
+                }
+
+                Getter getter;
+                Setter setter;
+            };
+
+            this->add_value<V>(std::move(id), Accessor(std::move(getter), std::move(setter)));
         }
     };
 }
