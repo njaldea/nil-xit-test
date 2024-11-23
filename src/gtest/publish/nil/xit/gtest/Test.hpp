@@ -21,6 +21,17 @@ namespace nil::xit::gtest
 
     template <StringLiteral S>
     struct Frame;
+
+    template <>
+    struct Frame<"demo">
+    {
+    };
+
+    template <>
+    struct Frame<"frame_info">
+    {
+    };
+
     template <StringLiteral... T>
     struct Input;
     template <StringLiteral... T>

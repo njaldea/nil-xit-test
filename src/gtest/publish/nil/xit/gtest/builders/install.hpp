@@ -28,8 +28,10 @@ namespace nil::xit::gtest::builders
     )
     {
         using base_t = Test<Input<I...>, Output<O...>>;
+        const auto tag = to_tag(suite_id, test_id, dir);
+        app.add_info(tag, {I.value...}, {O.value...});
         app.add_node(
-            to_tag(suite_id, test_id, dir),
+            tag,
             [](const typename Frame<I>::type&... args) -> std::tuple<typename Frame<O>::type...>
             {
                 using inputs_t = typename base_t::inputs_t;

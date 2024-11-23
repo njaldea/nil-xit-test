@@ -2,16 +2,13 @@
 
 <script>
     import { xit, json_string } from "@nil-/xit";
+    import { get } from "svelte/store";
 
-    const { values, loader } = xit();
+    const { values, frame, frame_ui } = xit();
     /** @type import("@nil-/xit").Writable<string[]> */
     const tags = values.json("tags", [], json_string);
-    /** @type import("@nil-/xit").Writable<string[]> */
-    const inputs = values.json("inputs", [], json_string);
-    /** @type import("@nil-/xit").Writable<string[]> */
-    const outputs = values.json("outputs", [], json_string);
-    let selected = $state(-1);
 
+    let selected = $state(-1);
     let sorted_tags = $state($tags.sort());
     tags.subscribe(v => sorted_tags = v.sort());
 </script>
@@ -30,29 +27,35 @@
     {#key selected}
         {#if 0 <= selected && selected < $tags.length}
             {@const tag = $tags[selected]}
-            {@const i_actions = Promise.all($inputs.map(v => loader.one(v, tag)))}
-            {@const o_actions = Promise.all($outputs.map(v => loader.one(v, tag)))}
-            {#await Promise.all([ i_actions, o_actions ])}
-                <div>Loading...</div>
-            {:then [ input_actions, output_actions ]}
-                <div class="root-content">
-                    <div class="outputs">
-                        {#await output_actions then a}
-                            {#each a as action}
-                                <div style="display: contents" use:action></div>
-                            {/each}
-                        {/await}
+            {#await frame("frame_info", tag)}
+                <span>loading frame_info</span>
+            {:then { values, signals }}
+                {@const inputs = values.json("inputs", [], json_string)}
+                {@const outputs = values.json("outputs", [], json_string)}
+                {@const i_actions = Promise.all(get(inputs).map(v => frame_ui(v, tag)))}
+                {@const o_actions = Promise.all(get(outputs).map(v => frame_ui(v, tag)))}
+                {#await Promise.all([ i_actions, o_actions ])}
+                    <div>Loading...</div>
+                {:then [ input_actions, output_actions ]}
+                    <div class="root-content">
+                        <div class="outputs">
+                            {#await output_actions then a}
+                                {#each a as action, i (i)}
+                                    <div style="display: contents" use:action></div>
+                                {/each}
+                            {/await}
+                        </div>
+                        <div class="inputs">
+                            {#await input_actions then a}
+                                {#each a as action, i (i)}
+                                    <div style="display: contents" use:action></div>
+                                {/each}
+                            {/await}
+                        </div>
                     </div>
-                    <div class="inputs">
-                        {#await input_actions then a}
-                            {#each a as action}
-                                <div style="display: contents" use:action></div>
-                            {/each}
-                        {/await}
-                    </div>
-                </div>
-            {:catch}
-                <div>Error during loading...</div>
+                {:catch}
+                    <div>Error during loading...</div>
+                {/await}
             {/await}
         {:else}
             <div>Nothing to load...</div>

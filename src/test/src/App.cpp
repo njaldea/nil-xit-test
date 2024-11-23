@@ -25,4 +25,22 @@ namespace nil::xit::test
     {
         return tags;
     }
+
+    const std::vector<std::string>& App::installed_frame_inputs(std::string_view tag) const
+    {
+        if (auto it = frame_inputs.find(tag); it != frame_inputs.end())
+        {
+            return it->second;
+        }
+        return blank;
+    }
+
+    const std::vector<std::string>& App::installed_frame_outputs(std::string_view tag) const
+    {
+        if (auto it = frame_outputs.find(tag); it != frame_outputs.end())
+        {
+            return it->second;
+        }
+        return blank;
+    }
 }

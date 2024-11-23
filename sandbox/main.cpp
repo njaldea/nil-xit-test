@@ -64,15 +64,15 @@ XIT_FRAME_OUTPUT("view_frame", "gui/ViewFrame.svelte", nlohmann::json)
     .value("value-y", from_json_ptr("/y"));
 
 using Sample = nil::xit::gtest::Test<
-    nil::xit::gtest::Input<"input_frame", "slider_frame">,
+    nil::xit::gtest::Input<"slider_frame", "input_frame">,
     nil::xit::gtest::Output<"view_frame">>;
 
 XIT_TEST(Sample, Demo, "files")
 {
-    const auto& [input_data, ranges] = xit_inputs;
-    //           ┃           ┃         ┗━━━ from Input<"input_frame", "slider_frame">
-    //           ┃           ┗━━━ type == Ranges
-    //           ┗━━━ type == nlohmann::json
+    const auto& [ranges, input_data] = xit_inputs;
+    //           ┃           ┃         ┗━━━ from Input<"slider_frame", "input_frame">
+    //           ┃           ┗━━━ type == nlohmann::json
+    //           ┗━━━ type == Ranges
 
     auto& [view] = xit_outputs;
     //     ┃       ┗━━━ from Output<"view_frame">
@@ -82,6 +82,22 @@ XIT_TEST(Sample, Demo, "files")
     view["y"][0] = std::int64_t(input_data["y"][0]) * ranges.v1;
     view["y"][1] = std::int64_t(input_data["y"][1]) * ranges.v2;
     view["y"][2] = std::int64_t(input_data["y"][2]) * ranges.v3;
+}
+
+using PassThrough = nil::xit::gtest::
+    Test<nil::xit::gtest::Input<"input_frame">, nil::xit::gtest::Output<"view_frame">>;
+
+XIT_TEST(PassThrough, Demo, "files")
+{
+    const auto& [input_data] = xit_inputs;
+    //           ┃             ┗━━━ from Input<"input_frame">
+    //           ┗━━━ type == nlohmann::json
+
+    auto& [view] = xit_outputs;
+    //     ┃       ┗━━━ from Output<"view_frame">
+    //     ┗━━━ type == nlohmann::json
+
+    view = input_data;
 }
 
 // TODO:

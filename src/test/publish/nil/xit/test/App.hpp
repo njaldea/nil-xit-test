@@ -9,6 +9,7 @@
 #include <nil/xit/structs.hpp>
 
 #include <filesystem>
+#include <string_view>
 
 namespace nil::xit::test
 {
@@ -25,6 +26,19 @@ namespace nil::xit::test
         App& operator=(const App&) = delete;
 
         const std::vector<std::string>& installed_tags() const;
+        const std::vector<std::string>& installed_frame_inputs(std::string_view tag) const;
+        const std::vector<std::string>& installed_frame_outputs(std::string_view tag) const;
+
+        void add_info(
+            std::string_view tag,
+            std::vector<std::string> inputs,
+            std::vector<std::string> outputs
+        )
+        {
+            tags.emplace_back(tag);
+            frame_inputs.emplace(tag, std::move(inputs));
+            frame_outputs.emplace(tag, std::move(outputs));
+        }
 
         template <typename FromVS>
             requires requires(FromVS converter) {
@@ -32,10 +46,25 @@ namespace nil::xit::test
             }
         void add_main(const std::filesystem::path& path, FromVS converter)
         {
-            auto& f = add_unique_frame(xit, "demo", path);
-            add_value(f, "tags", [=, this]() { return converter(installed_tags()); });
-            add_value(f, "outputs", [=]() { return converter({"view_frame"}); });
-            add_value(f, "inputs", [=]() { return converter({"slider_frame", "input_frame"}); });
+            {
+                auto& f = add_unique_frame(xit, "demo", path);
+                add_value(f, "tags", [=, this]() { return converter(installed_tags()); });
+            }
+            {
+                auto& f = add_tagged_frame(xit, "frame_info");
+                add_value(
+                    f,
+                    "inputs",
+                    [=, this](std::string_view tag)
+                    { return converter(installed_frame_inputs(tag)); }
+                );
+                add_value(
+                    f,
+                    "outputs",
+                    [=, this](std::string_view tag)
+                    { return converter(installed_frame_outputs(tag)); }
+                );
+            }
         }
 
         template <typename T>
@@ -95,7 +124,6 @@ namespace nil::xit::test
             std::tuple<Outputs...> outputs
         )
         {
-            tags.emplace_back(tag);
             auto gate_outputs = gate.node(
                 std::move(callable),
                 std::apply(
@@ -153,6 +181,9 @@ namespace nil::xit::test
         transparent::hash_map<std::unique_ptr<frame::IInfo>> output_frames;
 
         std::vector<std::string> tags;
+        transparent::hash_map<std::vector<std::string>> frame_inputs;
+        transparent::hash_map<std::vector<std::string>> frame_outputs;
+        std::vector<std::string> blank;
 
         template <typename T>
         T* make_frame(std::string_view id, auto& frames)

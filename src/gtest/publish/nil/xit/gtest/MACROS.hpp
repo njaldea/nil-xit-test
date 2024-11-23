@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Instances.hpp" // IWYU pragma: keep
+#include "Test.hpp"      // IWYU pragma: keep
+
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_WRAP(A) A
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
