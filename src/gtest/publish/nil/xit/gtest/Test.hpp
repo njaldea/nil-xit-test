@@ -23,7 +23,7 @@ namespace nil::xit::gtest
     struct Frame;
 
     template <>
-    struct Frame<"demo">
+    struct Frame<"index">
     {
     };
 

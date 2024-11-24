@@ -21,10 +21,6 @@
     };
 </script>
 
-<svelte:head>
-    <title>nil - xit - view</title>
-</svelte:head>
-
 {#if $value_x != null && $value_y != null}
     <div use:plot_it={[{ x: $value_x, y:$value_y, type: "bar"}]}></div>
 {/if}

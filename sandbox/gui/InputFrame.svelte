@@ -48,8 +48,4 @@
     };
 </script>
 
-<svelte:head>
-    <title>nil - xit - editor</title>
-</svelte:head>
-
 <div style="display: contents" use:json_editor></div>

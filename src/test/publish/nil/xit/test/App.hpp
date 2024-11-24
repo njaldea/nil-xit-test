@@ -16,7 +16,7 @@ namespace nil::xit::test
     class App
     {
     public:
-        App(nil::service::S& service, std::string_view app_name);
+        App(nil::service::S service, std::string_view app_name);
         App(nil::service::HTTPService& service, std::string_view app_name);
 
         ~App() noexcept = default;
@@ -47,7 +47,7 @@ namespace nil::xit::test
         void add_main(const std::filesystem::path& path, FromVS converter)
         {
             {
-                auto& f = add_unique_frame(xit, "demo", path);
+                auto& f = add_unique_frame(xit, "index", path);
                 add_value(f, "tags", [=, this]() { return converter(installed_tags()); });
             }
             {

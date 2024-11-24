@@ -1,20 +1,34 @@
-<svelte:options runes/>
-
 <script>
     import { xit, json_string } from "@nil-/xit";
     import { get } from "svelte/store";
 
-    const { values, frame, frame_ui } = xit();
+    const { values, frame, frame_ui, unsub } = xit();
     /** @type import("@nil-/xit").Writable<string[]> */
     const tags = values.json("tags", [], json_string);
 
     let selected = $state(-1);
     let sorted_tags = $state($tags.sort());
-    tags.subscribe(v => sorted_tags = v.sort());
+    tags.subscribe(v => {
+        unsub();
+        sorted_tags = v.sort();
+    });
+
+    const load_frame = async (tag) => {
+        const { values, unsub } = await frame("frame_info", tag);
+        /** @type import("@nil-/xit").Writable<string[]> */
+        const inputs = values.json("inputs", [], json_string);
+        /** @type import("@nil-/xit").Writable<string[]> */
+        const outputs = values.json("outputs", [], json_string);
+        unsub();
+        return Promise.all([ 
+            Promise.all(get(inputs).map(v => frame_ui(v, tag))), 
+            Promise.all(get(outputs).map(v => frame_ui(v, tag)))
+        ]);
+    };
 </script>
 
 <svelte:head>
-    <title>nil - xit</title>
+    <title>nil - xit {0 <= selected && selected < $tags.length ? `- ${$tags[selected]}` : ""}</title>
 </svelte:head>
 
 <div class="root">
@@ -26,36 +40,27 @@
 
     {#key selected}
         {#if 0 <= selected && selected < $tags.length}
-            {@const tag = $tags[selected]}
-            {#await frame("frame_info", tag)}
-                <span>loading frame_info</span>
-            {:then { values, signals }}
-                {@const inputs = values.json("inputs", [], json_string)}
-                {@const outputs = values.json("outputs", [], json_string)}
-                {@const i_actions = Promise.all(get(inputs).map(v => frame_ui(v, tag)))}
-                {@const o_actions = Promise.all(get(outputs).map(v => frame_ui(v, tag)))}
-                {#await Promise.all([ i_actions, o_actions ])}
-                    <div>Loading...</div>
-                {:then [ input_actions, output_actions ]}
-                    <div class="root-content">
-                        <div class="outputs">
-                            {#await output_actions then a}
-                                {#each a as action, i (i)}
-                                    <div style="display: contents" use:action></div>
-                                {/each}
-                            {/await}
-                        </div>
-                        <div class="inputs">
-                            {#await input_actions then a}
-                                {#each a as action, i (i)}
-                                    <div style="display: contents" use:action></div>
-                                {/each}
-                            {/await}
-                        </div>
+            {#await load_frame($tags[selected])}
+                <div>Loading...</div>
+            {:then [ input_actions, output_actions ]}
+                <div class="root-content">
+                    <div class="outputs">
+                        {#await output_actions then a}
+                            {#each a as action}
+                                <div style="display: contents" use:action></div>
+                            {/each}
+                        {/await}
                     </div>
-                {:catch}
-                    <div>Error during loading...</div>
-                {/await}
+                    <div class="inputs">
+                        {#await input_actions then a}
+                            {#each a as action}
+                                <div style="display: contents" use:action></div>
+                            {/each}
+                        {/await}
+                    </div>
+                </div>
+            {:catch}
+                <div>Error during loading...</div>
             {/await}
         {:else}
             <div>Nothing to load...</div>

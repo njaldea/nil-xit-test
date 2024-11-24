@@ -5,7 +5,7 @@
 
 namespace nil::xit::test
 {
-    App::App(nil::service::S& service, std::string_view app_name)
+    App::App(nil::service::S service, std::string_view app_name)
         : xit(nil::xit::make_core(service))
     {
         gate.set_runner<nil::gate::runners::NonBlocking>();

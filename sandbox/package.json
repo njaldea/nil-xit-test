@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@nil-/xit": "^0.1.20",
+    "@nil-/xit": "^0.1.24",
     "@types/plotly.js": "^2.35.0",
     "svelte": "^5.2.7",
     "vanilla-jsoneditor": "^1.1.2"

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@nil-/xit':
-        specifier: ^0.1.20
-        version: 0.1.20
+        specifier: ^0.1.24
+        version: 0.1.24
       '@types/plotly.js':
         specifier: ^2.35.0
         version: 2.35.0
@@ -114,8 +114,8 @@ packages:
   '@lezer/lr@1.4.2':
     resolution: {integrity: sha512-pu0K1jCIdnQ12aWNaAVU5bzi7Bd1w54J3ECgANPmYLtQKP0HBj2cE/5coBD66MT10xbtIuUr7tg0Shbsvk0mDA==}
 
-  '@nil-/xit@0.1.20':
-    resolution: {integrity: sha512-DafPXAAqqrlZhkTMQFwjot9DbsP7TC71VSoKVKDVukt/CKvkNgeKpCFFplGFOYvZhYj6NqSGDyfi/gDvDqgS9g==}
+  '@nil-/xit@0.1.24':
+    resolution: {integrity: sha512-Lyy6i9A8dBrGKLGTqxa4egU45aDLgYQjLlQZOxHQEAE6FSt99LyNp8KaSpBzdtoSieLQpGaG/W2puJqSOS4w3w==}
 
   '@parcel/watcher-android-arm64@2.5.0':
     resolution: {integrity: sha512-qlX4eS28bUcQCdribHkg/herLe+0A9RyYC+mm2PXpncit8z5b3nSqGVzMNR3CmtAOgRutiZ02eIJJgP/b1iEFQ==}
@@ -517,7 +517,7 @@ snapshots:
     dependencies:
       '@lezer/common': 1.2.3
 
-  '@nil-/xit@0.1.20': {}
+  '@nil-/xit@0.1.24': {}
 
   '@parcel/watcher-android-arm64@2.5.0':
     optional: true
