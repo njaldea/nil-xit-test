@@ -9,12 +9,12 @@ namespace nil::xit::gtest
     {
         struct Loader final
         {
-            auto load(std::string_view /* tag */) const
+            auto initialize() const
             {
                 return data;
             }
 
-            auto load() const
+            auto initialize(std::string_view /* tag */) const
             {
                 return data;
             }

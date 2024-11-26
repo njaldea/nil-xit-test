@@ -7,6 +7,7 @@
     const value_x = values.json("value-x", null, json_string);
     const value_y = values.json("value-y", null, json_string);
 
+    /** @type import("svelte/action").Action<HTMLDivElement, any[]> */
     const plot_it = (target, props) => {
         window.Plotly.newPlot(target, props);
         const observer = new ResizeObserver(() => window.Plotly.Plots.resize(target));

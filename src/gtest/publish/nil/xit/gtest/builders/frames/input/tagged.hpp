@@ -19,7 +19,7 @@ namespace nil::xit::gtest::builders::input::tagged
         Frame(
             std::string init_id,
             std::filesystem::path init_file,
-            std::function<std::unique_ptr<typename Info<T>::IDataLoader>()> init_loader_creator
+            std::function<std::unique_ptr<typename Info<T>::IDataManager>()> init_loader_creator
         )
             : id(std::move(init_id))
             , file(std::move(init_file))
@@ -42,21 +42,21 @@ namespace nil::xit::gtest::builders::input::tagged
 
         void install(headless::Inputs& inputs) override
         {
-            using IDataLoader = Info<T>::IDataLoader;
+            using IDataManager = Info<T>::IDataManager;
 
             struct Cache: headless::Cache<T>
             {
-                explicit Cache(std::unique_ptr<IDataLoader> init_loader)
-                    : loader(std::move(init_loader))
+                explicit Cache(std::unique_ptr<IDataManager> init_manager)
+                    : manager(std::move(init_manager))
                 {
                 }
 
                 T get(std::string_view tag) const
                 {
-                    return loader->load(tag);
+                    return manager->initialize(tag);
                 }
 
-                std::unique_ptr<IDataLoader> loader;
+                std::unique_ptr<IDataManager> manager;
             };
 
             inputs.values.emplace(id, std::make_unique<Cache>(loader_creator()));
@@ -123,7 +123,7 @@ namespace nil::xit::gtest::builders::input::tagged
     private:
         std::string id;
         std::filesystem::path file;
-        std::function<std::unique_ptr<typename Info<T>::IDataLoader>()> loader_creator;
+        std::function<std::unique_ptr<typename Info<T>::IDataManager>()> loader_creator;
         std::vector<std::function<void(Info<T>&)>> values;
         std::vector<std::function<void(Info<T>&)>> signals;
     };

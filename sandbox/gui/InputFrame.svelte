@@ -2,12 +2,11 @@
     import { createJSONEditor } from 'vanilla-jsoneditor/standalone.js'
     import { xit, json_string } from "@nil-/xit";
 
-    const { values, signals } = xit();
+    const { values } = xit();
 
     const buf_value = values.json('value', {}, json_string);
 
-    const save = signals.none("save");
-
+    /** @type (target: HTMLDivElement) => { destroy: () => void }*/
     const json_editor = (target) => {
         let is_notified = true;
         const editor = createJSONEditor({
@@ -49,16 +48,5 @@
         };
     };
 </script>
-
-<svelte:window
-    onkeydown={
-        (event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-                save();
-                event.preventDefault();
-            }
-        }
-    }
-/>
 
 <div style="display: contents" use:json_editor></div>

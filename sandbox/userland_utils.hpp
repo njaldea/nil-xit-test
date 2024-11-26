@@ -55,6 +55,6 @@ auto from_json_ptr(const std::string& json_ptr)
 
 using nil::xit::gtest::from_data;
 using nil::xit::gtest::from_file;
-using nil::xit::gtest::from_file_rw;
+using nil::xit::gtest::from_file_with_finalize;
+using nil::xit::gtest::from_file_with_update;
 using nil::xit::gtest::from_member;
-using nil::xit::gtest::to_file;

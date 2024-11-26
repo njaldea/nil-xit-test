@@ -18,17 +18,22 @@ namespace nil::xit::gtest::builders
 {
     template <typename T>
     concept is_loader_unique = requires(T loader) {
-        { loader.load() };
+        { loader.initialize() };
     };
 
     template <typename T>
     concept is_loader_tagged = requires(T loader) {
-        { loader.load(std::declval<std::string_view>()) };
+        { loader.initialize(std::declval<std::string_view>()) };
     };
 
     template <typename T, typename... Args>
     concept has_update = requires(T loader) {
         { loader.update(std::declval<Args>()...) };
+    };
+
+    template <typename T, typename... Args>
+    concept has_finalize = requires(T loader) {
+        { loader.finalize(std::declval<Args>()...) };
     };
 
     class FrameBuilder final
@@ -50,19 +55,19 @@ namespace nil::xit::gtest::builders
         auto& create_tagged_input(std::string id, std::filesystem::path file, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
-            using type = std::remove_cvref_t<decltype(loader().load(std::string_view()))>;
-            using IDataLoader = xit::test::frame::input::tagged::Info<type>::IDataLoader;
+            using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
+            using IDataManager = xit::test::frame::input::tagged::Info<type>::IDataManager;
 
-            struct DataLoader: IDataLoader
+            struct DataManager: IDataManager
             {
-                explicit DataLoader(loader_t init_loader)
+                explicit DataManager(loader_t init_loader)
                     : loader(std::move(init_loader))
                 {
                 }
 
-                type load(std::string_view tag) const override
+                type initialize(std::string_view tag) const override
                 {
-                    return loader.load(tag);
+                    return loader.initialize(tag);
                 }
 
                 void update(std::string_view tag, const type& value) const override
@@ -73,6 +78,14 @@ namespace nil::xit::gtest::builders
                     }
                 }
 
+                void finalize(std::string_view tag, const type& value) const override
+                {
+                    if constexpr (has_finalize<loader_t, std::string_view, type>)
+                    {
+                        loader.finalize(tag, value);
+                    }
+                }
+
                 loader_t loader;
             };
 
@@ -80,8 +93,8 @@ namespace nil::xit::gtest::builders
                 *input_frames.emplace_back(std::make_unique<input::tagged::Frame<type>>(
                     std::move(id),
                     std::move(file),
-                    [loader = std::move(loader)]() -> std::unique_ptr<IDataLoader>
-                    { return std::make_unique<DataLoader>(loader()); }
+                    [loader = std::move(loader)]() -> std::unique_ptr<DataManager>
+                    { return std::make_unique<DataManager>(loader()); }
                 ))
             );
         }
@@ -102,19 +115,19 @@ namespace nil::xit::gtest::builders
         auto& create_unique_input(std::string id, std::filesystem::path file, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
-            using type = std::remove_cvref_t<decltype(loader().load())>;
-            using IDataLoader = xit::test::frame::input::unique::Info<type>::IDataLoader;
+            using type = std::remove_cvref_t<decltype(loader().initialize())>;
+            using IDataManager = xit::test::frame::input::unique::Info<type>::IDataManager;
 
-            struct DataLoader: IDataLoader
+            struct DataManager: IDataManager
             {
-                explicit DataLoader(loader_t init_loader)
+                explicit DataManager(loader_t init_loader)
                     : loader(std::move(init_loader))
                 {
                 }
 
-                type load() const override
+                type initialize() const override
                 {
-                    return loader.load();
+                    return loader.initialize();
                 }
 
                 void update(const type& value) const override
@@ -125,6 +138,14 @@ namespace nil::xit::gtest::builders
                     }
                 }
 
+                void finalize(const type& value) const override
+                {
+                    if constexpr (has_finalize<loader_t, std::string_view, type>)
+                    {
+                        loader.finalize(value);
+                    }
+                }
+
                 loader_t loader;
             };
 
@@ -132,8 +153,8 @@ namespace nil::xit::gtest::builders
                 *input_frames.emplace_back(std::make_unique<input::unique::Frame<type>>(
                     std::move(id),
                     std::move(file),
-                    [loader = std::move(loader)]() -> std::unique_ptr<IDataLoader>
-                    { return std::make_unique<DataLoader>(loader()); }
+                    [loader = std::move(loader)]() -> std::unique_ptr<DataManager>
+                    { return std::make_unique<DataManager>(loader()); }
                 ))
             );
         }

@@ -13,22 +13,23 @@ namespace nil::xit::test::frame::input::unique
     template <typename T>
     struct Info final: input::Info<T>
     {
-        struct IDataLoader
+        struct IDataManager
         {
-            IDataLoader() = default;
-            virtual ~IDataLoader() = default;
-            IDataLoader(IDataLoader&&) = delete;
-            IDataLoader(const IDataLoader&) = delete;
-            IDataLoader& operator=(IDataLoader&&) = delete;
-            IDataLoader& operator=(const IDataLoader&) = delete;
+            IDataManager() = default;
+            virtual ~IDataManager() = default;
+            IDataManager(IDataManager&&) = delete;
+            IDataManager(const IDataManager&) = delete;
+            IDataManager& operator=(IDataManager&&) = delete;
+            IDataManager& operator=(const IDataManager&) = delete;
 
-            virtual T load() const = 0;
+            virtual T initialize() const = 0;
             virtual void update(const T& value) const = 0;
+            virtual void finalize(const T& value) const = 0;
         };
 
         nil::xit::unique::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
-        std::unique_ptr<IDataLoader> loader;
+        std::unique_ptr<IDataManager> manager;
 
         struct
         {
@@ -43,6 +44,14 @@ namespace nil::xit::test::frame::input::unique
                 info.input = gate->edge<T>();
             }
             return info.input;
+        }
+
+        void finalize(std::string_view /* tag */) const override
+        {
+            if (info.data.has_value())
+            {
+                manager->finalize(info.data.value());
+            }
         }
 
         template <typename V, typename Accessor>
@@ -64,7 +73,7 @@ namespace nil::xit::test::frame::input::unique
                 {
                     if (!parent->info.data.has_value())
                     {
-                        parent->info.data = parent->loader->load();
+                        parent->info.data = parent->manager->initialize();
                         parent->info.input->set_value(parent->info.data.value());
                         parent->gate->commit();
                     }
@@ -75,7 +84,7 @@ namespace nil::xit::test::frame::input::unique
                 {
                     accessor.set(parent->info.data.value(), std::move(new_data));
                     parent->info.input->set_value(parent->info.data.value());
-                    parent->loader->update(parent->info.data.value());
+                    parent->manager->update(parent->info.data.value());
                     parent->gate->commit();
                 }
 

@@ -2,14 +2,19 @@
     import { xit, json_string } from "@nil-/xit";
     import { get } from "svelte/store";
 
-    const { values, signals, frame, frame_ui, unsub } = xit();
+    const { values, signals, frame, frame_ui } = xit();
     /** @type import("@nil-/xit").Writable<string[]> */
     const tags = values.json("tags", [], json_string);
+
+    const finalize = signals.string("finalize");
 
     let selected = $state(-1);
     let sorted_tags = $state($tags.sort());
     tags.subscribe(v => sorted_tags = v.sort());
 
+    /** @typedef {import("@nil-/xit").Action<HTMLDivElement>} Action */
+
+    /** @type (tag: string) => Promise<[ Action[], Action[] ]> */
     const load_frame = async (tag) => {
         const { values, unsub } = await frame("frame_info", tag);
         /** @type import("@nil-/xit").Writable<string[]> */
@@ -28,6 +33,18 @@
     <title>nil - xit {0 <= selected && selected < $tags.length ? `- ${$tags[selected]}` : ""}</title>
 </svelte:head>
 
+<svelte:window
+    onkeydown={
+        (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                if (0 <= selected && selected < $tags.length) {
+                    finalize($tags[selected]);
+                    event.preventDefault();
+                }
+            }
+        }
+    }
+/>
 <div class="root">
     <select bind:value={selected}>
         {#each sorted_tags as id, i}

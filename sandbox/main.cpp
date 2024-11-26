@@ -16,9 +16,8 @@ XIT_FRAME_MAIN("gui/Main.svelte", nlohmann::json);
 XIT_FRAME_TAGGED_INPUT(
     "input_frame",
     "gui/InputFrame.svelte",
-    from_file("files", "input_frame.json", &to_json)
+    from_file_with_finalize("files", "input_frame.json", &to_json, &from_json)
 )
-    .signal("save", to_file("files", "input_frame.json", &from_json))
     .value("value");
 
 // XIT_FRAME_UNIQUE_INPUT("slider_frame", "gui/Slider.svelte", Ranges(3, 2, 1))
@@ -30,9 +29,8 @@ XIT_FRAME_TAGGED_INPUT(
 XIT_FRAME_UNIQUE_INPUT(
     "slider_frame",
     "gui/Slider.svelte",
-    from_file("files", "slider_frame", &to_range)
+    from_file_with_update("files", "slider_frame", &to_range, &from_range)
 )
-    .signal("save", to_file("files", "slider_frame", &from_range))
     .value("value-1", &Ranges::v1)
     .value("value-2", &Ranges::v2)
     .value("value-3", &Ranges::v3);

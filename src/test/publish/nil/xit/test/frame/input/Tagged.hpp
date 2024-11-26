@@ -15,17 +15,18 @@ namespace nil::xit::test::frame::input::tagged
     template <typename T>
     struct Info final: input::Info<T>
     {
-        struct IDataLoader
+        struct IDataManager
         {
-            IDataLoader() = default;
-            virtual ~IDataLoader() = default;
-            IDataLoader(IDataLoader&&) = delete;
-            IDataLoader(const IDataLoader&) = delete;
-            IDataLoader& operator=(IDataLoader&&) = delete;
-            IDataLoader& operator=(const IDataLoader&) = delete;
+            IDataManager() = default;
+            virtual ~IDataManager() = default;
+            IDataManager(IDataManager&&) = delete;
+            IDataManager(const IDataManager&) = delete;
+            IDataManager& operator=(IDataManager&&) = delete;
+            IDataManager& operator=(const IDataManager&) = delete;
 
-            virtual T load(std::string_view tag) const = 0;
+            virtual T initialize(std::string_view tag) const = 0;
             virtual void update(std::string_view tag, const T& value) const = 0;
+            virtual void finalize(std::string_view tag, const T& value) const = 0;
         };
 
         struct Entry
@@ -36,7 +37,7 @@ namespace nil::xit::test::frame::input::tagged
 
         nil::xit::tagged::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
-        std::unique_ptr<IDataLoader> loader;
+        std::unique_ptr<IDataManager> manager;
         transparent::hash_map<Entry> info;
 
         nil::gate::edges::Compatible<T> get_input(std::string_view tag) override
@@ -47,6 +48,18 @@ namespace nil::xit::test::frame::input::tagged
             }
             return info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->edge<T>()})
                 .first->second.input;
+        }
+
+        void finalize(std::string_view tag) const override
+        {
+            if (auto it = info.find(tag); it != info.end())
+            {
+                auto& entry = it->second;
+                if (entry.data.has_value())
+                {
+                    manager->finalize(tag, entry.data.value());
+                }
+            }
         }
 
         template <typename V, typename Accessor>
@@ -71,7 +84,7 @@ namespace nil::xit::test::frame::input::tagged
                         auto& entry = it->second;
                         if (!entry.data.has_value())
                         {
-                            entry.data = parent->loader->load(tag);
+                            entry.data = parent->manager->initialize(tag);
                             entry.input->set_value(entry.data.value());
                             parent->gate->commit();
                         }
@@ -87,7 +100,7 @@ namespace nil::xit::test::frame::input::tagged
                         auto& entry = it->second;
                         accessor.set(entry.data.value(), std::move(new_data));
                         entry.input->set_value(entry.data.value());
-                        parent->loader->update(tag, entry.data.value());
+                        parent->manager->update(tag, entry.data.value());
                         parent->gate->commit();
                     }
                 }

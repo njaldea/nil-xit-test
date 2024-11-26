@@ -50,6 +50,11 @@ namespace nil::xit::test
             {
                 auto& f = add_unique_frame(xit, "index", path);
                 add_value(f, "tags", [=, this]() { return converter(installed_tags()); });
+                add_signal(
+                    f,
+                    "finalize",
+                    [this](std::string_view tag) { return finalize_inputs(tag); }
+                );
             }
             {
                 auto& f = add_tagged_frame(xit, "frame_info");
@@ -72,13 +77,13 @@ namespace nil::xit::test
         frame::input::tagged::Info<T>* add_tagged_input(
             std::string id,
             std::filesystem::path path,
-            std::unique_ptr<typename frame::input::tagged::Info<T>::IDataLoader> loader
+            std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
             s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
-            s->loader = std::move(loader);
+            s->manager = std::move(manager);
             return s;
         }
 
@@ -86,13 +91,13 @@ namespace nil::xit::test
         frame::input::unique::Info<T>* add_unique_input(
             std::string id,
             std::filesystem::path path,
-            std::unique_ptr<typename frame::input::unique::Info<T>::IDataLoader> loader
+            std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
             s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
-            s->loader = std::move(loader);
+            s->manager = std::move(manager);
             return s;
         }
 
@@ -173,6 +178,8 @@ namespace nil::xit::test
             }
             return nullptr;
         }
+
+        void finalize_inputs(std::string_view tag) const;
 
     private:
         nil::xit::C xit;

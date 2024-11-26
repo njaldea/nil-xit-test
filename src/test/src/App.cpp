@@ -3,6 +3,8 @@
 // TODO: use better runner like asio/parallel
 #include <nil/gate/runners/NonBlocking.hpp>
 
+#include <iostream>
+
 namespace nil::xit::test
 {
     App::App(nil::service::S service, std::string_view app_name)
@@ -42,5 +44,20 @@ namespace nil::xit::test
             return it->second;
         }
         return blank;
+    }
+
+    void App::finalize_inputs(std::string_view tag) const
+    {
+        if (const auto it = frame_inputs.find(tag); it != frame_inputs.end())
+        {
+            for (const auto& frame_id : it->second)
+            {
+                if (const auto frame_it = input_frames.find(frame_id);
+                    frame_it != input_frames.end())
+                {
+                    frame_it->second->finalize(tag);
+                }
+            }
+        }
     }
 }
