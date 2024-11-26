@@ -1,11 +1,19 @@
 #pragma once
 
-#include "../IInfo.hpp"
-
 #include <nil/gate/edges/Compatible.hpp>
 
 namespace nil::xit::test::frame::input
 {
+    struct IInfo
+    {
+        IInfo() = default;
+        IInfo(IInfo&&) = delete;
+        IInfo(const IInfo&) = delete;
+        IInfo& operator=(IInfo&&) = delete;
+        IInfo& operator=(const IInfo&) = delete;
+        virtual ~IInfo() = default;
+    };
+
     template <typename T>
     struct Info: IInfo
     {

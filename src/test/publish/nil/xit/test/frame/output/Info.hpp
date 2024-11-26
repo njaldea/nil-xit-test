@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../IInfo.hpp"
-
 #include "../../RerunTag.hpp"
 #include "../../transparent_hash_map.hpp"
 
@@ -16,6 +14,16 @@
 
 namespace nil::xit::test::frame::output
 {
+    struct IInfo
+    {
+        IInfo() = default;
+        IInfo(IInfo&&) = delete;
+        IInfo(const IInfo&) = delete;
+        IInfo& operator=(IInfo&&) = delete;
+        IInfo& operator=(const IInfo&) = delete;
+        virtual ~IInfo() = default;
+    };
+
     template <typename T>
     struct Info: IInfo
     {

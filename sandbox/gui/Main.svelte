@@ -2,16 +2,13 @@
     import { xit, json_string } from "@nil-/xit";
     import { get } from "svelte/store";
 
-    const { values, frame, frame_ui, unsub } = xit();
+    const { values, signals, frame, frame_ui, unsub } = xit();
     /** @type import("@nil-/xit").Writable<string[]> */
     const tags = values.json("tags", [], json_string);
 
     let selected = $state(-1);
     let sorted_tags = $state($tags.sort());
-    tags.subscribe(v => {
-        unsub();
-        sorted_tags = v.sort();
-    });
+    tags.subscribe(v => sorted_tags = v.sort());
 
     const load_frame = async (tag) => {
         const { values, unsub } = await frame("frame_info", tag);

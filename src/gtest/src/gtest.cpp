@@ -2,7 +2,7 @@
 #include <nil/xit/gtest/builders/MainBuilder.hpp>
 #include <nil/xit/gtest/builders/TestBuilder.hpp>
 
-#include <nil/xit/gtest/utils.hpp>
+#include <nil/xit/gtest/Instances.hpp>
 
 namespace nil::xit::gtest
 {

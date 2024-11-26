@@ -2,21 +2,33 @@
 
 #include "Info.hpp"
 
+#include <nil/xit/unique/add_signal.hpp>
 #include <nil/xit/unique/add_value.hpp>
 #include <nil/xit/unique/structs.hpp>
 
 #include <nil/gate/Core.hpp>
-
-#include <functional>
 
 namespace nil::xit::test::frame::input::unique
 {
     template <typename T>
     struct Info final: input::Info<T>
     {
+        struct IDataLoader
+        {
+            IDataLoader() = default;
+            virtual ~IDataLoader() = default;
+            IDataLoader(IDataLoader&&) = delete;
+            IDataLoader(const IDataLoader&) = delete;
+            IDataLoader& operator=(IDataLoader&&) = delete;
+            IDataLoader& operator=(const IDataLoader&) = delete;
+
+            virtual T load() const = 0;
+            virtual void update(const T& value) const = 0;
+        };
+
         nil::xit::unique::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
-        std::function<T()> initializer;
+        std::unique_ptr<IDataLoader> loader;
 
         struct
         {
@@ -52,7 +64,7 @@ namespace nil::xit::test::frame::input::unique
                 {
                     if (!parent->info.data.has_value())
                     {
-                        parent->info.data = parent->initializer();
+                        parent->info.data = parent->loader->load();
                         parent->info.input->set_value(parent->info.data.value());
                         parent->gate->commit();
                     }
@@ -63,6 +75,7 @@ namespace nil::xit::test::frame::input::unique
                 {
                     accessor.set(parent->info.data.value(), std::move(new_data));
                     parent->info.input->set_value(parent->info.data.value());
+                    parent->loader->update(parent->info.data.value());
                     parent->gate->commit();
                 }
 
@@ -107,6 +120,25 @@ namespace nil::xit::test::frame::input::unique
             };
 
             add_value<V>(std::move(id), Accessor(std::move(getter), std::move(setter)));
+        }
+
+        template <typename Callable>
+            requires requires(Callable callable) {
+                { callable(std::declval<T>()) };
+            }
+        void add_signal(std::string id, Callable callable)
+        {
+            nil::xit::unique::add_signal(
+                *frame,
+                std::move(id),
+                [this, callable = std::move(callable)]()
+                {
+                    if (info.data.has_value())
+                    {
+                        callable(info.data.value());
+                    }
+                }
+            );
         }
     };
 }

@@ -14,7 +14,6 @@ set(
     HEADERS
         publish/nil/xit/test.hpp
         publish/nil/xit/test/App.hpp
-        publish/nil/xit/test/frame/IInfo.hpp
         publish/nil/xit/test/frame/input/Info.hpp
         publish/nil/xit/test/frame/input/Unique.hpp
         publish/nil/xit/test/frame/input/Tagged.hpp

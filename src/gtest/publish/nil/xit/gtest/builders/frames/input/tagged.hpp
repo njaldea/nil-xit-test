@@ -19,41 +19,47 @@ namespace nil::xit::gtest::builders::input::tagged
         Frame(
             std::string init_id,
             std::filesystem::path init_file,
-            std::function<T(std::string_view)> init_initializer
+            std::function<std::unique_ptr<typename Info<T>::IDataLoader>()> init_loader_creator
         )
             : id(std::move(init_id))
             , file(std::move(init_file))
-            , initializer(std::move(init_initializer))
+            , loader_creator(std::move(init_loader_creator))
         {
         }
 
         void install(test::App& app, const std::filesystem::path& path) override
         {
-            auto* frame = app.add_tagged_input(id, path / file, initializer);
+            auto* frame = app.add_tagged_input<T>(id, path / file, loader_creator());
             for (const auto& value_installer : values)
             {
                 value_installer(*frame);
+            }
+            for (const auto& signal_installer : signals)
+            {
+                signal_installer(*frame);
             }
         }
 
         void install(headless::Inputs& inputs) override
         {
+            using IDataLoader = Info<T>::IDataLoader;
+
             struct Cache: headless::Cache<T>
             {
-                explicit Cache(std::function<T(std::string_view)> init_initializer)
-                    : initializer(std::move(init_initializer))
+                explicit Cache(std::unique_ptr<IDataLoader> init_loader)
+                    : loader(std::move(init_loader))
                 {
                 }
 
                 T get(std::string_view tag) const
                 {
-                    return initializer(tag);
+                    return loader->load(tag);
                 }
 
-                std::function<T(std::string_view)> initializer;
+                std::unique_ptr<IDataLoader> loader;
             };
 
-            inputs.values.emplace(id, std::make_unique<Cache>(initializer));
+            inputs.values.emplace(id, std::make_unique<Cache>(loader_creator()));
         }
 
         template <typename Getter, typename Setter>
@@ -101,10 +107,24 @@ namespace nil::xit::gtest::builders::input::tagged
             );
         }
 
+        template <typename Callable>
+            requires requires(Callable callable) {
+                { callable(std::declval<T>(), std::string_view()) };
+            }
+        Frame<T>& signal(std::string signal_id, Callable callable)
+        {
+            signals.push_back(
+                [signal_id = std::move(signal_id), callable = std::move(callable)](Info<T>& info)
+                { info.add_signal(signal_id, callable); } //
+            );
+            return *this;
+        }
+
     private:
         std::string id;
         std::filesystem::path file;
-        std::function<T(std::string_view)> initializer;
+        std::function<std::unique_ptr<typename Info<T>::IDataLoader>()> loader_creator;
         std::vector<std::function<void(Info<T>&)>> values;
+        std::vector<std::function<void(Info<T>&)>> signals;
     };
 }

@@ -4,18 +4,30 @@
 
 #include "../../transparent_hash_map.hpp"
 
+#include <nil/xit/tagged/add_signal.hpp>
 #include <nil/xit/tagged/add_value.hpp>
 #include <nil/xit/tagged/structs.hpp>
 
 #include <nil/gate/Core.hpp>
-
-#include <functional>
 
 namespace nil::xit::test::frame::input::tagged
 {
     template <typename T>
     struct Info final: input::Info<T>
     {
+        struct IDataLoader
+        {
+            IDataLoader() = default;
+            virtual ~IDataLoader() = default;
+            IDataLoader(IDataLoader&&) = delete;
+            IDataLoader(const IDataLoader&) = delete;
+            IDataLoader& operator=(IDataLoader&&) = delete;
+            IDataLoader& operator=(const IDataLoader&) = delete;
+
+            virtual T load(std::string_view tag) const = 0;
+            virtual void update(std::string_view tag, const T& value) const = 0;
+        };
+
         struct Entry
         {
             std::optional<T> data;
@@ -24,7 +36,7 @@ namespace nil::xit::test::frame::input::tagged
 
         nil::xit::tagged::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
-        std::function<T(std::string_view)> initializer;
+        std::unique_ptr<IDataLoader> loader;
         transparent::hash_map<Entry> info;
 
         nil::gate::edges::Compatible<T> get_input(std::string_view tag) override
@@ -59,7 +71,7 @@ namespace nil::xit::test::frame::input::tagged
                         auto& entry = it->second;
                         if (!entry.data.has_value())
                         {
-                            entry.data = parent->initializer(tag);
+                            entry.data = parent->loader->load(tag);
                             entry.input->set_value(entry.data.value());
                             parent->gate->commit();
                         }
@@ -75,6 +87,7 @@ namespace nil::xit::test::frame::input::tagged
                         auto& entry = it->second;
                         accessor.set(entry.data.value(), std::move(new_data));
                         entry.input->set_value(entry.data.value());
+                        parent->loader->update(tag, entry.data.value());
                         parent->gate->commit();
                     }
                 }
@@ -120,6 +133,29 @@ namespace nil::xit::test::frame::input::tagged
             };
 
             this->add_value<V>(std::move(id), Accessor(std::move(getter), std::move(setter)));
+        }
+
+        template <typename Callable>
+            requires requires(Callable callable) {
+                { callable(std::declval<T>(), std::string_view()) };
+            }
+        void add_signal(std::string id, Callable callable)
+        {
+            nil::xit::tagged::add_signal(
+                *frame,
+                std::move(id),
+                [this, callable = std::move(callable)](std::string_view tag)
+                {
+                    if (const auto it = info.find(tag); it != info.end())
+                    {
+                        auto& data = it->second.data;
+                        if (data.has_value())
+                        {
+                            callable(data.value(), tag);
+                        }
+                    }
+                }
+            );
         }
     };
 }

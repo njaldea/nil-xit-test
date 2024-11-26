@@ -26,8 +26,11 @@ struct Ranges
     bool operator==(const Ranges& o) const;
 };
 
-nlohmann::json as_json(std::istream& iss);
-Ranges as_range(std::istream& iss);
+nlohmann::json to_json(std::istream& iss);
+void from_json(std::ostream& oss, const nlohmann::json& data);
+
+Ranges to_range(std::istream& iss);
+void from_range(std::ostream& oss, const Ranges& data);
 
 template <typename T = nlohmann::json>
 auto from_json_ptr(const std::string& json_ptr)
@@ -52,4 +55,6 @@ auto from_json_ptr(const std::string& json_ptr)
 
 using nil::xit::gtest::from_data;
 using nil::xit::gtest::from_file;
+using nil::xit::gtest::from_file_rw;
 using nil::xit::gtest::from_member;
+using nil::xit::gtest::to_file;

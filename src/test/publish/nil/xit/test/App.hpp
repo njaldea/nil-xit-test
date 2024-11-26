@@ -7,6 +7,7 @@
 #include <nil/service/structs.hpp>
 #include <nil/xit/add_frame.hpp>
 #include <nil/xit/structs.hpp>
+#include <nil/xit/unique/add_signal.hpp>
 
 #include <filesystem>
 #include <string_view>
@@ -71,13 +72,13 @@ namespace nil::xit::test
         frame::input::tagged::Info<T>* add_tagged_input(
             std::string id,
             std::filesystem::path path,
-            std::function<T(std::string_view)> initializer
+            std::unique_ptr<typename frame::input::tagged::Info<T>::IDataLoader> loader
         )
         {
             auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
             s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
-            s->initializer = std::move(initializer);
+            s->loader = std::move(loader);
             return s;
         }
 
@@ -85,13 +86,13 @@ namespace nil::xit::test
         frame::input::unique::Info<T>* add_unique_input(
             std::string id,
             std::filesystem::path path,
-            std::function<T()> initializer
+            std::unique_ptr<typename frame::input::unique::Info<T>::IDataLoader> loader
         )
         {
             auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
             s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
-            s->initializer = std::move(initializer);
+            s->loader = std::move(loader);
             return s;
         }
 
@@ -177,8 +178,8 @@ namespace nil::xit::test
         nil::xit::C xit;
         nil::gate::Core gate;
 
-        transparent::hash_map<std::unique_ptr<frame::IInfo>> input_frames;
-        transparent::hash_map<std::unique_ptr<frame::IInfo>> output_frames;
+        transparent::hash_map<std::unique_ptr<frame::input::IInfo>> input_frames;
+        transparent::hash_map<std::unique_ptr<frame::output::IInfo>> output_frames;
 
         std::vector<std::string> tags;
         transparent::hash_map<std::vector<std::string>> frame_inputs;

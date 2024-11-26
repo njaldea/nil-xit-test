@@ -47,11 +47,11 @@
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_FRAME_TAGGED_INPUT(ID, PATH, INITIALIZER)                                              \
-    XIT_FRAME_DETAIL(ID, frame_builder.create_tagged_input(ID, PATH, INITIALIZER))
+    XIT_FRAME_DETAIL(ID, frame_builder.create_tagged_input(ID, PATH, []() { return INITIALIZER; }))
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_FRAME_UNIQUE_INPUT(ID, PATH, INITIALIZER)                                              \
-    XIT_FRAME_DETAIL(ID, frame_builder.create_unique_input(ID, PATH, INITIALIZER))
+    XIT_FRAME_DETAIL(ID, frame_builder.create_unique_input(ID, PATH, []() { return INITIALIZER; }))
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define XIT_FRAME_OUTPUT(ID, PATH, TYPE)                                                           \

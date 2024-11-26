@@ -14,7 +14,9 @@ add_library(
     publish/nil/xit/gtest/main.hpp
     publish/nil/xit/gtest/Test.hpp
     publish/nil/xit/gtest/type.hpp
-    publish/nil/xit/gtest/utils.hpp
+    publish/nil/xit/gtest/utils/from_file.hpp
+    publish/nil/xit/gtest/utils/from_data.hpp
+    publish/nil/xit/gtest/utils/from_member.hpp
     publish/nil/xit/gtest/headless/Inputs.hpp
     publish/nil/xit/gtest/builders/install.hpp
     publish/nil/xit/gtest/builders/FrameBuilder.hpp

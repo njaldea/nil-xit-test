@@ -20,12 +20,17 @@ bool Ranges::operator==(const Ranges& o) const
     return v1 == o.v1 && v2 == o.v2 && v3 == o.v3;
 }
 
-nlohmann::json as_json(std::istream& iss)
+nlohmann::json to_json(std::istream& iss)
 {
     return nlohmann::json::parse(iss);
 }
 
-Ranges as_range(std::istream& iss)
+void from_json(std::ostream& oss, const nlohmann::json& data)
+{
+    oss << data;
+}
+
+Ranges to_range(std::istream& iss)
 {
     auto r = Ranges{};
     auto c = char{};
@@ -37,4 +42,9 @@ Ranges as_range(std::istream& iss)
     iss >> r.v3;
     iss >> c;
     return r;
+}
+
+void from_range(std::ostream& oss, const Ranges& data)
+{
+    oss << '[' << data.v1 << ',' << data.v2 << ',' << data.v3 << ']';
 }
