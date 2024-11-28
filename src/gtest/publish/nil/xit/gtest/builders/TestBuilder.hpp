@@ -33,22 +33,46 @@ namespace nil::xit::gtest::builders
 
         void install(test::App& app, const std::filesystem::path& relative_path)
         {
-            for (const auto& dir : std::filesystem::directory_iterator(relative_path / path))
+            std::filesystem::path p = path;
+            const auto full_path = (relative_path / p);
+            if (p.filename() == "*")
             {
-                if (dir.is_directory())
+                for (const auto& dir : std::filesystem::directory_iterator(full_path.parent_path()))
                 {
-                    install(app, dir.path().filename().string());
+                    if (dir.is_directory())
+                    {
+                        install(app, (p.parent_path() / dir.path().filename()).string());
+                    }
+                }
+            }
+            else
+            {
+                if (std::filesystem::is_directory(full_path))
+                {
+                    install(app, p.string());
                 }
             }
         }
 
         void install(headless::Inputs& inputs, const std::filesystem::path& relative_path)
         {
-            for (const auto& dir : std::filesystem::directory_iterator(relative_path / path))
+            std::filesystem::path p = path;
+            const auto full_path = (relative_path / p);
+            if (p.filename() == "*")
             {
-                if (dir.is_directory())
+                for (const auto& dir : std::filesystem::directory_iterator(full_path.parent_path()))
                 {
-                    install(inputs, dir.path().filename().string());
+                    if (dir.is_directory())
+                    {
+                        install(inputs, (p.parent_path() / dir.path().filename()).string());
+                    }
+                }
+            }
+            else
+            {
+                if (std::filesystem::is_directory(full_path))
+                {
+                    install(inputs, p.string());
                 }
             }
         }

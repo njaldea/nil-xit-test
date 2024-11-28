@@ -122,7 +122,6 @@ namespace nil::xit::test
         }
 
         template <typename Callable, typename... Inputs, typename... Outputs>
-            requires(sizeof...(Outputs) > 0 && sizeof...(Inputs) > 0)
         void add_node(
             std::string_view tag,
             Callable callable,
@@ -130,33 +129,76 @@ namespace nil::xit::test
             std::tuple<Outputs...> outputs
         )
         {
-            auto gate_outputs = gate.node(
-                std::move(callable),
-                std::apply(
-                    [&](auto*... i) { return std::make_tuple(i->get_input(tag)...); },
-                    inputs
-                )
-            );
-            [&]<std::size_t... I>(std::index_sequence<I...>)
+            constexpr auto input_size = sizeof...(Inputs) > 0;
+            constexpr auto output_size = sizeof...(Outputs) > 0;
+            if constexpr (output_size > 0 && input_size > 0)
             {
-                (([&](){
-                    auto* output = std::get<I>(outputs);
-                    using info_t = std::remove_cvref_t<decltype(*output)>;
-                    using output_t = info_t::type;
-                    const auto& [key, rerun]
-                        = *output->rerun.emplace(tag, gate.edge(RerunTag())).first;
-                    gate.node(
-                        [output, t = &key](RerunTag, const output_t& output_data)
-                        {
-                            for (const auto& value : output->values)
+                auto gate_outputs = gate.node(
+                    std::move(callable),
+                    std::apply(
+                        [&](auto*... i) { return std::make_tuple(i->get_input(tag)...); },
+                        inputs
+                    )
+                );
+                [&]<std::size_t... I>(std::index_sequence<I...>)
+                {
+                    (([&](){
+                        auto* output = std::get<I>(outputs);
+                        using info_t = std::remove_cvref_t<decltype(*output)>;
+                        using output_t = info_t::type;
+                        const auto& [key, rerun]
+                            = *output->rerun.emplace(tag, gate.edge(RerunTag())).first;
+                        gate.node(
+                            [output, t = &key](RerunTag, const output_t& output_data)
                             {
-                                value(*t, output_data);
-                            }
-                        },
-                        {rerun, get<I>(gate_outputs)}
-                    );
+                                for (const auto& value : output->values)
+                                {
+                                    value(*t, output_data);
+                                }
+                            },
+                            {rerun, get<I>(gate_outputs)}
+                        );
                     })(), ...);
-            }(std::make_index_sequence<sizeof...(Outputs)>());
+                }(std::make_index_sequence<sizeof...(Outputs)>());
+            }
+            else if constexpr (output_size > 0 && input_size == 0)
+            {
+                auto gate_outputs = gate.node(std::move(callable));
+                [&]<std::size_t... I>(std::index_sequence<I...>)
+                {
+                    (([&](){
+                        auto* output = std::get<I>(outputs);
+                        using info_t = std::remove_cvref_t<decltype(*output)>;
+                        using output_t = info_t::type;
+                        const auto& [key, rerun]
+                            = *output->rerun.emplace(tag, gate.edge(RerunTag())).first;
+                        gate.node(
+                            [output, t = &key](RerunTag, const output_t& output_data)
+                            {
+                                for (const auto& value : output->values)
+                                {
+                                    value(*t, output_data);
+                                }
+                            },
+                            {rerun, get<I>(gate_outputs)}
+                        );
+                    })(), ...);
+                }(std::make_index_sequence<sizeof...(Outputs)>());
+            }
+            else if constexpr (output_size == 0 && input_size > 0)
+            {
+                gate.node(
+                    std::move(callable),
+                    std::apply(
+                        [&](auto*... i) { return std::make_tuple(i->get_input(tag)...); },
+                        inputs
+                    )
+                );
+            }
+            else if constexpr (output_size == 0 && input_size == 0)
+            {
+                gate.node(std::move(callable));
+            }
         }
 
         template <typename T>

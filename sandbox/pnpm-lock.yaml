@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@nil-/xit':
-        specifier: ^0.1.24
-        version: 0.1.24
+        specifier: ^0.1.25
+        version: 0.1.25
       '@types/plotly.js':
-        specifier: ^2.35.0
-        version: 2.35.0
+        specifier: ^2.35.1
+        version: 2.35.1
       svelte:
-        specifier: ^5.2.7
-        version: 5.2.7
+        specifier: ^5.2.9
+        version: 5.2.9
       vanilla-jsoneditor:
         specifier: ^1.1.2
         version: 1.1.2(@lezer/common@1.2.3)
@@ -41,8 +41,8 @@ packages:
   '@codemirror/lang-json@6.0.1':
     resolution: {integrity: sha512-+T1flHdgpqDDlJZ2Lkil/rLiRy684WMLc74xUnjJH48GQdfJo/pudlTRreZmKwzP8/tGdKf83wlbAdOCzlJOGQ==}
 
-  '@codemirror/language@6.10.3':
-    resolution: {integrity: sha512-kDqEU5sCP55Oabl6E7m5N+vZRoc0iWqgDVhEKifcHzPzjqCegcO4amfrYVL9PmPZpl4G0yjkpTpUO/Ui8CzO8A==}
+  '@codemirror/language@6.10.4':
+    resolution: {integrity: sha512-qjt7Wn/nxGuI278GYVlqE5V93Xn8ZQwzqZtgS0FaWr7K2yWgd5/FlBNqNi4jtUvBVvWJzAGfnggIlpyjTOaF4A==}
 
   '@codemirror/lint@6.8.3':
     resolution: {integrity: sha512-GSGfKxCo867P7EX1k2LoCrjuQFeqVgPGRRsSl4J4c0KMkD+k1y6WYvTQkzv0iZ8JhLJDujEvlnMchv4CZQLh3Q==}
@@ -114,8 +114,8 @@ packages:
   '@lezer/lr@1.4.2':
     resolution: {integrity: sha512-pu0K1jCIdnQ12aWNaAVU5bzi7Bd1w54J3ECgANPmYLtQKP0HBj2cE/5coBD66MT10xbtIuUr7tg0Shbsvk0mDA==}
 
-  '@nil-/xit@0.1.24':
-    resolution: {integrity: sha512-Lyy6i9A8dBrGKLGTqxa4egU45aDLgYQjLlQZOxHQEAE6FSt99LyNp8KaSpBzdtoSieLQpGaG/W2puJqSOS4w3w==}
+  '@nil-/xit@0.1.25':
+    resolution: {integrity: sha512-BsVybzco3aKLLxdSnJAK8QlQa9bMI3QsdiSThdEijZF6tRNM4Ot4oPWb3xrA9pI/y9LxmCuLx8t/+b+xXFk9yg==}
 
   '@parcel/watcher-android-arm64@2.5.0':
     resolution: {integrity: sha512-qlX4eS28bUcQCdribHkg/herLe+0A9RyYC+mm2PXpncit8z5b3nSqGVzMNR3CmtAOgRutiZ02eIJJgP/b1iEFQ==}
@@ -212,8 +212,8 @@ packages:
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
-  '@types/plotly.js@2.35.0':
-    resolution: {integrity: sha512-hokP//6Ex8dj9JttJtV8MO5aJcNBittofftpKm7hgWBbe/dMggx8bnxmhCwuQ1N5uP9VXfa/2CUre/eu0l08RA==}
+  '@types/plotly.js@2.35.1':
+    resolution: {integrity: sha512-9fTHC8qeJNEDpGJK1qIJAEcRxrI9uPrap32I8cbCLPKsqwFmafOYHecaBzvIJXEPhLIUiQocN9Bc/tIV9CjsxQ==}
 
   acorn-typescript@1.4.13:
     resolution: {integrity: sha512-xsc9Xv0xlVfwp2o7sQ+GCQ1PgbkdcpWdTzrwXxO3xDMTAywVS3oXVOcOHuRjAPkS4P9b+yc/qNF15460v+jp4Q==}
@@ -339,8 +339,8 @@ packages:
   lodash-es@4.17.21:
     resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
 
-  magic-string@0.30.13:
-    resolution: {integrity: sha512-8rYBO+MsWkgjDSOvLomYnzhdwEG51olQ4zL5KXnNJWV5MNmrb4rTZdrtkhxjnD/QyZUqR/Z/XDsUs/4ej2nx0g==}
+  magic-string@0.30.14:
+    resolution: {integrity: sha512-5c99P1WKTed11ZC0HMJOj6CDIue6F8ySu+bJL+85q1zBEIY8IklrJ1eiKC2NDRh3Ct3FcvmJPyQHb9erXMTJNw==}
 
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
@@ -389,8 +389,8 @@ packages:
     resolution: {integrity: sha512-IY1rnGr6izd10B0A8LqsBfmlT5OILVuZ7XsI0vdGPEvuonFV7NYEUK4dAkm9Zg2q0Um92kYjTpS1CAP3Nh/KWw==}
     engines: {node: '>=16'}
 
-  svelte@5.2.7:
-    resolution: {integrity: sha512-cEhPGuLHiH2+Z8B1FwQgiZJgA39uUmJR4516TKrM5zrp0/cuwJkfhUfcTxhAkznanAF5fXUKzvYR4o+Ksx3ZCQ==}
+  svelte@5.2.9:
+    resolution: {integrity: sha512-LjO7R6K8FI8dA3l+4CcsbJ3djIe2TtokHGzfpDTro5g8nworMbTz9alCR95EQXGsqlzIAvqJtZ7Yy0o33lL09Q==}
     engines: {node: '>=18'}
 
   to-regex-range@5.0.1:
@@ -416,26 +416,26 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@codemirror/autocomplete@6.18.3(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)(@lezer/common@1.2.3)':
+  '@codemirror/autocomplete@6.18.3(@codemirror/language@6.10.4)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)(@lezer/common@1.2.3)':
     dependencies:
-      '@codemirror/language': 6.10.3
+      '@codemirror/language': 6.10.4
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.35.0
       '@lezer/common': 1.2.3
 
   '@codemirror/commands@6.7.1':
     dependencies:
-      '@codemirror/language': 6.10.3
+      '@codemirror/language': 6.10.4
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.35.0
       '@lezer/common': 1.2.3
 
   '@codemirror/lang-json@6.0.1':
     dependencies:
-      '@codemirror/language': 6.10.3
+      '@codemirror/language': 6.10.4
       '@lezer/json': 1.0.2
 
-  '@codemirror/language@6.10.3':
+  '@codemirror/language@6.10.4':
     dependencies:
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.35.0
@@ -517,7 +517,7 @@ snapshots:
     dependencies:
       '@lezer/common': 1.2.3
 
-  '@nil-/xit@0.1.24': {}
+  '@nil-/xit@0.1.25': {}
 
   '@parcel/watcher-android-arm64@2.5.0':
     optional: true
@@ -580,9 +580,9 @@ snapshots:
       '@parcel/watcher-win32-x64': 2.5.0
     optional: true
 
-  '@replit/codemirror-indentation-markers@6.5.3(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)':
+  '@replit/codemirror-indentation-markers@6.5.3(@codemirror/language@6.10.4)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)':
     dependencies:
-      '@codemirror/language': 6.10.3
+      '@codemirror/language': 6.10.4
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.35.0
 
@@ -590,7 +590,7 @@ snapshots:
 
   '@types/estree@1.0.6': {}
 
-  '@types/plotly.js@2.35.0': {}
+  '@types/plotly.js@2.35.1': {}
 
   acorn-typescript@1.4.13(acorn@8.14.0):
     dependencies:
@@ -626,9 +626,9 @@ snapshots:
       estree-walker: 3.0.3
       periscopic: 3.1.0
 
-  codemirror-wrapped-line-indent@1.0.8(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0):
+  codemirror-wrapped-line-indent@1.0.8(@codemirror/language@6.10.4)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0):
     dependencies:
-      '@codemirror/language': 6.10.3
+      '@codemirror/language': 6.10.4
       '@codemirror/state': 6.4.1
       '@codemirror/view': 6.35.0
 
@@ -703,7 +703,7 @@ snapshots:
 
   lodash-es@4.17.21: {}
 
-  magic-string@0.30.13:
+  magic-string@0.30.14:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
 
@@ -761,10 +761,10 @@ snapshots:
       estree-walker: 3.0.3
       is-reference: 3.0.3
       locate-character: 3.0.0
-      magic-string: 0.30.13
+      magic-string: 0.30.14
       periscopic: 3.1.0
 
-  svelte@5.2.7:
+  svelte@5.2.9:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -777,7 +777,7 @@ snapshots:
       esrap: 1.2.2
       is-reference: 3.0.3
       locate-character: 3.0.0
-      magic-string: 0.30.13
+      magic-string: 0.30.14
       zimmerframe: 1.1.2
 
   to-regex-range@5.0.1:
@@ -787,10 +787,10 @@ snapshots:
 
   vanilla-jsoneditor@1.1.2(@lezer/common@1.2.3):
     dependencies:
-      '@codemirror/autocomplete': 6.18.3(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)(@lezer/common@1.2.3)
+      '@codemirror/autocomplete': 6.18.3(@codemirror/language@6.10.4)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)(@lezer/common@1.2.3)
       '@codemirror/commands': 6.7.1
       '@codemirror/lang-json': 6.0.1
-      '@codemirror/language': 6.10.3
+      '@codemirror/language': 6.10.4
       '@codemirror/lint': 6.8.3
       '@codemirror/search': 6.5.8
       '@codemirror/state': 6.4.1
@@ -799,9 +799,9 @@ snapshots:
       '@fortawesome/free-solid-svg-icons': 6.7.1
       '@jsonquerylang/jsonquery': 3.1.1
       '@lezer/highlight': 1.2.1
-      '@replit/codemirror-indentation-markers': 6.5.3(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)
+      '@replit/codemirror-indentation-markers': 6.5.3(@codemirror/language@6.10.4)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)
       ajv: 8.17.1
-      codemirror-wrapped-line-indent: 1.0.8(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)
+      codemirror-wrapped-line-indent: 1.0.8(@codemirror/language@6.10.4)(@codemirror/state@6.4.1)(@codemirror/view@6.35.0)
       diff-sequences: 29.6.3
       immutable-json-patch: 6.0.1
       jmespath: 0.16.0

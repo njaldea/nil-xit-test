@@ -67,4 +67,11 @@ namespace nil::xit::gtest
         static auto instance = Instances{};
         return instance;
     }
+
+    std::string_view tag_to_dir(std::string_view tag)
+    {
+        const auto i1 = tag.find_last_of('[') + 1;
+        const auto i2 = tag.find_last_of(']');
+        return tag.substr(i1, i2 - i1);
+    }
 }

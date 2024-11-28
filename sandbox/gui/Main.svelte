@@ -3,8 +3,7 @@
     import { get } from "svelte/store";
 
     const { values, signals, frame, frame_ui } = xit();
-    /** @type import("@nil-/xit").Writable<string[]> */
-    const tags = values.json("tags", [], json_string);
+    const tags = values.json("tags", /** @type string[] */ ([]), json_string);
 
     const finalize = signals.string("finalize");
 
@@ -12,15 +11,10 @@
     let sorted_tags = $state($tags.sort());
     tags.subscribe(v => sorted_tags = v.sort());
 
-    /** @typedef {import("@nil-/xit").Action<HTMLDivElement>} Action */
-
-    /** @type (tag: string) => Promise<[ Action[], Action[] ]> */
-    const load_frame = async (tag) => {
+    const load_frame = async (/** @type string */ tag) => {
         const { values, unsub } = await frame("frame_info", tag);
-        /** @type import("@nil-/xit").Writable<string[]> */
-        const inputs = values.json("inputs", [], json_string);
-        /** @type import("@nil-/xit").Writable<string[]> */
-        const outputs = values.json("outputs", [], json_string);
+        const inputs = values.json("inputs", /** @type string[] */ ([]), json_string);
+        const outputs = values.json("outputs", /** @type string[] */ ([]), json_string);
         unsub();
         return Promise.all([ 
             Promise.all(get(inputs).map(v => frame_ui(v, tag))), 

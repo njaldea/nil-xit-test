@@ -37,7 +37,7 @@ namespace nil::xit::gtest
     template <StringLiteral... T>
     struct Output;
 
-    template <typename I, typename O>
+    template <typename... T>
     struct Test;
 
     template <StringLiteral... I, StringLiteral... O>
@@ -57,5 +57,10 @@ namespace nil::xit::gtest
         virtual void setup() {};
         virtual void teardown() {};
         virtual void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) = 0;
+    };
+
+    template <>
+    struct Test<>: Test<Input<>, Output<>>
+    {
     };
 }

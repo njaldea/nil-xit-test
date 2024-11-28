@@ -22,6 +22,7 @@ namespace nil::xit::gtest
             "run in gui mode",
             [](nil::clix::Node& sub_node)
             {
+                param(sub_node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
                 number(sub_node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
                 flag(sub_node, "help", {.skey = 'h', .msg = "show this help"});
                 use(sub_node,
@@ -36,7 +37,7 @@ namespace nil::xit::gtest
 
                         const auto http_server = nil::xit::make_server({
                             .source_path = instance.paths.server,
-                            .host = "127.0.0.1",
+                            .host = param(options, "host"),
                             .port = std::uint16_t(number(options, "port")),
                             .buffer_size = 1024ul * 1024ul * 100ul //
                         });
