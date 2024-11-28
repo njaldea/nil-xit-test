@@ -52,20 +52,24 @@
                 <div>Loading...</div>
             {:then [ input_actions, output_actions ]}
                 <div class="root-content">
-                    <div class="outputs">
+                    {#if output_actions.length > 0}
                         {#await output_actions then a}
-                            {#each a as action}
-                                <div style="display: contents" use:action></div>
-                            {/each}
+                            <div class="outputs" class:full={input_actions.length === 0}>
+                                {#each a as action}
+                                    <div style="display: contents" use:action></div>
+                                {/each}
+                            </div>
                         {/await}
-                    </div>
-                    <div class="inputs">
+                    {/if}
+                    {#if input_actions.length > 0}
                         {#await input_actions then a}
-                            {#each a as action}
-                                <div style="display: contents" use:action></div>
-                            {/each}
+                            <div class="inputs">
+                                {#each a as action}
+                                    <div style="display: contents" use:action></div>
+                                {/each}
+                            </div>
                         {/await}
-                    </div>
+                    {/if}
                 </div>
             {:catch}
                 <div>Error during loading...</div>
@@ -90,6 +94,10 @@
 
     .outputs {
         width: calc(100% - 350px);
+    }
+    .outputs.full
+    {
+        width: 100%;
     }
 
     .inputs {

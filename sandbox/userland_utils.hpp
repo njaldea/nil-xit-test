@@ -29,23 +29,34 @@ struct Circles
 };
 
 template <>
+struct nlohmann::adl_serializer<Circle>
+{
+    static void to_json(nlohmann::json& j, const Circle& v)
+    {
+        j = nlohmann::json::object({{"position", v.position}, {"radius", v.radius}});
+    }
+
+    static void from_json(const nlohmann::json& j, Circle& v)
+    {
+        using nlohmann::json;
+        v.position = j.value(json::json_pointer("/position"), std::array<double, 2>());
+        v.radius = j.value(json::json_pointer("/radius"), 0.0);
+    }
+};
+
+template <>
 struct nlohmann::adl_serializer<Circles>
 {
     static void to_json(nlohmann::json& j, const Circles& v)
     {
-        j = nlohmann::json::object(
-            {{"x", {{"position", v.x.position}, {"radius", v.x.radius}}},
-             {"y", {{"position", v.y.position}, {"radius", v.y.radius}}}}
-        );
+        j = nlohmann::json::object({{"x", v.x}, {"y", v.y}});
     }
 
     static void from_json(const nlohmann::json& j, Circles& v)
     {
         using nlohmann::json;
-        v.x.position = j.value(json::json_pointer("/x/position"), std::array<double, 2>());
-        v.x.radius = j.value(json::json_pointer("/x/radius"), 0.0);
-        v.y.position = j.value(json::json_pointer("/y/position"), std::array<double, 2>());
-        v.y.radius = j.value(json::json_pointer("/y/radius"), 0.0);
+        v.x = j.value(json::json_pointer("/x"), Circle{{0, 0}, 1.0});
+        v.y = j.value(json::json_pointer("/y"), Circle{{0, 0}, 1.5});
     }
 };
 
@@ -65,10 +76,12 @@ auto from_json_ptr(const std::string& json_ptr)
     {
         T get(const nlohmann::json& data) const
         {
+            std::cout << data.dump() << std::endl;
             if (data.contains(json_ptr))
             {
                 return data[json_ptr];
             }
+            std::cout << "not found" << std::endl;
             return T();
         }
 
@@ -87,7 +100,6 @@ using nil::xit::gtest::from_data;
 using nil::xit::gtest::from_file;
 using nil::xit::gtest::from_file_with_finalize;
 using nil::xit::gtest::from_file_with_update;
-using nil::xit::gtest::from_member;
 
 namespace nil::xit
 {
@@ -99,11 +111,17 @@ namespace nil::xit
         static std::vector<std::uint8_t> serialize(const nlohmann::json& value);
     };
 
-    // this is necessary when publishing a custom data through the network going to the UI
     template <>
     struct buffer_type<Circles>
     {
         static Circles deserialize(const void* data, std::uint64_t size);
         static std::vector<std::uint8_t> serialize(const Circles& value);
+    };
+
+    template <>
+    struct buffer_type<Circle>
+    {
+        static Circle deserialize(const void* data, std::uint64_t size);
+        static std::vector<std::uint8_t> serialize(const Circle& value);
     };
 }

@@ -61,12 +61,12 @@ XIT_FRAME_TAGGED_INPUT("circles_input_frame", "InputFrame.svelte", Circles())
     .value("value");
 
 XIT_FRAME_OUTPUT("draw_frame", "DrawFrame.svelte", Circles)
-    .value("value-x", from_json_ptr("/x"))
-    .value("value-y", from_json_ptr("/y"));
+    .value("value-x", &Circles::x)
+    .value("value-y", &Circles::y);
 
-using Draw = Test<Input<"circles_input_frame">, Output<"draw_frame">>;
+using DrawWithInput = Test<Input<"circles_input_frame">, Output<"draw_frame">>;
 
-XIT_TEST_F(Draw, demo, "draw")
+XIT_TEST_F(DrawWithInput, demo, "draw")
 {
     const auto& [input_data] = xit_inputs;
     //           ┃             ┗━━━ from Input<"input_frame">
@@ -82,4 +82,18 @@ XIT_TEST_F(Draw, demo, "draw")
     // This example is overly simplified where the input and output are of the same type
     // and just copies them to the output directly.
     draw = input_data;
+}
+
+using Draw = nil::xit::gtest::Test<nil::xit::gtest::Input<>, nil::xit::gtest::Output<"draw_frame">>;
+
+XIT_TEST_F(Draw, sample)
+{
+    Circles circles = {{{0.0, 0.0}, 1.0}, {{0.0, 0.0}, 1.5}};
+
+    // Execute test here
+
+    auto& [draw] = xit_outputs;
+    //     ┃       ┗━━━ from Output<"draw_frame">
+    //     ┗━━━ type == Circles
+    draw = circles;
 }

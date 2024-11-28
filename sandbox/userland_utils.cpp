@@ -23,6 +23,16 @@ namespace nil::xit
     {
         return buffer_type<nlohmann::json>::serialize(value);
     }
+
+    Circle buffer_type<Circle>::deserialize(const void* data, std::uint64_t size)
+    {
+        return buffer_type<nlohmann::json>::deserialize(data, size);
+    }
+
+    std::vector<std::uint8_t> buffer_type<Circle>::serialize(const Circle& value)
+    {
+        return buffer_type<nlohmann::json>::serialize(value);
+    }
 }
 
 bool Ranges::operator==(const Ranges& o) const
