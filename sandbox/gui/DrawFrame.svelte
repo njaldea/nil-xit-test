@@ -3,16 +3,8 @@
 
     const { values } = xit();
 
-    const value_x = values.json(
-        "value-x",                          
-        { position: [0, 0], radius: 1.0 },  
-        json_string                        
-    );
-    const value_y = values.json(
-        "value-y",
-        { position: [0, 0], radius: 1.5 },
-        json_string
-    );
+    const value_x = values.json("value-x", { position: [0, 0], radius: 1.0 }, json_string);
+    const value_y = values.json("value-y", { position: [0, 0], radius: 1.0 }, json_string);
 </script>
 
 <div style="width=100%; height=100%;">

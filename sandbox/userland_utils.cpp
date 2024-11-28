@@ -13,26 +13,6 @@ namespace nil::xit
         auto s = value.dump();
         return {s.begin(), s.end()};
     }
-
-    Circles buffer_type<Circles>::deserialize(const void* data, std::uint64_t size)
-    {
-        return buffer_type<nlohmann::json>::deserialize(data, size);
-    }
-
-    std::vector<std::uint8_t> buffer_type<Circles>::serialize(const Circles& value)
-    {
-        return buffer_type<nlohmann::json>::serialize(value);
-    }
-
-    Circle buffer_type<Circle>::deserialize(const void* data, std::uint64_t size)
-    {
-        return buffer_type<nlohmann::json>::deserialize(data, size);
-    }
-
-    std::vector<std::uint8_t> buffer_type<Circle>::serialize(const Circle& value)
-    {
-        return buffer_type<nlohmann::json>::serialize(value);
-    }
 }
 
 bool Ranges::operator==(const Ranges& o) const

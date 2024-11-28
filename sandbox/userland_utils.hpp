@@ -24,7 +24,7 @@ struct Circle
 struct Circles
 {
     Circle x = {{0, 0}, 1.0};
-    Circle y = {{0, 0}, 1.5};
+    Circle y = {{0, 0}, 1.0};
     bool operator==(const Circles& o) const;
 };
 
@@ -40,7 +40,7 @@ struct nlohmann::adl_serializer<Circle>
     {
         using nlohmann::json;
         v.position = j.value(json::json_pointer("/position"), std::array<double, 2>());
-        v.radius = j.value(json::json_pointer("/radius"), 0.0);
+        v.radius = j.value(json::json_pointer("/radius"), 1.0);
     }
 };
 
@@ -56,7 +56,7 @@ struct nlohmann::adl_serializer<Circles>
     {
         using nlohmann::json;
         v.x = j.value(json::json_pointer("/x"), Circle{{0, 0}, 1.0});
-        v.y = j.value(json::json_pointer("/y"), Circle{{0, 0}, 1.5});
+        v.y = j.value(json::json_pointer("/y"), Circle{{0, 0}, 1.0});
     }
 };
 
@@ -111,17 +111,21 @@ namespace nil::xit
         static std::vector<std::uint8_t> serialize(const nlohmann::json& value);
     };
 
-    template <>
-    struct buffer_type<Circles>
+    template <typename T>
+        requires requires(T t) {
+            { nlohmann::json(t) };
+            { T(nlohmann::json()) };
+        } && (!std::is_same_v<T, nlohmann::json>)
+    struct buffer_type<T>
     {
-        static Circles deserialize(const void* data, std::uint64_t size);
-        static std::vector<std::uint8_t> serialize(const Circles& value);
-    };
+        static T deserialize(const void* data, std::uint64_t size)
+        {
+            return buffer_type<nlohmann::json>::deserialize(data, size);
+        }
 
-    template <>
-    struct buffer_type<Circle>
-    {
-        static Circle deserialize(const void* data, std::uint64_t size);
-        static std::vector<std::uint8_t> serialize(const Circle& value);
+        static std::vector<std::uint8_t> serialize(const T& value)
+        {
+            return buffer_type<nlohmann::json>::serialize(value);
+        }
     };
 }
