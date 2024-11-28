@@ -93,7 +93,7 @@ namespace nil::xit::test::frame::input::tagged
                     return V();
                 }
 
-                void set(std::string_view tag, V new_data) const override
+                void set(std::string_view tag, V new_data) override
                 {
                     if (auto it = parent->info.find(tag); it != parent->info.end())
                     {

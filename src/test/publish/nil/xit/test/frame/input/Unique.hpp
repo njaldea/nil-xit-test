@@ -80,7 +80,7 @@ namespace nil::xit::test::frame::input::unique
                     return accessor.get(parent->info.data.value());
                 }
 
-                void set(V new_data) const override
+                void set(V new_data) override
                 {
                     accessor.set(parent->info.data.value(), std::move(new_data));
                     parent->info.input->set_value(parent->info.data.value());
