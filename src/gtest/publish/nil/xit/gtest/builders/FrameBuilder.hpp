@@ -93,7 +93,7 @@ namespace nil::xit::gtest::builders
                 *input_frames.emplace_back(std::make_unique<input::tagged::Frame<type>>(
                     std::move(id),
                     std::move(file),
-                    [loader = std::move(loader)]() -> std::unique_ptr<DataManager>
+                    [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
                     { return std::make_unique<DataManager>(loader()); }
                 ))
             );
@@ -153,7 +153,7 @@ namespace nil::xit::gtest::builders
                 *input_frames.emplace_back(std::make_unique<input::unique::Frame<type>>(
                     std::move(id),
                     std::move(file),
-                    [loader = std::move(loader)]() -> std::unique_ptr<DataManager>
+                    [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
                     { return std::make_unique<DataManager>(loader()); }
                 ))
             );

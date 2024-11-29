@@ -11,6 +11,7 @@
 #define XIT_INSTANCE nil::xit::gtest::get_instance()
 
 #define XIT_TEST_DEFINE(BASE, SUITE, CASE, DIRECTORY)                                              \
+    static_assert(nil::xit::gtest::is_valid_test<BASE>);                                           \
     struct xit_test_##SUITE##_##CASE final: XIT_WRAP(BASE)                                         \
     {                                                                                              \
         void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) override;                     \

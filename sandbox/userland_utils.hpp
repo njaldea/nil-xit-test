@@ -76,12 +76,10 @@ auto from_json_ptr(const std::string& json_ptr)
     {
         T get(const nlohmann::json& data) const
         {
-            std::cout << data.dump() << std::endl;
             if (data.contains(json_ptr))
             {
                 return data[json_ptr];
             }
-            std::cout << "not found" << std::endl;
             return T();
         }
 

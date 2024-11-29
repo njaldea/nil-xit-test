@@ -32,6 +32,11 @@ namespace nil::xit::gtest
     {
     };
 
+    template <StringLiteral S>
+    using frame_t = typename Frame<S>::type;
+    template <StringLiteral S>
+    constexpr auto frame_v = Frame<S>::value;
+
     template <StringLiteral... T>
     struct Input;
     template <StringLiteral... T>
@@ -51,8 +56,8 @@ namespace nil::xit::gtest
         Test& operator=(const Test&) = delete;
 
         using base_t = Test<Input<I...>, Output<O...>>;
-        using inputs_t = Data<const typename Frame<I>::type...>;
-        using outputs_t = Data<typename Frame<O>::type...>;
+        using inputs_t = Data<const frame_t<I>...>;
+        using outputs_t = Data<frame_t<O>...>;
 
         virtual void setup() {};
         virtual void teardown() {};
@@ -62,5 +67,20 @@ namespace nil::xit::gtest
     template <>
     struct Test<>: Test<Input<>, Output<>>
     {
+    };
+
+    template <typename T>
+    concept is_valid_test = requires(T& t) {
+        typename T::base_t;
+        typename T::inputs_t;
+        typename T::outputs_t;
+        { t.setup() };
+        { t.teardown() };
+        {
+            t.run(
+                std::declval<const typename T::inputs_t&>(),
+                std::declval<typename T::outputs_t&>()
+            )
+        };
     };
 }

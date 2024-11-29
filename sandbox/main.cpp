@@ -50,6 +50,8 @@ XIT_TEST_F(Plotly, demo, "plotly/*")
     //     ┃       ┗━━━ from Output<"plotly_frame">
     //     ┗━━━ type == nlohmann::json
 
+    std::cout << "Running: " << input_data["x"][2] << std::endl;
+
     view = input_data;
     view["y"][0] = std::int64_t(input_data["y"][0]) * ranges.v1;
     view["y"][1] = std::int64_t(input_data["y"][1]) * ranges.v2;

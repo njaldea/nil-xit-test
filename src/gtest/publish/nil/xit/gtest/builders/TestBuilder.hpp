@@ -91,6 +91,7 @@ namespace nil::xit::gtest::builders
     {
     public:
         template <typename T>
+            requires requires() { typename T::base_t; }
         void add_test(
             const std::string& suite_id,
             const std::string& test_id,
@@ -106,13 +107,13 @@ namespace nil::xit::gtest::builders
                 void install(test::App& app, const std::string& tag) override
                 {
                     nil::xit::gtest::builders::install<T> //
-                        (app, type<typename T::base_t>(), suite_id, test_id, tag);
+                        (app, suite_id, test_id, tag);
                 }
 
                 void install(headless::Inputs& inputs, const std::string& tag) override
                 {
                     nil::xit::gtest::builders::install<T> //
-                        (inputs, type<typename T::base_t>(), suite_id, test_id, tag, file, line);
+                        (inputs, suite_id, test_id, tag, file, line);
                 }
             };
 
