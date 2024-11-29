@@ -36,42 +36,25 @@ namespace nil::xit::gtest::builders
         app.add_info(tag, {I.value...}, {O.value...});
 
         constexpr auto node //
-            = [](const nil::gate::Core& core,
-                 nil::gate::async_outputs<frame_t<O>...> asyncs,
-                 bool enabled,
-                 const frame_t<I>&... args)
+            = [](const frame_t<I>&... args)
         {
-            if (enabled)
+            std::tuple<frame_t<O>...> result;
+            try
             {
-                std::tuple<frame_t<O>...> result;
-                try
-                {
-                    P p;
-                    p.setup();
-                    auto inputs = inputs_t{{&args...}};
-                    auto outputs
-                        = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
-                    p.run(inputs, outputs);
-                    p.teardown();
-                }
-                catch (const std::exception&)
-                {
-                }
-                catch (...)
-                {
-                }
-                {
-                    auto batch = core.batch(asyncs);
-                    [&]<std::size_t... i>(std::index_sequence<i...>)
-                    {
-                        (([&](){
-                            auto* output = get<i>(batch);
-                            output->set_value(std::move(std::get<i>(result)));
-                        })(), ...);
-                    }(std::make_index_sequence<sizeof...(O)>());
-                }
-                core.commit();
+                P p;
+                p.setup();
+                auto inputs = inputs_t{{&args...}};
+                auto outputs = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
+                p.run(inputs, outputs);
+                p.teardown();
             }
+            catch (const std::exception&)
+            {
+            }
+            catch (...)
+            {
+            }
+            return result;
         };
         app.add_node(
             tag,

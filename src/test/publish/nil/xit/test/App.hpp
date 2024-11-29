@@ -13,12 +13,11 @@
 
 #include <filesystem>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 
 namespace nil::xit::test
 {
-    template <typename T>
-    using flag_t = bool;
-
     class App
     {
     public:
@@ -124,7 +123,7 @@ namespace nil::xit::test
             );
             on_sub(
                 *s->frame,
-                [s, g = &this->gate](std::string_view tag, std::size_t count)
+                [s](std::string_view tag, std::size_t count)
                 {
                     if (const auto it = s->requested.find(tag); it != s->requested.end())
                     {
@@ -139,95 +138,68 @@ namespace nil::xit::test
         void add_node(
             std::string_view tag,
             Callable callable,
-            std::tuple<Inputs...> inputs,
-            std::tuple<Outputs...> outputs
+            std::tuple<Inputs*...> inputs,
+            std::tuple<Outputs*...> outputs
         )
         {
-            constexpr auto input_size = sizeof...(Inputs);
-            constexpr auto output_size = sizeof...(Outputs);
-            auto output_enablers = [&]<std::size_t... I>(std::index_sequence<I...>)
-            {
-                return std::make_tuple(([&](){
-                    auto* output = std::get<I>(outputs);
-                    auto* output_enabler_edge = gate.edge(false);
-                    output->requested.emplace(tag, output_enabler_edge).first;
-                    return output_enabler_edge;
-                })()...);
-            }(std::make_index_sequence<output_size>());
+            constexpr auto i_size = sizeof...(Inputs);
+            constexpr auto o_size = sizeof...(Outputs);
+            constexpr auto i_seq = std::make_index_sequence<i_size>();
+            constexpr auto o_seq = std::make_index_sequence<o_size>();
+            auto* enabler = add_node_enabler(tag, outputs, o_seq);
 
-            auto [is_enabled] = gate.node(
-                [](flag_t<Outputs>... flags) { return (flags || ...); },
-                output_enablers
-            );
-            if constexpr (output_size > 0 && input_size > 0)
+            auto wrapped_cb                         //
+                = [cb = std::move(callable), o_seq] //
+                (const nil::gate::Core& core,
+                 nil::gate::async_outputs<typename Outputs::type...> asyncs,
+                 bool enabled,
+                 const typename Inputs::type&... rest)
             {
-                auto gate_outputs = gate.node(
-                    std::move(callable),
-                    std::apply(
-                        [&](auto*... i)
-                        { return std::make_tuple(is_enabled, i->get_input(tag)...); },
-                        inputs
-                    )
-                );
-                [&]<std::size_t... I>(std::index_sequence<I...>)
+                if (enabled)
                 {
-                    (([&](){
-                        auto* output = std::get<I>(outputs);
-                        using info_t = std::remove_cvref_t<decltype(*output)>;
-                        using output_t = info_t::type;
+                    auto result = cb(rest...);
+                    {
+                        auto batch = core.batch(asyncs);
+                        App::for_each(
+                            batch,
+                            std::move(result),
+                            o_seq,
+                            [](auto* l, auto& r) { l->set_value(std::move(r)); }
+                        );
+                    }
+                    core.commit();
+                }
+            };
+
+            if constexpr (o_size > 0)
+            {
+                auto edges = add_node_impl(tag, std::move(wrapped_cb), enabler, inputs, i_seq);
+                for_each(
+                    outputs,
+                    edges,
+                    o_seq,
+                    [&](auto* output, auto* edge)
+                    {
+                        using output_t = std::remove_cvref_t<decltype(*output)>::type;
                         const auto& [key, rerun]
                             = *output->rerun.emplace(tag, gate.edge(RerunTag())).first;
                         gate.node(
-                            [output, t = &key](RerunTag, const output_t& output_data)
+                            [output, t = std::string_view(key)] //
+                            (RerunTag, const output_t& output_data)
                             {
                                 for (const auto& value : output->values)
                                 {
-                                    value(*t, output_data);
+                                    value(t, output_data);
                                 }
                             },
-                            {rerun, get<I>(gate_outputs)}
+                            {rerun, edge}
                         );
-                    })(), ...);
-                }(std::make_index_sequence<sizeof...(Outputs)>());
-            }
-            else if constexpr (output_size > 0 && input_size == 0)
-            {
-                auto gate_outputs = gate.node(std::move(callable), {is_enabled});
-                [&]<std::size_t... I>(std::index_sequence<I...>)
-                {
-                    (([&](){
-                        auto* output = std::get<I>(outputs);
-                        using info_t = std::remove_cvref_t<decltype(*output)>;
-                        using output_t = info_t::type;
-                        const auto& [key, rerun]
-                            = *output->rerun.emplace(tag, gate.edge(RerunTag())).first;
-                        gate.node(
-                            [output, t = &key](RerunTag, const output_t& output_data)
-                            {
-                                for (const auto& value : output->values)
-                                {
-                                    value(*t, output_data);
-                                }
-                            },
-                            {rerun, get<I>(gate_outputs)}
-                        );
-                    })(), ...);
-                }(std::make_index_sequence<sizeof...(Outputs)>());
-            }
-            else if constexpr (output_size == 0 && input_size > 0)
-            {
-                gate.node(
-                    std::move(callable),
-                    std::apply(
-                        [&](auto*... i)
-                        { return std::make_tuple(is_enabled, i->get_input(tag)...); },
-                        inputs
-                    )
+                    }
                 );
             }
-            else if constexpr (output_size == 0 && input_size == 0)
+            else
             {
-                gate.node(std::move(callable), {is_enabled});
+                add_node_impl(tag, std::move(wrapped_cb), enabler, inputs);
             }
         }
 
@@ -257,15 +229,18 @@ namespace nil::xit::test
         nil::xit::C xit;
         nil::gate::Core gate;
 
-        // clang-format off
-        transparent::hash_map<std::unique_ptr<frame::input::IInfo>> input_frames;   // frame_id to info
-        transparent::hash_map<std::unique_ptr<frame::output::IInfo>> output_frames; // frame_id to info
+        using frame_id_to_i_info = transparent::hash_map<std::unique_ptr<frame::input::IInfo>>;
+        using frame_id_to_o_info = transparent::hash_map<std::unique_ptr<frame::output::IInfo>>;
+        using tag_to_frame_id = transparent::hash_map<std::vector<std::string>>;
 
-        std::vector<std::string> tags;                                              // tags
-        transparent::hash_map<std::vector<std::string>> tag_inputs;                 // tag to frame_id
-        transparent::hash_map<std::vector<std::string>> tag_outputs;                // tag to frame_id
+        frame_id_to_i_info input_frames;
+        frame_id_to_o_info output_frames;
+
+        std::vector<std::string> tags;
+        tag_to_frame_id tag_inputs;
+        tag_to_frame_id tag_outputs;
+
         std::vector<std::string> blank;
-        // clang-format on
 
         template <typename T>
         T* make_frame(std::string_view id, auto& frames)
@@ -274,6 +249,38 @@ namespace nil::xit::test
             auto p = t.get();
             frames.emplace(id, std::move(t));
             return p;
+        }
+
+        template <typename Outputs, std::size_t... I>
+        nil::gate::edges::ReadOnly<bool>* add_node_enabler(
+            std::string_view tag,
+            const Outputs& outputs,
+            std::index_sequence<I...> /* seq */
+        )
+        {
+            return get<0>(gate.node(
+                [](std::conditional_t<true, bool, decltype(I)>... flags)
+                { return (false || ... || flags); },
+                {get<I>(outputs)->requested.emplace(tag, gate.edge(false)).first->second...}
+            ));
+        }
+
+        template <typename T, typename Inputs, std::size_t... I>
+        auto add_node_impl(
+            [[maybe_unused]] std::string_view tag,
+            T callable,
+            nil::gate::edges::ReadOnly<bool>* is_enabled,
+            const Inputs& inputs,
+            std::index_sequence<I...> /* seq */
+        )
+        {
+            return gate.node(std::move(callable), {is_enabled, get<I>(inputs)->get_input(tag)...});
+        }
+
+        template <typename P, typename L, typename R, std::size_t... I>
+        static void for_each(L&& a, R&& b, std::index_sequence<I...> /* seq */, const P& predicate)
+        {
+            ([&]() { predicate(get<I>(a), get<I>(b)); }(), ...);
         }
     };
 }

@@ -90,7 +90,7 @@ using Draw = nil::xit::gtest::Test<nil::xit::gtest::Input<>, nil::xit::gtest::Ou
 
 XIT_TEST_F(Draw, sample)
 {
-    Circles circles = {{{0.0, 0.0}, 1.0}, {{0.0, 0.0}, 1.5}};
+    const Circles circles = {{{0.0, 0.0}, 1.0}, {{0.0, 0.0}, 1.5}};
 
     // Execute test here
 
