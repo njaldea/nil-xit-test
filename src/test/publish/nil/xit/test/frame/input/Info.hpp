@@ -2,6 +2,8 @@
 
 #include <nil/gate/edges/Compatible.hpp>
 
+#include "../../utils.hpp"
+
 namespace nil::xit::test::frame::input
 {
     struct IInfo
@@ -16,8 +18,10 @@ namespace nil::xit::test::frame::input
     };
 
     template <typename Accessor, typename T>
-    concept is_valid_value_getter
-        = std::is_lvalue_reference_v<decltype(std::declval<Accessor>()(std::declval<T&>()))>;
+    concept is_valid_value_getter //
+        = std::is_same_v<         //
+            utils::return_t<Accessor, T>,
+            std::decay_t<utils::return_t<Accessor, T>>&>;
 
     template <typename T>
     struct Info: IInfo

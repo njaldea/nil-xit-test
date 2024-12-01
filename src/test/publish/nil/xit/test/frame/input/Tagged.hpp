@@ -10,6 +10,8 @@
 
 #include <nil/gate/Core.hpp>
 
+#include <type_traits>
+
 namespace nil::xit::test::frame::input::tagged
 {
     template <typename T>
@@ -62,7 +64,7 @@ namespace nil::xit::test::frame::input::tagged
             }
         }
 
-        template <typename V, is_valid_value_getter<T> Accessor>
+        template <typename V, is_valid_value_getter<T&> Accessor>
         void add_value(std::string id, Accessor accessor)
         {
             struct XitAccessor: nil::xit::tagged::IAccessor<V>
@@ -113,9 +115,7 @@ namespace nil::xit::test::frame::input::tagged
         }
 
         template <typename Callable>
-            requires requires(Callable callable) {
-                { callable(std::declval<T>(), std::string_view()) };
-            }
+            requires std::is_invocable_v<Callable, T, std::string_view>
         void add_signal(std::string id, Callable callable)
         {
             nil::xit::tagged::add_signal(

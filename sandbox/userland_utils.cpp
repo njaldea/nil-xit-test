@@ -20,10 +20,14 @@ bool Ranges::operator==(const Ranges& o) const
     return v1 == o.v1 && v2 == o.v2 && v3 == o.v3;
 }
 
+bool Circle::operator==(const Circle& o) const
+{
+    return position == o.position && radius == o.radius;
+}
+
 bool Circles::operator==(const Circles& o) const
 {
-    return o.x.position == x.position && o.x.radius == x.radius && o.y.position == y.position
-        && o.y.radius == y.radius;
+    return x == o.x && y == o.y;
 }
 
 nlohmann::json to_json(std::istream& iss)
@@ -63,4 +67,28 @@ Ranges to_range(std::istream& iss)
 void from_range(std::ostream& oss, const Ranges& data)
 {
     oss << '[' << data.v1 << ',' << data.v2 << ',' << data.v3 << ']';
+}
+
+void nlohmann::adl_serializer<Circle>::to_json(nlohmann::json& j, const Circle& v)
+{
+    j = nlohmann::json::object({{"position", v.position}, {"radius", v.radius}});
+}
+
+void nlohmann::adl_serializer<Circle>::from_json(const nlohmann::json& j, Circle& v)
+{
+    using nlohmann::json;
+    v.position = j.value(json::json_pointer("/position"), std::array<double, 2>());
+    v.radius = j.value(json::json_pointer("/radius"), 0.0);
+}
+
+void nlohmann::adl_serializer<Circles>::to_json(nlohmann::json& j, const Circles& v)
+{
+    j = nlohmann::json::object({{"x", v.x}, {"y", v.y}});
+}
+
+void nlohmann::adl_serializer<Circles>::from_json(const nlohmann::json& j, Circles& v)
+{
+    using nlohmann::json;
+    v.x = j.value(json::json_pointer("/x"), Circle{});
+    v.y = j.value(json::json_pointer("/y"), Circle{});
 }

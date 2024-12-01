@@ -14,11 +14,13 @@ set(
     HEADERS
         publish/nil/xit/test.hpp
         publish/nil/xit/test/App.hpp
+        publish/nil/xit/test/RerunTag.hpp
+        publish/nil/xit/test/transparent_hash_map.hpp
+        publish/nil/xit/test/utils.hpp
         publish/nil/xit/test/frame/input/Info.hpp
         publish/nil/xit/test/frame/input/Unique.hpp
         publish/nil/xit/test/frame/input/Tagged.hpp
         publish/nil/xit/test/frame/output/Info.hpp
-        publish/nil/xit/test/transparent_hash_map.hpp
 )
 
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})

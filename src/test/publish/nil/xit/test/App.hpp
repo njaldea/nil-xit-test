@@ -41,10 +41,8 @@ namespace nil::xit::test
         );
 
         template <typename FromVS>
-            requires requires(FromVS converter) {
-                { converter(std::declval<std::vector<std::string>>()) };
-            }
-        void add_main(const std::filesystem::path& path, FromVS converter)
+            requires std::is_invocable_v<FromVS, std::vector<std::string>>
+        void add_main(const std::filesystem::path& path, const FromVS& converter)
         {
             {
                 auto& frame = add_unique_frame(xit, "index", path);
@@ -60,13 +58,13 @@ namespace nil::xit::test
                 add_value(
                     frame,
                     "inputs",
-                    [converter = std::move(converter), this](std::string_view tag)
+                    [converter, this](std::string_view tag)
                     { return converter(installed_tag_inputs(tag)); }
                 );
                 add_value(
                     frame,
                     "outputs",
-                    [converter = std::move(converter), this](std::string_view tag)
+                    [converter, this](std::string_view tag)
                     { return converter(installed_tag_outputs(tag)); }
                 );
             }

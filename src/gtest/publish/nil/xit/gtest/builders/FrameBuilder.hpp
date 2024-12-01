@@ -7,7 +7,6 @@
 #include "frames/output/Frame.hpp"
 
 #include "../utils/from_data.hpp"
-#include "nil/xit/test/frame/input/Tagged.hpp"
 
 #include <filesystem>
 #include <string_view>
@@ -17,13 +16,13 @@
 namespace nil::xit::gtest::builders
 {
     template <typename T>
-    concept is_loader_unique = requires(T loader) {
-        { loader.initialize() };
+    concept is_loader_unique = requires(T maker) {
+        { maker().initialize() };
     };
 
     template <typename T>
-    concept is_loader_tagged = requires(T loader) {
-        { loader.initialize(std::declval<std::string_view>()) };
+    concept is_loader_tagged = requires(T maker) {
+        { maker().initialize(std::declval<std::string_view>()) };
     };
 
     template <typename T, typename... Args>
@@ -40,7 +39,7 @@ namespace nil::xit::gtest::builders
     {
     public:
         template <typename Data>
-            requires(!is_loader_tagged<decltype(std::declval<Data>()())>)
+            requires(!is_loader_tagged<Data>)
         auto& create_tagged_input(std::string id, std::filesystem::path file, Data data)
         {
             return create_tagged_input(
@@ -50,8 +49,7 @@ namespace nil::xit::gtest::builders
             );
         }
 
-        template <typename Loader>
-            requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
+        template <is_loader_tagged Loader>
         auto& create_tagged_input(std::string id, std::filesystem::path file, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
@@ -100,7 +98,7 @@ namespace nil::xit::gtest::builders
         }
 
         template <typename Data>
-            requires(!is_loader_unique<decltype(std::declval<Data>()())>)
+            requires(!is_loader_unique<Data>)
         auto& create_unique_input(std::string id, std::filesystem::path file, Data data)
         {
             return create_unique_input(
@@ -110,8 +108,7 @@ namespace nil::xit::gtest::builders
             );
         }
 
-        template <typename Loader>
-            requires(is_loader_unique<decltype(std::declval<Loader>()())>)
+        template <is_loader_unique Loader>
         auto& create_unique_input(std::string id, std::filesystem::path file, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;

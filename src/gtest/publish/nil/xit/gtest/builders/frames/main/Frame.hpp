@@ -6,15 +6,14 @@
 
 #include <filesystem>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace nil::xit::gtest::builders::main
 {
     template <typename Converter>
-        requires requires(Converter converter) {
-            { converter(std::declval<std::vector<std::string>>()) };
-        }
+        requires std::is_invocable_v<Converter, std::vector<std::string>>
     struct Frame final: IFrame
     {
         explicit Frame(std::filesystem::path init_file, Converter init_converter)

@@ -8,13 +8,22 @@ namespace nil::xit::gtest
 {
     namespace builders
     {
+        std::string to_tag_suffix(const std::string& test_id, const std::string& dir)
+        {
+            if (dir == ".")
+            {
+                return test_id;
+            }
+            return test_id + '[' + dir + ']';
+        }
+
         std::string to_tag(
             const std::string& suite_id,
             const std::string& test_id,
             const std::string& dir
         )
         {
-            return suite_id + '.' + test_id + '[' + dir + ']';
+            return suite_id + '.' + to_tag_suffix(test_id, dir);
         }
 
         void MainBuilder::install(test::App& app, const std::filesystem::path& path) const
@@ -72,6 +81,10 @@ namespace nil::xit::gtest
     {
         const auto i1 = tag.find_last_of('[') + 1;
         const auto i2 = tag.find_last_of(']');
-        return tag.substr(i1, i2 - i1);
+        if (i1 < tag.size() - 1 && i2 == tag.size() - 1)
+        {
+            return tag.substr(i1, i2 - i1);
+        }
+        return ".";
     }
 }

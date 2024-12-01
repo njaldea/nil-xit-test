@@ -69,6 +69,12 @@ namespace nil::xit::gtest
     {
     };
 
+    template <StringLiteral... S>
+    using TestInputs = Test<Input<S...>, Output<>>;
+
+    template <StringLiteral... S>
+    using TestOutputs = Test<Input<>, Output<S...>>;
+
     template <typename T>
     concept is_valid_test = requires(T& t) {
         typename T::base_t;

@@ -2,6 +2,13 @@
 
 #include <filesystem>
 
+#include <nil/xit/gtest.hpp>
+
+using nil::xit::gtest::from_data;               // NOLINT(misc-unused-using-decls)
+using nil::xit::gtest::from_file;               // NOLINT(misc-unused-using-decls)
+using nil::xit::gtest::from_file_with_finalize; // NOLINT(misc-unused-using-decls)
+using nil::xit::gtest::from_file_with_update;   // NOLINT(misc-unused-using-decls)
+
 // TODO: move to command line arguments or env var?
 const auto source_path = std::filesystem::path(__FILE__).parent_path();
 XIT_PATH_MAIN_UI_DIRECTORY(source_path / "gui");
@@ -36,6 +43,8 @@ XIT_FRAME_OUTPUT("plotly_frame", "PlotlyFrame.svelte", nlohmann::json)
 using nil::xit::gtest::Input;
 using nil::xit::gtest::Output;
 using nil::xit::gtest::Test;
+using nil::xit::gtest::TestInputs;
+using nil::xit::gtest::TestOutputs;
 
 using Plotly = Test<Input<"slider_frame", "json_input_frame">, Output<"plotly_frame">>;
 
@@ -86,7 +95,7 @@ XIT_TEST_F(DrawWithInput, demo, "draw")
     draw = input_data;
 }
 
-using Draw = nil::xit::gtest::Test<nil::xit::gtest::Input<>, nil::xit::gtest::Output<"draw_frame">>;
+using Draw = TestOutputs<"draw_frame">;
 
 XIT_TEST_F(Draw, sample)
 {

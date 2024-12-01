@@ -13,6 +13,8 @@
 
 namespace nil::xit::gtest::builders
 {
+    std::string to_tag_suffix(const std::string& test_id, const std::string& dir);
+
     std::string to_tag(
         const std::string& suite_id,
         const std::string& test_id,
@@ -132,7 +134,7 @@ namespace nil::xit::gtest::builders
 
         testing::internal::MakeAndRegisterTestInfo(
             suite_id,
-            (test_id + '[' + dir + ']').c_str(),
+            to_tag_suffix(test_id, dir).c_str(),
             nullptr,
             nullptr,
             ::testing::internal::CodeLocation(file, line),

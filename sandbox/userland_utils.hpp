@@ -1,7 +1,5 @@
 #pragma once
 
-#include <nil/xit/gtest.hpp>
-
 #include <nil/xit/buffer_type.hpp>
 
 #include <nlohmann/json.hpp>
@@ -20,45 +18,15 @@ struct Circle
 {
     std::array<double, 2> position = {};
     double radius = 0.0;
+
+    bool operator==(const Circle& o) const;
 };
 
 struct Circles
 {
-    Circle x = {{0, 0}, 1.0};
-    Circle y = {{0, 0}, 1.0};
+    Circle x = {};
+    Circle y = {};
     bool operator==(const Circles& o) const;
-};
-
-template <>
-struct nlohmann::adl_serializer<Circle>
-{
-    static void to_json(nlohmann::json& j, const Circle& v)
-    {
-        j = nlohmann::json::object({{"position", v.position}, {"radius", v.radius}});
-    }
-
-    static void from_json(const nlohmann::json& j, Circle& v)
-    {
-        using nlohmann::json;
-        v.position = j.value(json::json_pointer("/position"), std::array<double, 2>());
-        v.radius = j.value(json::json_pointer("/radius"), 1.0);
-    }
-};
-
-template <>
-struct nlohmann::adl_serializer<Circles>
-{
-    static void to_json(nlohmann::json& j, const Circles& v)
-    {
-        j = nlohmann::json::object({{"x", v.x}, {"y", v.y}});
-    }
-
-    static void from_json(const nlohmann::json& j, Circles& v)
-    {
-        using nlohmann::json;
-        v.x = j.value(json::json_pointer("/x"), Circle{{0, 0}, 1.0});
-        v.y = j.value(json::json_pointer("/y"), Circle{{0, 0}, 1.0});
-    }
 };
 
 nlohmann::json to_json(std::istream& iss);
@@ -85,10 +53,19 @@ inline auto from_json_ptr(const std::string& json_ptr)
     return Accessor{nlohmann::json::json_pointer(json_ptr)};
 }
 
-using nil::xit::gtest::from_data;
-using nil::xit::gtest::from_file;
-using nil::xit::gtest::from_file_with_finalize;
-using nil::xit::gtest::from_file_with_update;
+template <>
+struct nlohmann::adl_serializer<Circle>
+{
+    static void to_json(nlohmann::json& j, const Circle& v);
+    static void from_json(const nlohmann::json& j, Circle& v);
+};
+
+template <>
+struct nlohmann::adl_serializer<Circles>
+{
+    static void to_json(nlohmann::json& j, const Circles& v);
+    static void from_json(const nlohmann::json& j, Circles& v);
+};
 
 namespace nil::xit
 {

@@ -2,6 +2,7 @@
 
 #include <nil/xit/test/App.hpp>
 #include <nil/xit/test/frame/input/Tagged.hpp>
+#include <type_traits>
 
 #include "../../../headless/Inputs.hpp"
 #include "../../../utils/from_member.hpp"
@@ -60,7 +61,7 @@ namespace nil::xit::gtest::builders::input::tagged
             inputs.values.emplace(id, std::make_unique<Cache>(loader_creator()));
         }
 
-        template <test::frame::input::is_valid_value_getter<T> Getter>
+        template <test::frame::input::is_valid_value_getter<T&> Getter>
         Frame<T>& value(std::string value_id, Getter getter)
         {
             using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<T&>()))>;
@@ -83,9 +84,7 @@ namespace nil::xit::gtest::builders::input::tagged
         }
 
         template <typename Callable>
-            requires requires(Callable callable) {
-                { callable(std::declval<T>(), std::string_view()) };
-            }
+            requires std::is_invocable_v<Callable, T, std::string_view>
         Frame<T>& signal(std::string signal_id, Callable callable)
         {
             bindings.push_back(

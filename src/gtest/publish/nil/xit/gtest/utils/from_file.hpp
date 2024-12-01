@@ -2,21 +2,22 @@
 
 #include "../Instances.hpp"
 
+#include <nil/xit/test/utils.hpp>
+
 #include <filesystem>
 #include <fstream>
 #include <string_view>
+#include <type_traits>
 
 namespace nil::xit::gtest
 {
     std::string_view tag_to_dir(std::string_view tag);
 
     template <typename Reader>
-        requires requires(Reader reader) {
-            { reader(std::declval<std::ifstream&>()) };
-        }
+        requires std::is_invocable_v<Reader, std::istream&>
     auto read(const std::filesystem::path& path, const Reader& reader)
     {
-        using type = decltype(reader(std::declval<std::ifstream&>()));
+        using type = decltype(reader(std::declval<std::istream&>()));
         if (!std::filesystem::exists(path))
         {
             // throw std::runtime_error("not found: " + path.string());
@@ -27,9 +28,7 @@ namespace nil::xit::gtest
     }
 
     template <typename Writer, typename Data>
-        requires requires(Writer writer, Data data) {
-            { writer(std::declval<std::ofstream&>(), data) };
-        }
+        requires std::is_invocable_r_v<void, Writer, std::ofstream&, Data>
     void write(const std::filesystem::path& path, const Writer& writer, const Data& data)
     {
         if (!std::filesystem::exists(path))
@@ -41,13 +40,11 @@ namespace nil::xit::gtest
     }
 
     template <typename Reader, typename Writer>
-        requires requires(Reader reader, Writer writer) {
-            { reader(std::declval<std::istream&>()) };
-            { writer(std::declval<std::ostream&>(), reader(std::declval<std::istream&>())) };
-        }
+        requires std::is_invocable_v<Reader, std::istream&>
+        && std::is_invocable_v<Writer, std::ostream&, test::utils::return_t<Reader, std::istream&>>
     auto from_file_with_update(std::string file_name, Reader reader, Writer writer)
     {
-        using type = decltype(reader(std::declval<std::istream&>()));
+        using type = test::utils::return_t<Reader, std::istream&>;
 
         struct Loader final
         {
@@ -97,13 +94,11 @@ namespace nil::xit::gtest
     }
 
     template <typename Reader, typename Writer>
-        requires requires(Reader reader, Writer writer) {
-            { reader(std::declval<std::istream&>()) };
-            { writer(std::declval<std::ostream&>(), reader(std::declval<std::istream&>())) };
-        }
+        requires std::is_invocable_v<Reader, std::istream&>
+        && std::is_invocable_v<Writer, std::ostream&, test::utils::return_t<Reader, std::istream&>>
     auto from_file_with_finalize(std::string file_name, Reader reader, Writer writer)
     {
-        using type = decltype(reader(std::declval<std::istream&>()));
+        using type = test::utils::return_t<Reader, std::istream&>;
 
         struct Loader final
         {
@@ -153,9 +148,7 @@ namespace nil::xit::gtest
     }
 
     template <typename Reader>
-        requires requires(Reader reader) {
-            { reader(std::declval<std::istream&>()) };
-        }
+        requires std::is_invocable_v<Reader, std::istream&>
     auto from_file(std::string file_name, Reader reader)
     {
         using type = decltype(reader(std::declval<std::istream&>()));
