@@ -15,6 +15,10 @@ namespace nil::xit::test::frame::input
         virtual void finalize(std::string_view tag) const = 0;
     };
 
+    template <typename Accessor, typename T>
+    concept is_valid_value_getter
+        = std::is_lvalue_reference_v<decltype(std::declval<Accessor>()(std::declval<T&>()))>;
+
     template <typename T>
     struct Info: IInfo
     {

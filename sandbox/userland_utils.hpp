@@ -5,6 +5,7 @@
 #include <nil/xit/buffer_type.hpp>
 
 #include <nlohmann/json.hpp>
+#include <type_traits>
 
 struct Ranges
 {
@@ -69,26 +70,16 @@ void from_circles(std::ostream& oss, const Circles& data);
 Ranges to_range(std::istream& iss);
 void from_range(std::ostream& oss, const Ranges& data);
 
-template <typename T = nlohmann::json>
-auto from_json_ptr(const std::string& json_ptr)
+inline auto from_json_ptr(const std::string& json_ptr)
 {
     struct Accessor
     {
-        T get(const nlohmann::json& data) const
-        {
-            if (data.contains(json_ptr))
-            {
-                return data[json_ptr];
-            }
-            return T();
-        }
-
-        void set(nlohmann::json& data, T new_data) const
-        {
-            data[json_ptr] = std::move(new_data);
-        }
-
-        nlohmann::json::json_pointer json_ptr;
+        // clang-format off
+        using type = nlohmann::json;
+        type& operator()(type& data) const { return data[ptr]; }
+        const type& operator()(const type& data) const { return data[ptr]; }
+        nlohmann::json::json_pointer ptr;
+        // clang-format on
     };
 
     return Accessor{nlohmann::json::json_pointer(json_ptr)};

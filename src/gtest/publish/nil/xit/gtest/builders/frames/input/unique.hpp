@@ -4,6 +4,8 @@
 #include <nil/xit/test/frame/input/Unique.hpp>
 
 #include "../../../headless/Inputs.hpp"
+#include "../../../utils/from_member.hpp"
+
 #include "Frame.hpp"
 
 namespace nil::xit::gtest::builders::input::unique
@@ -62,32 +64,13 @@ namespace nil::xit::gtest::builders::input::unique
             inputs.values.emplace(id, std::make_unique<Cache>(loader_creator()));
         }
 
-        template <typename Getter, typename Setter>
-            requires(is_compatible_getter_setter<Getter, Setter, T>)
-        Frame<T>& value(std::string value_id, Getter getter, Setter setter)
+        template <test::frame::input::is_valid_value_getter<T> Getter>
+        Frame<T>& value(std::string value_id, Getter getter)
         {
-            using getter_return_t = decltype(getter(std::declval<const T&>()));
-            values.emplace_back(
-                [value_id = std::move(value_id),
-                 getter = std::move(getter),
-                 setter = std::move(setter)](Info<T>& info) {
-                    info.template add_value<getter_return_t>(
-                        value_id,
-                        std::move(getter),
-                        std::move(setter)
-                    );
-                }
-            );
-            return *this;
-        }
-
-        template <is_compatible_accessor<T> Accessor>
-        Frame<T>& value(std::string value_id, Accessor accessor)
-        {
-            using getter_return_t = decltype(accessor.get(std::declval<const T&>()));
-            values.emplace_back( //
-                [value_id = std::move(value_id), accessor = std::move(accessor)](Info<T>& info)
-                { info.template add_value<getter_return_t>(value_id, accessor); }
+            using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<T&>()))>;
+            values.emplace_back(                                             //
+                [value_id = std::move(value_id), getter = std::move(getter)] //
+                (Info<T> & info) { info.template add_value<getter_return_t>(value_id, getter); }
             );
             return *this;
         }
@@ -95,20 +78,12 @@ namespace nil::xit::gtest::builders::input::unique
         template <typename U>
         Frame<T>& value(std::string value_id, U T::*member)
         {
-            return value(
-                std::move(value_id),
-                [member](const T& value) { return value.*member; },
-                [member](T& value, U new_data) { value.*member = std::move(new_data); }
-            );
+            return value(std::move(value_id), from_member(member));
         }
 
         Frame<T>& value(std::string value_id)
         {
-            return value(
-                std::move(value_id),
-                [](const T& value) { return value; },
-                [](T& value, T new_value) { value = std::move(new_value); }
-            );
+            return value(std::move(value_id), [](T& value) -> T& { return value; });
         }
 
         template <typename Callable>

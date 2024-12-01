@@ -11,6 +11,7 @@
 
 #include <functional>
 #include <string_view>
+#include <type_traits>
 
 namespace nil::xit::test::frame::output
 {
@@ -24,6 +25,13 @@ namespace nil::xit::test::frame::output
         virtual ~IInfo() = default;
     };
 
+    template <typename Accessor, typename T>
+    using return_t = decltype(std::declval<Accessor>()(std::declval<const T&>()));
+
+    template <typename Accessor, typename T>
+    concept is_valid_value_getter
+        = std::is_same_v<return_t<Accessor, T>, const std::decay_t<return_t<Accessor, T>>&>;
+
     template <typename T>
     struct Info: IInfo
     {
@@ -33,10 +41,7 @@ namespace nil::xit::test::frame::output
         transparent::hash_map<nil::gate::edges::Mutable<bool>*> requested;
         std::vector<std::function<void(std::string_view, const T&)>> values;
 
-        template <typename V, typename Getter>
-            requires requires(Getter g) {
-                { g(std::declval<const T&>()) } -> std::same_as<V>;
-            }
+        template <typename V, is_valid_value_getter<T> Getter>
         void add_value(std::string id, Getter getter)
         {
             auto* value = &nil::xit::tagged::add_value(

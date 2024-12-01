@@ -62,11 +62,7 @@ namespace nil::xit::test::frame::input::tagged
             }
         }
 
-        template <typename V, typename Accessor>
-            requires requires(const Accessor& accessor) {
-                { accessor.get(std::declval<const T&>()) } -> std::same_as<V>;
-                { accessor.set(std::declval<T&>(), std::declval<V>()) } -> std::same_as<void>;
-            }
+        template <typename V, is_valid_value_getter<T> Accessor>
         void add_value(std::string id, Accessor accessor)
         {
             struct XitAccessor: nil::xit::tagged::IAccessor<V>
@@ -88,7 +84,7 @@ namespace nil::xit::test::frame::input::tagged
                             entry.input->set_value(entry.data.value());
                             parent->gate->commit();
                         }
-                        return accessor.get(entry.data.value());
+                        return accessor(entry.data.value());
                     }
                     return V();
                 }
@@ -98,7 +94,7 @@ namespace nil::xit::test::frame::input::tagged
                     if (auto it = parent->info.find(tag); it != parent->info.end())
                     {
                         auto& entry = it->second;
-                        accessor.set(entry.data.value(), std::move(new_data));
+                        accessor(entry.data.value()) = std::move(new_data);
                         entry.input->set_value(entry.data.value());
                         parent->manager->update(tag, entry.data.value());
                         parent->gate->commit();
@@ -114,38 +110,6 @@ namespace nil::xit::test::frame::input::tagged
                 std::move(id),
                 std::make_unique<XitAccessor>(this, std::move(accessor))
             );
-        }
-
-        template <typename V, typename Getter, typename Setter>
-            requires requires(Getter g, Setter s) {
-                { g(std::declval<const T&>()) } -> std::same_as<V>;
-                { s(std::declval<T&>(), std::declval<V>()) } -> std::same_as<void>;
-            }
-        void add_value(std::string id, Getter getter, Setter setter)
-        {
-            struct Accessor
-            {
-                Accessor(Getter init_getter, Setter init_setter)
-                    : getter(std::move(init_getter))
-                    , setter(std::move(init_setter))
-                {
-                }
-
-                V get(const T& value) const
-                {
-                    return getter(value);
-                }
-
-                void set(T& value, V new_value) const
-                {
-                    setter(value, std::move(new_value));
-                }
-
-                Getter getter;
-                Setter setter;
-            };
-
-            this->add_value<V>(std::move(id), Accessor(std::move(getter), std::move(setter)));
         }
 
         template <typename Callable>

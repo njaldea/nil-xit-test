@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../../utils/from_member.hpp"
 #include "../IFrame.hpp"
 
 #include <nil/xit/test/App.hpp>
@@ -29,42 +30,27 @@ namespace nil::xit::gtest::builders::output
             }
         }
 
-        template <typename Getter>
-            requires requires(Getter getter) {
-                { getter(std::declval<T>()) };
-            }
+        template <test::frame::output::is_valid_value_getter<T> Getter>
         Frame<T>& value(std::string value_id, Getter getter)
         {
-            using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<const T&>()))>;
-            values.emplace_back(
+            using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<T&>()))>;
+            values.emplace_back(                                             //
                 [value_id = std::move(value_id), getter = std::move(getter)] //
                 (nil::xit::test::frame::output::Info<T> & info)
-                { info.template add_value<getter_return_t>(value_id, std::move(getter)); }
+                { info.template add_value<getter_return_t>(value_id, getter); }
             );
             return *this;
-        }
-
-        template <typename Accessor>
-            requires requires(Accessor accessor) {
-                { accessor.get(std::declval<T>()) };
-            }
-        Frame<T>& value(std::string value_id, Accessor accessor)
-        {
-            return value(
-                std::move(value_id),
-                [accessor = std::move(accessor)](const T& value) { return accessor.get(value); }
-            );
         }
 
         template <typename U>
         Frame<T>& value(std::string value_id, U T::*member)
         {
-            return value(std::move(value_id), [member](const T& value) { return value.*member; });
+            return value(std::move(value_id), from_member(member));
         }
 
         Frame<T>& value(std::string value_id)
         {
-            return value(std::move(value_id), [](const T& value) { return value; });
+            return value(std::move(value_id), [](const T& value) -> const T& { return value; });
         }
 
     private:

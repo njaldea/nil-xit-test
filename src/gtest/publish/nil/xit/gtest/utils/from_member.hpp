@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility>
+#include <concepts> // IWYU pragma: keep
 
 namespace nil::xit::gtest
 {
@@ -9,17 +9,11 @@ namespace nil::xit::gtest
     {
         struct Accessor
         {
-            M get(const C& data) const
-            {
-                return data.*member_ptr;
-            }
-
-            void set(C& data, M new_data) const
-            {
-                data.*member_ptr = std::move(new_data);
-            }
-
+            // clang-format off
+            M& operator()(C& data) const { return data.*member_ptr; }
+            const M& operator()(const C& data) const { return data.*member_ptr; }
             M C::*member_ptr;
+            // clang-format on
         };
 
         return Accessor{member_ptr};
