@@ -44,6 +44,17 @@ namespace nil::xit::test
         return blank;
     }
 
+    void App::add_info(
+        std::string_view tag,
+        std::vector<std::string> inputs,
+        std::vector<std::string> outputs
+    )
+    {
+        tags.emplace_back(tag);
+        tag_inputs.emplace(tag, std::move(inputs));
+        tag_outputs.emplace(tag, std::move(outputs));
+    }
+
     void App::finalize_inputs(std::string_view tag) const
     {
         if (const auto it = tag_inputs.find(tag); it != tag_inputs.end())

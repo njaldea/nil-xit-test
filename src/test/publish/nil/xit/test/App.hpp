@@ -38,12 +38,7 @@ namespace nil::xit::test
             std::string_view tag,
             std::vector<std::string> inputs,
             std::vector<std::string> outputs
-        )
-        {
-            tags.emplace_back(tag);
-            tag_inputs.emplace(tag, std::move(inputs));
-            tag_outputs.emplace(tag, std::move(outputs));
-        }
+        );
 
         template <typename FromVS>
             requires requires(FromVS converter) {
@@ -52,26 +47,26 @@ namespace nil::xit::test
         void add_main(const std::filesystem::path& path, FromVS converter)
         {
             {
-                auto& f = add_unique_frame(xit, "index", path);
-                add_value(f, "tags", [=, this]() { return converter(installed_tags()); });
+                auto& frame = add_unique_frame(xit, "index", path);
+                add_value(frame, "tags", [=, this]() { return converter(installed_tags()); });
                 add_signal(
-                    f,
+                    frame,
                     "finalize",
                     [this](std::string_view tag) { return finalize_inputs(tag); }
                 );
             }
             {
-                auto& f = add_tagged_frame(xit, "frame_info");
+                auto& frame = add_tagged_frame(xit, "frame_info");
                 add_value(
-                    f,
+                    frame,
                     "inputs",
-                    [=, this](std::string_view tag) //
+                    [converter = std::move(converter), this](std::string_view tag)
                     { return converter(installed_tag_inputs(tag)); }
                 );
                 add_value(
-                    f,
+                    frame,
                     "outputs",
-                    [=, this](std::string_view tag)
+                    [converter = std::move(converter), this](std::string_view tag)
                     { return converter(installed_tag_outputs(tag)); }
                 );
             }

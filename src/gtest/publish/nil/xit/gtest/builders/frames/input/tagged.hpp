@@ -30,13 +30,9 @@ namespace nil::xit::gtest::builders::input::tagged
         void install(test::App& app, const std::filesystem::path& path) override
         {
             auto* frame = app.add_tagged_input<T>(id, path / file, loader_creator());
-            for (const auto& value_installer : values)
+            for (const auto& installer : bindings)
             {
-                value_installer(*frame);
-            }
-            for (const auto& signal_installer : signals)
-            {
-                signal_installer(*frame);
+                installer(*frame);
             }
         }
 
@@ -67,7 +63,7 @@ namespace nil::xit::gtest::builders::input::tagged
         Frame<T>& value(std::string value_id, Getter getter, Setter setter)
         {
             using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<const T&>()))>;
-            values.emplace_back(
+            bindings.emplace_back(
                 [value_id = std::move(value_id),
                  getter = std::move(getter),
                  setter = std::move(setter)] //
@@ -81,9 +77,9 @@ namespace nil::xit::gtest::builders::input::tagged
         Frame<T>& value(std::string value_id, Accessor accessor)
         {
             using getter_return_t = decltype(accessor.get(std::declval<const T&>()));
-            values.emplace_back( //
-                [value_id = std::move(value_id), accessor = std::move(accessor)](Info<T>& info)
-                { info.template add_value<getter_return_t>(value_id, accessor); }
+            bindings.emplace_back(                                               //
+                [value_id = std::move(value_id), accessor = std::move(accessor)] //
+                (Info<T> & info) { info.template add_value<getter_return_t>(value_id, accessor); }
             );
             return *this;
         }
@@ -113,7 +109,7 @@ namespace nil::xit::gtest::builders::input::tagged
             }
         Frame<T>& signal(std::string signal_id, Callable callable)
         {
-            signals.push_back(
+            bindings.push_back(
                 [signal_id = std::move(signal_id), callable = std::move(callable)](Info<T>& info)
                 { info.add_signal(signal_id, callable); } //
             );
@@ -124,7 +120,6 @@ namespace nil::xit::gtest::builders::input::tagged
         std::string id;
         std::filesystem::path file;
         std::function<std::unique_ptr<typename Info<T>::IDataManager>()> loader_creator;
-        std::vector<std::function<void(Info<T>&)>> values;
-        std::vector<std::function<void(Info<T>&)>> signals;
+        std::vector<std::function<void(Info<T>&)>> bindings;
     };
 }

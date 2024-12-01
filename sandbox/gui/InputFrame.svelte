@@ -4,7 +4,7 @@
 
     const { values } = xit();
 
-    const buf_value = values.json('value', {}, json_string);
+    const buf_value = values.json('value', /** @type unknown */ ({}), json_string);
 
     /** @type (target: HTMLDivElement) => { destroy: () => void }*/
     const json_editor = (target) => {
