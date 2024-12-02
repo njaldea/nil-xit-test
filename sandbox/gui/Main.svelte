@@ -1,9 +1,11 @@
 <script>
-    import { xit, json_string } from "@nil-/xit";
+    import { xit } from "@nil-/xit";
     import { get } from "svelte/store";
 
+    import { msgpack_codec } from "./codec.js";
+
     const { values, signals, frame, frame_ui } = xit();
-    const tags = values.json("tags", /** @type string[] */ ([]), json_string);
+    const tags = values.json("tags", /** @type string[] */ ([]), msgpack_codec);
 
     const finalize = signals.string("finalize");
 
@@ -13,8 +15,8 @@
 
     const load_frame = async (/** @type string */ tag) => {
         const { values, unsub } = await frame("frame_info", tag);
-        const inputs = values.json("inputs", /** @type string[] */ ([]), json_string);
-        const outputs = values.json("outputs", /** @type string[] */ ([]), json_string);
+        const inputs = values.json("inputs", /** @type string[] */ ([]), msgpack_codec);
+        const outputs = values.json("outputs", /** @type string[] */ ([]), msgpack_codec);
         unsub();
         return Promise.all([ 
             Promise.all(get(inputs).map(v => frame_ui(v, tag))), 

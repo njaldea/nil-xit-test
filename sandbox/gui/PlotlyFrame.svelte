@@ -1,11 +1,13 @@
 <script>
-    import { xit, json_string } from "@nil-/xit";
     import "https://cdn.plot.ly/plotly-2.35.2.min.js";
+    import { xit } from "@nil-/xit";
+
+    import { msgpack_codec } from "./codec.js";
 
     const { values } = xit();
 
-    const value_x = values.json("value-x", null, json_string);
-    const value_y = values.json("value-y", null, json_string);
+    const value_x = values.json("value-x", null, msgpack_codec);
+    const value_y = values.json("value-y", null, msgpack_codec);
 
     /** @type import("svelte/action").Action<HTMLDivElement, any[]> */
     const plot_it = (target, props) => {

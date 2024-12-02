@@ -5,13 +5,12 @@ namespace nil::xit
     // this is necessary when publishing a custom data through the network going to the UI
     nlohmann::json buffer_type<nlohmann::json>::deserialize(const void* data, std::uint64_t size)
     {
-        return nlohmann::json::parse(std::string_view(static_cast<const char*>(data), size));
+        return nlohmann::json::from_msgpack(std::string_view(static_cast<const char*>(data), size));
     }
 
     std::vector<std::uint8_t> buffer_type<nlohmann::json>::serialize(const nlohmann::json& value)
     {
-        auto s = value.dump();
-        return {s.begin(), s.end()};
+        return nlohmann::json::to_msgpack(value);
     }
 }
 

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@msgpack/msgpack':
+        specifier: 3.0.0-beta2
+        version: 3.0.0-beta2
       '@nil-/xit':
         specifier: ^0.1.25
         version: 0.1.25
@@ -20,6 +23,10 @@ importers:
       vanilla-jsoneditor:
         specifier: ^1.1.2
         version: 1.1.2(@lezer/common@1.2.3)
+    devDependencies:
+      '@types/msgpack-lite':
+        specifier: ^0.1.11
+        version: 0.1.11
 
 packages:
 
@@ -113,6 +120,10 @@ packages:
 
   '@lezer/lr@1.4.2':
     resolution: {integrity: sha512-pu0K1jCIdnQ12aWNaAVU5bzi7Bd1w54J3ECgANPmYLtQKP0HBj2cE/5coBD66MT10xbtIuUr7tg0Shbsvk0mDA==}
+
+  '@msgpack/msgpack@3.0.0-beta2':
+    resolution: {integrity: sha512-y+l1PNV0XDyY8sM3YtuMLK5vE3/hkfId+Do8pLo/OPxfxuFAUwcGz3oiiUuV46/aBpwTzZ+mRWVMtlSKbradhw==}
+    engines: {node: '>= 14'}
 
   '@nil-/xit@0.1.25':
     resolution: {integrity: sha512-BsVybzco3aKLLxdSnJAK8QlQa9bMI3QsdiSThdEijZF6tRNM4Ot4oPWb3xrA9pI/y9LxmCuLx8t/+b+xXFk9yg==}
@@ -211,6 +222,12 @@ packages:
 
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
+
+  '@types/msgpack-lite@0.1.11':
+    resolution: {integrity: sha512-cdCZS/gw+jIN22I4SUZUFf1ZZfVv5JM1//Br/MuZcI373sxiy3eSSoiyLu0oz+BPatTbGGGBO5jrcvd0siCdTQ==}
+
+  '@types/node@22.10.1':
+    resolution: {integrity: sha512-qKgsUwfHZV2WCWLAnVP1JqnpE6Im6h3Y0+fYgMTasNQ7V++CBX5OT1as0g0f+OyubbFqhf6XVNIsmN4IIhEgGQ==}
 
   '@types/plotly.js@2.35.1':
     resolution: {integrity: sha512-9fTHC8qeJNEDpGJK1qIJAEcRxrI9uPrap32I8cbCLPKsqwFmafOYHecaBzvIJXEPhLIUiQocN9Bc/tIV9CjsxQ==}
@@ -397,6 +414,9 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  undici-types@6.20.0:
+    resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
+
   vanilla-jsoneditor@1.1.2:
     resolution: {integrity: sha512-IQ8pFTThwgcW1ArkOjPnW0/TD2azw5lv7ut+kQx2tH6AnDthcIFAR8knH1kR4rXGnL+J2oy9FgT49u5jvL5TbQ==}
 
@@ -517,6 +537,8 @@ snapshots:
     dependencies:
       '@lezer/common': 1.2.3
 
+  '@msgpack/msgpack@3.0.0-beta2': {}
+
   '@nil-/xit@0.1.25': {}
 
   '@parcel/watcher-android-arm64@2.5.0':
@@ -589,6 +611,14 @@ snapshots:
   '@sphinxxxx/color-conversion@2.2.2': {}
 
   '@types/estree@1.0.6': {}
+
+  '@types/msgpack-lite@0.1.11':
+    dependencies:
+      '@types/node': 22.10.1
+
+  '@types/node@22.10.1':
+    dependencies:
+      undici-types: 6.20.0
 
   '@types/plotly.js@2.35.1': {}
 
@@ -784,6 +814,8 @@ snapshots:
     dependencies:
       is-number: 7.0.0
     optional: true
+
+  undici-types@6.20.0: {}
 
   vanilla-jsoneditor@1.1.2(@lezer/common@1.2.3):
     dependencies:

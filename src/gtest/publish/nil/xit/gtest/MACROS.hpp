@@ -29,9 +29,7 @@
 
 #define XIT_TEST_OVERLOAD(_0, _1, NAME, ...) NAME
 
-#define XIT_TEST(SUITE, ...)                                                                       \
-    XIT_TEST_OVERLOAD(__VA_ARGS__, XIT_TEST_DEFINE, XIT_TEST_DEFINE_DEFAULT)                       \
-    (nil::xit::gtest::Test<>, SUITE, __VA_ARGS__)
+#define XIT_TEST(SUITE, CASE) XIT_TEST_DEFINE_DEFAULT(nil::xit::gtest::Test<>, SUITE, CASE)
 #define XIT_TEST_F(SUITE, ...)                                                                     \
     XIT_TEST_OVERLOAD(__VA_ARGS__, XIT_TEST_DEFINE, XIT_TEST_DEFINE_DEFAULT)                       \
     (SUITE, SUITE, __VA_ARGS__)

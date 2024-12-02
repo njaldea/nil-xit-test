@@ -1,11 +1,13 @@
 <script>
-    import { xit, json_string } from "@nil-/xit";
+    import { xit } from "@nil-/xit";
+
+    import { msgpack_codec } from "./codec.js";
 
     const { values } = xit();
 
     /** @typedef {{ position: [number, number]; radius: number; }} Circle */
-    const value_x = values.json("value-x", /** @type Circle */ ({ position: [0, 0], radius: 1.0 }), json_string);
-    const value_y = values.json("value-y", /** @type Circle */ ({ position: [0, 0], radius: 1.0 }), json_string);
+    const value_x = values.json("value-x", /** @type Circle */ ({ position: [0, 0], radius: 1.0 }), msgpack_codec);
+    const value_y = values.json("value-y", /** @type Circle */ ({ position: [0, 0], radius: 1.0 }), msgpack_codec);
 </script>
 
 <div style="width=100%; height=100%;">

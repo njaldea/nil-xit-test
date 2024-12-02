@@ -1,10 +1,12 @@
 <script>
     import { createJSONEditor } from 'vanilla-jsoneditor/standalone.js'
-    import { xit, json_string } from "@nil-/xit";
+    import { xit } from "@nil-/xit";
+
+    import { msgpack_codec } from "./codec.js";
 
     const { values } = xit();
 
-    const buf_value = values.json('value', /** @type unknown */ ({}), json_string);
+    const buf_value = values.json('value', /** @type any */ ({}), msgpack_codec);
 
     /** @type (target: HTMLDivElement) => { destroy: () => void }*/
     const json_editor = (target) => {
