@@ -14,19 +14,19 @@ namespace nil::xit
     }
 }
 
-bool Ranges::operator==(const Ranges& o) const
+bool operator==(const Ranges& l, const Ranges& r)
 {
-    return v1 == o.v1 && v2 == o.v2 && v3 == o.v3;
+    return l.v1 == r.v1 && l.v2 == r.v2 && l.v3 == r.v3;
 }
 
-bool Circle::operator==(const Circle& o) const
+bool operator==(const Circle& l, const Circle& r)
 {
-    return position == o.position && radius == o.radius;
+    return l.position == r.position && l.radius == r.radius;
 }
 
-bool Circles::operator==(const Circles& o) const
+bool operator==(const Circles& l, const Circles& r)
 {
-    return x == o.x && y == o.y;
+    return l.x == r.x && l.x == r.y;
 }
 
 nlohmann::json to_json(std::istream& iss)
@@ -51,7 +51,7 @@ void from_circles(std::ostream& oss, const Circles& data)
 
 Ranges to_range(std::istream& iss)
 {
-    auto r = Ranges{};
+    auto r = Ranges();
     auto c = char{};
     iss >> c;
     iss >> r.v1;

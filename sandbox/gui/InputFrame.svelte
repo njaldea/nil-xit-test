@@ -51,4 +51,4 @@
     };
 </script>
 
-<div style="display: contents" use:json_editor></div>
+<div style:display="contents" use:json_editor></div>

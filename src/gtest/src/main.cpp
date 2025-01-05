@@ -17,6 +17,7 @@ namespace nil::xit::gtest
     {
         auto node = nil::clix::create_node();
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
+        flag(node, "list", {.skey = 'l', .msg = "list available tests"});
         sub(node,
             "gui",
             "run in gui mode",
@@ -33,7 +34,7 @@ namespace nil::xit::gtest
                             help(options, std::cout);
                             return 0;
                         }
-                        auto& instance = nil::xit::gtest::get_instance();
+                        auto& instance = get_instance();
 
                         const auto http_server = nil::xit::make_server({
                             .source_path = instance.paths.server,
@@ -66,9 +67,10 @@ namespace nil::xit::gtest
                     return 0;
                 }
                 headless::Inputs inputs;
-                auto& instance = nil::xit::gtest::get_instance();
+                auto& instance = get_instance();
                 instance.frame_builder.install(inputs);
                 instance.test_builder.install(inputs, instance.paths.test);
+                GTEST_FLAG_SET(list_tests, flag(options, "list"));
                 ::testing::InitGoogleTest();
                 return RUN_ALL_TESTS();
             });

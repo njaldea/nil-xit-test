@@ -1,6 +1,8 @@
 <script>
     import { xit } from "@nil-/xit";
+
     const { values } = xit();
+
     const v_1 = values.number("value-1", 0);
     const v_2 = values.number("value-2", 0);
     const v_3 = values.number("value-3", 0);

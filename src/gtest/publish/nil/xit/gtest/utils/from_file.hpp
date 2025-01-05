@@ -11,32 +11,35 @@
 
 namespace nil::xit::gtest
 {
-    std::string_view tag_to_dir(std::string_view tag);
-
-    template <typename Reader>
-        requires std::is_invocable_v<Reader, std::istream&>
-    auto read(const std::filesystem::path& path, const Reader& reader)
+    namespace detail
     {
-        using type = decltype(reader(std::declval<std::istream&>()));
-        if (!std::filesystem::exists(path))
-        {
-            // throw std::runtime_error("not found: " + path.string());
-            return type();
-        }
-        std::ifstream file(path, std::ios::binary);
-        return reader(file);
-    }
+        std::string_view tag_to_dir(std::string_view tag);
 
-    template <typename Writer, typename Data>
-        requires std::is_invocable_r_v<void, Writer, std::ofstream&, Data>
-    void write(const std::filesystem::path& path, const Writer& writer, const Data& data)
-    {
-        if (!std::filesystem::exists(path))
+        template <typename Reader>
+            requires std::is_invocable_v<Reader, std::istream&>
+        auto read(const std::filesystem::path& path, const Reader& reader)
         {
-            std::filesystem::create_directories(path.parent_path());
+            using type = decltype(reader(std::declval<std::istream&>()));
+            if (!std::filesystem::exists(path))
+            {
+                // throw std::runtime_error("not found: " + path.string());
+                return type();
+            }
+            std::ifstream file(path, std::ios::binary);
+            return reader(file);
         }
-        std::ofstream file(path, std::ios::binary);
-        writer(file, data);
+
+        template <typename Writer, typename Data>
+            requires std::is_invocable_r_v<void, Writer, std::ofstream&, Data>
+        void write(const std::filesystem::path& path, const Writer& writer, const Data& data)
+        {
+            if (!std::filesystem::exists(path))
+            {
+                std::filesystem::create_directories(path.parent_path());
+            }
+            std::ofstream file(path, std::ios::binary);
+            writer(file, data);
+        }
     }
 
     template <typename Reader, typename Writer>
@@ -60,28 +63,28 @@ namespace nil::xit::gtest
             {
                 auto& test_path = get_instance().paths.test;
                 const auto path = test_path / file_name;
-                return nil::xit::gtest::read(path, reader);
+                return detail::read(path, reader);
             }
 
             type initialize(std::string_view tag) const
             {
                 auto& test_path = get_instance().paths.test;
-                const auto path = test_path / tag_to_dir(tag) / file_name;
-                return nil::xit::gtest::read(path, reader);
+                const auto path = test_path / detail::tag_to_dir(tag) / file_name;
+                return detail::read(path, reader);
             }
 
             void update(const type& new_value) const
             {
                 auto& test_path = get_instance().paths.test;
                 const auto path = test_path / file_name;
-                nil::xit::gtest::write(path, writer, new_value);
+                detail::write(path, writer, new_value);
             }
 
             void update(std::string_view tag, const type& new_value) const
             {
                 auto& test_path = get_instance().paths.test;
-                const auto path = test_path / tag_to_dir(tag) / file_name;
-                nil::xit::gtest::write(path, writer, new_value);
+                const auto path = test_path / detail::tag_to_dir(tag) / file_name;
+                detail::write(path, writer, new_value);
             }
 
         private:
@@ -114,28 +117,28 @@ namespace nil::xit::gtest
             {
                 auto& test_path = get_instance().paths.test;
                 const auto path = test_path / file_name;
-                return nil::xit::gtest::read(path, reader);
+                return detail::read(path, reader);
             }
 
             type initialize(std::string_view tag) const
             {
                 auto& test_path = get_instance().paths.test;
-                const auto path = test_path / tag_to_dir(tag) / file_name;
-                return nil::xit::gtest::read(path, reader);
+                const auto path = test_path / detail::tag_to_dir(tag) / file_name;
+                return detail::read(path, reader);
             }
 
             void finalize(const type& new_value) const
             {
                 auto& test_path = get_instance().paths.test;
                 const auto path = test_path / file_name;
-                nil::xit::gtest::write(path, writer, new_value);
+                detail::write(path, writer, new_value);
             }
 
             void finalize(std::string_view tag, const type& new_value) const
             {
                 auto& test_path = get_instance().paths.test;
-                const auto path = test_path / tag_to_dir(tag) / file_name;
-                nil::xit::gtest::write(path, writer, new_value);
+                const auto path = test_path / detail::tag_to_dir(tag) / file_name;
+                detail::write(path, writer, new_value);
             }
 
         private:
@@ -166,14 +169,14 @@ namespace nil::xit::gtest
             {
                 auto& test_path = get_instance().paths.test;
                 const auto path = test_path / file_name;
-                return nil::xit::gtest::read(path, reader);
+                return detail::read(path, reader);
             }
 
             type initialize(std::string_view tag) const
             {
                 auto& test_path = get_instance().paths.test;
-                const auto path = test_path / tag_to_dir(tag) / file_name;
-                return nil::xit::gtest::read(path, reader);
+                const auto path = test_path / detail::tag_to_dir(tag) / file_name;
+                return detail::read(path, reader);
             }
 
         private:

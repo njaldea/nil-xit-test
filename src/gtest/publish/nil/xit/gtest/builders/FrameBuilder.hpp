@@ -38,14 +38,14 @@ namespace nil::xit::gtest::builders
     class FrameBuilder final
     {
     public:
-        template <typename Data>
-            requires(!is_loader_tagged<Data>)
-        auto& create_tagged_input(std::string id, std::filesystem::path file, Data data)
+        template <typename Loader>
+            requires(!is_loader_tagged<Loader>)
+        auto& create_tagged_input(std::string id, std::filesystem::path file, Loader loader)
         {
             return create_tagged_input(
                 std::move(id),
                 std::move(file),
-                [data = std::move(data)]() { return from_data(data()); }
+                [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
@@ -97,14 +97,14 @@ namespace nil::xit::gtest::builders
             );
         }
 
-        template <typename Data>
-            requires(!is_loader_unique<Data>)
-        auto& create_unique_input(std::string id, std::filesystem::path file, Data data)
+        template <typename Loader>
+            requires(!is_loader_unique<Loader>)
+        auto& create_unique_input(std::string id, std::filesystem::path file, Loader loader)
         {
             return create_unique_input(
                 std::move(id),
                 std::move(file),
-                [data = std::move(data)]() { return from_data(data()); }
+                [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 

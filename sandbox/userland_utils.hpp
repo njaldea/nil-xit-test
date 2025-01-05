@@ -7,27 +7,26 @@
 
 struct Ranges
 {
-    std::int64_t v1;
-    std::int64_t v2;
-    std::int64_t v3;
-
-    bool operator==(const Ranges& o) const;
+    std::int64_t v1 = {};
+    std::int64_t v2 = {};
+    std::int64_t v3 = {};
 };
 
 struct Circle
 {
     std::array<double, 2> position = {};
-    double radius = 0.0;
-
-    bool operator==(const Circle& o) const;
+    double radius = {};
 };
 
 struct Circles
 {
     Circle x = {};
     Circle y = {};
-    bool operator==(const Circles& o) const;
 };
+
+bool operator==(const Ranges& l, const Ranges& r);
+bool operator==(const Circle& l, const Circle& r);
+bool operator==(const Circles& l, const Circles& r);
 
 nlohmann::json to_json(std::istream& iss);
 void from_json(std::ostream& oss, const nlohmann::json& data);
@@ -67,31 +66,28 @@ struct nlohmann::adl_serializer<Circles>
     static void from_json(const nlohmann::json& j, Circles& v);
 };
 
-namespace nil::xit
+// this is necessary when publishing a custom data through the network going to the UI
+template <>
+struct nil::xit::buffer_type<nlohmann::json>
 {
-    // this is necessary when publishing a custom data through the network going to the UI
-    template <>
-    struct buffer_type<nlohmann::json>
-    {
-        static nlohmann::json deserialize(const void* data, std::uint64_t size);
-        static std::vector<std::uint8_t> serialize(const nlohmann::json& value);
-    };
+    static nlohmann::json deserialize(const void* data, std::uint64_t size);
+    static std::vector<std::uint8_t> serialize(const nlohmann::json& value);
+};
 
-    template <typename T>
-        requires requires(T t) {
-            { nlohmann::json(t) };
-            { T(nlohmann::json()) };
-        } && (!std::is_same_v<T, nlohmann::json>)
-    struct buffer_type<T>
+template <typename T>
+    requires requires(T t) {
+        { nlohmann::json(t) };
+        { T(nlohmann::json()) };
+    } && (!std::is_same_v<T, nlohmann::json>)
+struct nil::xit::buffer_type<T>
+{
+    static T deserialize(const void* data, std::uint64_t size)
     {
-        static T deserialize(const void* data, std::uint64_t size)
-        {
-            return buffer_type<nlohmann::json>::deserialize(data, size);
-        }
+        return buffer_type<nlohmann::json>::deserialize(data, size);
+    }
 
-        static std::vector<std::uint8_t> serialize(const T& value)
-        {
-            return buffer_type<nlohmann::json>::serialize(value);
-        }
-    };
-}
+    static std::vector<std::uint8_t> serialize(const T& value)
+    {
+        return buffer_type<nlohmann::json>::serialize(value);
+    }
+};

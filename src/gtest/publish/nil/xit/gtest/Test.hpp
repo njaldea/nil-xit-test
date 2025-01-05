@@ -6,46 +6,50 @@
 
 namespace nil::xit::gtest
 {
-    template <std::size_t N>
-    struct StringLiteral
+    namespace detail
     {
-        // NOLINTNEXTLINE
-        constexpr StringLiteral(const char (&str)[N])
+        template <std::size_t N>
+        struct StringLiteral
         {
-            std::copy_n(&str[0], N, &value[0]);
-        }
+            // NOLINTNEXTLINE
+            constexpr StringLiteral(const char (&str)[N])
+            {
+                std::copy_n(&str[0], N, &value[0]);
+            }
 
-        // NOLINTNEXTLINE
-        char value[N];
-    };
+            // NOLINTNEXTLINE
+            char value[N];
+        };
 
-    template <StringLiteral S>
-    struct Frame;
+        template <StringLiteral S>
+        struct Frame;
 
-    template <>
-    struct Frame<"index">
-    {
-    };
+        template <StringLiteral S>
+        using frame_t = typename Frame<S>::type;
+        template <StringLiteral S>
+        constexpr auto frame_v = Frame<S>::value;
 
-    template <>
-    struct Frame<"frame_info">
-    {
-    };
+        template <>
+        struct Frame<"index">
+        {
+        };
 
-    template <StringLiteral S>
-    using frame_t = typename Frame<S>::type;
-    template <StringLiteral S>
-    constexpr auto frame_v = Frame<S>::value;
+        template <>
+        struct Frame<"frame_info">
+        {
+        };
+    }
 
-    template <StringLiteral... T>
+    template <detail::StringLiteral... T>
     struct Input;
-    template <StringLiteral... T>
+
+    template <detail::StringLiteral... T>
     struct Output;
 
     template <typename... T>
     struct Test;
 
-    template <StringLiteral... I, StringLiteral... O>
+    template <detail::StringLiteral... I, detail::StringLiteral... O>
     struct Test<Input<I...>, Output<O...>>
     {
         Test() = default;
@@ -56,23 +60,18 @@ namespace nil::xit::gtest
         Test& operator=(const Test&) = delete;
 
         using base_t = Test<Input<I...>, Output<O...>>;
-        using inputs_t = Data<const frame_t<I>...>;
-        using outputs_t = Data<frame_t<O>...>;
+        using inputs_t = Data<const detail::frame_t<I>...>;
+        using outputs_t = Data<detail::frame_t<O>...>;
 
         virtual void setup() {};
         virtual void teardown() {};
         virtual void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) = 0;
     };
 
-    template <>
-    struct Test<>: Test<Input<>, Output<>>
-    {
-    };
-
-    template <StringLiteral... S>
+    template <detail::StringLiteral... S>
     using TestInputs = Test<Input<S...>, Output<>>;
 
-    template <StringLiteral... S>
+    template <detail::StringLiteral... S>
     using TestOutputs = Test<Input<>, Output<S...>>;
 
     template <typename T>

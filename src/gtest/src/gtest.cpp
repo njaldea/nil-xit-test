@@ -77,14 +77,17 @@ namespace nil::xit::gtest
         return instance;
     }
 
-    std::string_view tag_to_dir(std::string_view tag)
+    namespace detail
     {
-        const auto i1 = tag.find_last_of('[') + 1;
-        const auto i2 = tag.find_last_of(']');
-        if (i1 < tag.size() - 1 && i2 == tag.size() - 1)
+        std::string_view tag_to_dir(std::string_view tag)
         {
-            return tag.substr(i1, i2 - i1);
+            const auto i1 = tag.find_last_of('[') + 1;
+            const auto i2 = tag.find_last_of(']');
+            if (i1 < tag.size() - 1 && i2 == tag.size() - 1)
+            {
+                return tag.substr(i1, i2 - i1);
+            }
+            return ".";
         }
-        return ".";
     }
 }

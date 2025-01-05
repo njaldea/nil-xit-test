@@ -21,7 +21,7 @@ namespace nil::xit::gtest::builders
         const std::string& dir
     );
 
-    template <typename P, StringLiteral... I, StringLiteral... O>
+    template <typename P, detail::StringLiteral... I, detail::StringLiteral... O>
     void install(
         test::App& app,
         type<Test<Input<I...>, Output<O...>>> /* type */,
@@ -37,16 +37,15 @@ namespace nil::xit::gtest::builders
         const auto tag = to_tag(suite_id, test_id, dir);
         app.add_info(tag, {I.value...}, {O.value...});
 
-        constexpr auto node //
-            = [](const frame_t<I>&... args)
+        constexpr auto node = [](const detail::frame_t<I>&... args)
         {
-            std::tuple<frame_t<O>...> result;
+            std::tuple<detail::frame_t<O>...> result;
+            auto inputs = inputs_t{{&args...}};
+            auto outputs = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
             try
             {
                 P p;
                 p.setup();
-                auto inputs = inputs_t{{&args...}};
-                auto outputs = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
                 p.run(inputs, outputs);
                 p.teardown();
             }
@@ -61,12 +60,12 @@ namespace nil::xit::gtest::builders
         app.add_node(
             tag,
             node,
-            std::make_tuple(app.get_input<frame_t<I>>(frame_v<I>)...),
-            std::make_tuple(app.get_output<frame_t<O>>(frame_v<O>)...)
+            std::make_tuple(app.get_input<detail::frame_t<I>>(detail::frame_v<I>)...),
+            std::make_tuple(app.get_output<detail::frame_t<O>>(detail::frame_v<O>)...)
         );
     }
 
-    template <typename P, StringLiteral... I, StringLiteral... O>
+    template <typename P, detail::StringLiteral... I, detail::StringLiteral... O>
     void install(
         headless::Inputs& inputs,
         type<Test<Input<I...>, Output<O...>>> /* type */,
@@ -100,8 +99,9 @@ namespace nil::xit::gtest::builders
                 using inputs_t = typename base_t::inputs_t;
                 using outputs_t = typename base_t::outputs_t;
 
-                auto input_d = std::make_tuple(inputs->get<frame_t<I>>(frame_v<I>, tag)...);
-                auto output_d = std::make_tuple(frame_t<O>()...);
+                auto input_d
+                    = std::make_tuple(inputs->get<detail::frame_t<I>>(detail::frame_v<I>, tag)...);
+                auto output_d = std::make_tuple(detail::frame_t<O>()...);
                 auto i = std::apply([](const auto&... ii) { return inputs_t{{&ii...}}; }, input_d);
                 auto o = std::apply([](auto&... oo) { return outputs_t{{&oo...}}; }, output_d);
                 P p;

@@ -29,26 +29,31 @@
 
 #define XIT_TEST_OVERLOAD(_0, _1, NAME, ...) NAME
 
-#define XIT_TEST(SUITE, CASE) XIT_TEST_DEFINE_DEFAULT(nil::xit::gtest::Test<>, SUITE, CASE)
+#define XIT_TEST(SUITE, CASE)                                                                      \
+    XIT_TEST_DEFINE_DEFAULT(                                                                       \
+        nil::xit::gtest::Test<nil::xit::gtest::Input<>, nil::xit::gtest::Output<>>,                \
+        SUITE,                                                                                     \
+        CASE                                                                                       \
+    )
+
 #define XIT_TEST_F(SUITE, ...)                                                                     \
     XIT_TEST_OVERLOAD(__VA_ARGS__, XIT_TEST_DEFINE, XIT_TEST_DEFINE_DEFAULT)                       \
     (SUITE, SUITE, __VA_ARGS__)
 
 #define XIT_FRAME_MAIN(PATH, CONVERTER)                                                            \
-    const auto xit_test_main_frame = XIT_IIFE(XIT_INSTANCE.main_builder.create_main(               \
-        PATH,                                                                                      \
-        [](const std::vector<std::string>& v) { return CONVERTER(v); }                             \
-    ))
+    const auto xit_test_main_frame = XIT_IIFE(                                                     \
+        XIT_INSTANCE.main_builder.create_main(PATH, [](const auto& v) { return CONVERTER(v); })    \
+    )
 
 #define XIT_FRAME_DETAIL(ID, IMPL)                                                                 \
     template <>                                                                                    \
-    struct nil::xit::gtest::Frame<ID>                                                              \
+    struct nil::xit::gtest::detail::Frame<ID>                                                      \
     {                                                                                              \
         using type = std::remove_cvref_t<decltype(XIT_INSTANCE.IMPL)>::type;                       \
         static constexpr auto* value = ID;                                                         \
-        static const void* holder;                                                                 \
+        static const void* const holder;                                                           \
     };                                                                                             \
-    const void* nil::xit::gtest::Frame<ID>::holder = &XIT_INSTANCE.IMPL
+    const void* const nil::xit::gtest::detail::Frame<ID>::holder = &XIT_INSTANCE.IMPL
 
 #define XIT_FRAME_TAGGED_INPUT(ID, PATH, INITIALIZER)                                              \
     XIT_FRAME_DETAIL(ID, frame_builder.create_tagged_input(ID, PATH, []() { return INITIALIZER; }))

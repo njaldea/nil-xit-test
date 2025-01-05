@@ -141,12 +141,14 @@ namespace nil::xit::test
             constexpr auto o_seq = std::make_index_sequence<o_size>();
             auto* enabler = add_node_enabler(tag, outputs, o_seq);
 
-            auto wrapped_cb                         //
-                = [cb = std::move(callable), o_seq] //
-                (const nil::gate::Core& core,
-                 nil::gate::async_outputs<typename Outputs::type...> asyncs,
-                 bool enabled,
-                 const typename Inputs::type&... rest)
+            auto wrapped_cb =                     //
+                [cb = std::move(callable), o_seq] //
+                (                                 //
+                    const nil::gate::Core& core,
+                    nil::gate::async_outputs<typename Outputs::type...> asyncs,
+                    bool enabled,
+                    const typename Inputs::type&... rest //
+                )
             {
                 if (enabled)
                 {

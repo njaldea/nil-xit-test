@@ -10,7 +10,7 @@
     const value_y = values.json("value-y", /** @type Circle */ ({ position: [0, 0], radius: 1.0 }), msgpack_codec);
 </script>
 
-<div style="width=100%; height=100%;">
+<div style:width=100% style:height=100%>
     <svg viewBox="-2 -2 4 4" xmlns="http://www.w3.org/2000/svg">
         {#each [
             {...$value_x, color: "blue"},

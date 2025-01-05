@@ -5,6 +5,7 @@
     import { msgpack_codec } from "./codec.js";
 
     const { values, signals, frame, frame_ui } = xit();
+
     const tags = values.json("tags", /** @type string[] */ ([]), msgpack_codec);
 
     const finalize = signals.string("finalize");
@@ -58,7 +59,7 @@
                         {#await output_actions then a}
                             <div class="outputs" class:full={input_actions.length === 0}>
                                 {#each a as action}
-                                    <div style="display: contents" use:action></div>
+                                    <div style:display="contents" use:action></div>
                                 {/each}
                             </div>
                         {/await}
@@ -67,7 +68,7 @@
                         {#await input_actions then a}
                             <div class="inputs">
                                 {#each a as action}
-                                    <div style="display: contents" use:action></div>
+                                    <div style:display="contents" use:action></div>
                                 {/each}
                             </div>
                         {/await}

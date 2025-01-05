@@ -67,8 +67,11 @@ XIT_TEST_F(Plotly, demo, "plotly/*")
     view["y"][2] = std::int64_t(input_data["y"][2]) * ranges.v3;
 }
 
-XIT_FRAME_TAGGED_INPUT("circles_input_frame", "InputFrame.svelte", Circles())
-    // from_file_with_finalize("input_frame.json", &to_circles, &from_circles)
+XIT_FRAME_TAGGED_INPUT(
+    "circles_input_frame",
+    "InputFrame.svelte",
+    from_file_with_finalize("circles_frame.json", &to_circles, &from_circles)
+)
     .value("value");
 
 XIT_FRAME_OUTPUT("draw_frame", "DrawFrame.svelte", Circles)
