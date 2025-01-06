@@ -1,5 +1,7 @@
 <script>
     import { xit } from "@nil-/xit";
+    import Split from "@nil-/xit/components/layouts/Split.svelte";
+    import Scrollable from "@nil-/xit/components/layouts/Scrollable.svelte";
     import { get } from "svelte/store";
 
     import { msgpack_codec } from "./codec.js";
@@ -14,15 +16,11 @@
     let sorted_tags = $state($tags.sort());
     tags.subscribe(v => sorted_tags = v.sort());
 
-    const load_frame = async (/** @type string */ tag) => {
+    const load_frame = async (/** @type string */ tag, /** @type string */ key) => {
         const { values, unsub } = await frame("frame_info", tag);
-        const inputs = values.json("inputs", /** @type string[] */ ([]), msgpack_codec);
-        const outputs = values.json("outputs", /** @type string[] */ ([]), msgpack_codec);
+        const v = values.json(key, /** @type string[] */ ([]), msgpack_codec);
         unsub();
-        return Promise.all([ 
-            Promise.all(get(inputs).map(v => frame_ui(v, tag))), 
-            Promise.all(get(outputs).map(v => frame_ui(v, tag)))
-        ]);
+        return Promise.all(get(v).map(v => frame_ui(v, tag)));
     };
 </script>
 
@@ -42,74 +40,63 @@
         }
     }
 />
-<div class="root">
-    <select bind:value={selected}>
-        {#each sorted_tags as id, i}
-            <option value={i}>{id}</option>
-        {/each}
-    </select>
 
+{#snippet combo()}
+    <div class="combo">
+        <select bind:value={selected}>
+            {#each sorted_tags as id, i}
+            <option value={i}>{id}</option>
+            {/each}
+        </select>
+    </div>
+{/snippet}
+
+{#snippet side(/** @type string */ key)}
     {#key selected}
         {#if 0 <= selected && selected < $tags.length}
-            {#await load_frame($tags[selected])}
-                <div>Loading...</div>
-            {:then [ input_actions, output_actions ]}
-                <div class="root-content">
-                    {#if output_actions.length > 0}
-                        {#await output_actions then a}
-                            <div class="outputs" class:full={input_actions.length === 0}>
-                                {#each a as action}
-                                    <div style:display="contents" use:action></div>
-                                {/each}
-                            </div>
-                        {/await}
-                    {/if}
-                    {#if input_actions.length > 0}
-                        {#await input_actions then a}
-                            <div class="inputs">
-                                {#each a as action}
-                                    <div style:display="contents" use:action></div>
-                                {/each}
-                            </div>
-                        {/await}
-                    {/if}
-                </div>
+            {#await load_frame($tags[selected], key) then actions}
+                <Scrollable>
+                    <div class="items">
+                        {#each actions as action}
+                            <div style:display="contents" use:action></div>
+                        {/each}
+                    </div>
+                </Scrollable>
             {:catch}
                 <div>Error during loading...</div>
             {/await}
-        {:else}
-            <div>Nothing to load...</div>
         {/if}
     {/key}
-</div>
+{/snippet}
+
+<Scrollable>
+    <Split vertical offset={200}>
+        {#snippet side_a()}
+            {@render side("outputs")}
+        {/snippet}
+        {#snippet side_b()}
+            {@render combo()}
+            {@render side("inputs")}
+        {/snippet}
+    </Split>
+</Scrollable>
 
 <style>
-    .root {
+    .items {
         height: 100%;
         display: flex;
         flex-direction: column;
     }
 
-    .root-content {
-        position: relative;
-        height: 100%;
+    .combo {
+        padding-inline: 10px;
+        padding-bottom: 4px;
     }
 
-    .outputs {
-        width: calc(100% - 350px);
-    }
-    .outputs.full
-    {
+    .combo > select {
         width: 100%;
-    }
-
-    .inputs {
-        position: absolute;
-        left: calc(100% - 350px);
-        right: 0;
-        top: 0;
-        bottom: 0;
-        display: flex;
-        flex-direction: column;
+        padding: 0px;
+        margin: 0px;
+        box-sizing: border-box;
     }
 </style>

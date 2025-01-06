@@ -28,9 +28,3 @@
 {#if $value_x != null && $value_y != null}
     <div use:plot_it={[{ x: $value_x, y:$value_y, type: "bar"}]}></div>
 {/if}
-
-<style>
-    div {
-        height: 100%;
-    }
-</style>
