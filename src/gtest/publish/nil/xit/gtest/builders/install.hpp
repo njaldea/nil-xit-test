@@ -35,7 +35,7 @@ namespace nil::xit::gtest::builders
         using outputs_t = typename base_t::outputs_t;
 
         const auto tag = to_tag(suite_id, test_id, dir);
-        app.add_info(tag, {I.value...}, {O.value...});
+        app.add_info(tag, {detail::Frame<I>::marked_value...}, {detail::Frame<O>::marked_value...});
 
         constexpr auto node = [](const detail::frame_t<I>&... args)
         {

@@ -1,9 +1,9 @@
 {
   "dependencies": {
     "@msgpack/msgpack": "3.0.0-beta2",
-    "@nil-/xit": "^0.1.29",
-    "@types/plotly.js": "^2.35.1",
-    "svelte": "^5.16.2",
+    "@nil-/xit": "^0.2.2",
+    "@types/plotly.js": "^2.35.2",
+    "svelte": "^5.19.6",
     "vanilla-jsoneditor": "^1.1.2"
   },
   "devDependencies": {

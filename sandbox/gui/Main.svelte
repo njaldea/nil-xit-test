@@ -16,11 +16,22 @@
     let sorted_tags = $state($tags.sort());
     tags.subscribe(v => sorted_tags = v.sort());
 
-    const load_frame = async (/** @type string */ tag, /** @type string */ key) => {
+    const load_frame = async (/** @type string */ tag, /** @type {"inputs" | "outputs"} */ key) => {
         const { values, unsub } = await frame("frame_info", tag);
         const v = values.json(key, /** @type string[] */ ([]), msgpack_codec);
         unsub();
-        return Promise.all(get(v).map(v => frame_ui(v, tag)));
+        return Promise.all(
+            get(v)
+            .map(v => {
+                const [frame_id, mark] = v.split(":");
+                if (mark === "T") {
+                    return frame_ui(frame_id, tag)
+                } else if (mark === "U") {
+                    return frame_ui(frame_id)
+                }
+            })
+            .filter(v => v != null)
+        );
     };
 </script>
 
@@ -51,7 +62,7 @@
     </div>
 {/snippet}
 
-{#snippet side(/** @type string */ key)}
+{#snippet side(/** @type {"inputs" | "outputs"} */ key)}
     {#key selected}
         {#if 0 <= selected && selected < $tags.length}
             {#await load_frame($tags[selected], key) then actions}
@@ -62,8 +73,8 @@
                         {/each}
                     </div>
                 </Scrollable>
-            {:catch}
-                <div>Error during loading...</div>
+            {:catch e}
+                <div>Error during loading... {((e) => { console.log(e); return 'e'; })(e)}</div>
             {/await}
         {/if}
     {/key}

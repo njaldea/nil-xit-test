@@ -26,7 +26,7 @@ namespace nil::xit::test
         return tags;
     }
 
-    const std::vector<std::string>& App::installed_tag_inputs(std::string_view tag) const
+    const std::vector<std::string_view>& App::installed_tag_inputs(std::string_view tag) const
     {
         if (auto it = tag_inputs.find(tag); it != tag_inputs.end())
         {
@@ -35,7 +35,7 @@ namespace nil::xit::test
         return blank;
     }
 
-    const std::vector<std::string>& App::installed_tag_outputs(std::string_view tag) const
+    const std::vector<std::string_view>& App::installed_tag_outputs(std::string_view tag) const
     {
         if (auto it = tag_outputs.find(tag); it != tag_outputs.end())
         {
@@ -45,14 +45,14 @@ namespace nil::xit::test
     }
 
     void App::add_info(
-        std::string_view tag,
-        std::vector<std::string> inputs,
-        std::vector<std::string> outputs
+        std::string tag,
+        std::vector<std::string_view> inputs,
+        std::vector<std::string_view> outputs
     )
     {
-        tags.emplace_back(tag);
         tag_inputs.emplace(tag, std::move(inputs));
         tag_outputs.emplace(tag, std::move(outputs));
+        tags.emplace_back(std::move(tag));
     }
 
     void App::finalize_inputs(std::string_view tag) const

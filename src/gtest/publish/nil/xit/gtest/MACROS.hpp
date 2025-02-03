@@ -45,24 +45,24 @@
         XIT_INSTANCE.main_builder.create_main(PATH, [](const auto& v) { return CONVERTER(v); })    \
     )
 
-#define XIT_FRAME_DETAIL(ID, IMPL)                                                                 \
+#define XIT_FRAME_DETAIL(ID, SUFFIX, IMPL)                                                         \
     template <>                                                                                    \
     struct nil::xit::gtest::detail::Frame<ID>                                                      \
     {                                                                                              \
-        using type = std::remove_cvref_t<decltype(XIT_INSTANCE.IMPL)>::type;                       \
+        using type = std::remove_cvref_t<decltype(XIT_INSTANCE.frame_builder.IMPL)>::type;         \
         static constexpr auto* value = ID;                                                         \
+        static constexpr auto* marked_value = ID SUFFIX;                                           \
         static const void* const holder;                                                           \
     };                                                                                             \
-    const void* const nil::xit::gtest::detail::Frame<ID>::holder = &XIT_INSTANCE.IMPL
+    const void* const nil::xit::gtest::detail::Frame<ID>::holder = &XIT_INSTANCE.frame_builder.IMPL
 
 #define XIT_FRAME_TAGGED_INPUT(ID, PATH, INITIALIZER)                                              \
-    XIT_FRAME_DETAIL(ID, frame_builder.create_tagged_input(ID, PATH, []() { return INITIALIZER; }))
+    XIT_FRAME_DETAIL(ID, ":T", create_tagged_input(ID, PATH, []() { return INITIALIZER; }))
 
 #define XIT_FRAME_UNIQUE_INPUT(ID, PATH, INITIALIZER)                                              \
-    XIT_FRAME_DETAIL(ID, frame_builder.create_unique_input(ID, PATH, []() { return INITIALIZER; }))
+    XIT_FRAME_DETAIL(ID, ":U", create_unique_input(ID, PATH, []() { return INITIALIZER; }))
 
-#define XIT_FRAME_OUTPUT(ID, PATH, TYPE)                                                           \
-    XIT_FRAME_DETAIL(ID, frame_builder.create_output<TYPE>(ID, PATH))
+#define XIT_FRAME_OUTPUT(ID, PATH, TYPE) XIT_FRAME_DETAIL(ID, ":T", create_output<TYPE>(ID, PATH))
 
 #define XIT_PATH_SERVER_DIRECTORY(PATH)                                                            \
     const auto v_xit_path_server = XIT_IIFE(XIT_INSTANCE.paths.server = (PATH))

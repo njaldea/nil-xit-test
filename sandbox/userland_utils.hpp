@@ -15,7 +15,7 @@ struct Ranges
 struct Circle
 {
     std::array<double, 2> position = {};
-    double radius = {};
+    double radius = 1.0;
 };
 
 struct Circles

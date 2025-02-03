@@ -31,13 +31,13 @@ namespace nil::xit::test
         App& operator=(const App&) = delete;
 
         const std::vector<std::string>& installed_tags() const;
-        const std::vector<std::string>& installed_tag_inputs(std::string_view tag) const;
-        const std::vector<std::string>& installed_tag_outputs(std::string_view tag) const;
+        const std::vector<std::string_view>& installed_tag_inputs(std::string_view tag) const;
+        const std::vector<std::string_view>& installed_tag_outputs(std::string_view tag) const;
 
         void add_info(
-            std::string_view tag,
-            std::vector<std::string> inputs,
-            std::vector<std::string> outputs
+            std::string tag,
+            std::vector<std::string_view> inputs,
+            std::vector<std::string_view> outputs
         );
 
         template <typename FromVS>
@@ -226,7 +226,7 @@ namespace nil::xit::test
 
         using frame_id_to_i_info = transparent::hash_map<std::unique_ptr<frame::input::IInfo>>;
         using frame_id_to_o_info = transparent::hash_map<std::unique_ptr<frame::output::IInfo>>;
-        using tag_to_frame_id = transparent::hash_map<std::vector<std::string>>;
+        using tag_to_frame_id = transparent::hash_map<std::vector<std::string_view>>;
 
         frame_id_to_i_info input_frames;
         frame_id_to_o_info output_frames;
@@ -235,7 +235,7 @@ namespace nil::xit::test
         tag_to_frame_id tag_inputs;
         tag_to_frame_id tag_outputs;
 
-        std::vector<std::string> blank;
+        std::vector<std::string_view> blank;
 
         template <typename T>
         T* make_frame(std::string_view id, auto& frames)
