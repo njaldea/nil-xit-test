@@ -21,8 +21,8 @@ namespace nil::xit::test
     class App
     {
     public:
-        App(nil::service::S service, std::string_view app_name);
-        App(nil::service::HTTPService& service, std::string_view app_name);
+        App(service::S service, std::string_view app_name);
+        App(service::HTTPService& service, std::string_view app_name);
 
         ~App() noexcept = default;
         App(App&&) = delete;
@@ -73,12 +73,13 @@ namespace nil::xit::test
         template <typename T>
         frame::input::tagged::Info<T>* add_tagged_input(
             std::string id,
-            std::filesystem::path path,
+            std::optional<std::filesystem::path> path,
             std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            s->frame = path.has_value() ? &add_tagged_frame(xit, std::move(id), std::move(*path))
+                                        : &add_tagged_frame(xit, std::move(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -87,22 +88,27 @@ namespace nil::xit::test
         template <typename T>
         frame::input::unique::Info<T>* add_unique_input(
             std::string id,
-            std::filesystem::path path,
+            std::optional<std::filesystem::path> path,
             std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
-            s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
+            s->frame = path.has_value() ? &add_unique_frame(xit, std::move(id), std::move(*path))
+                                        : &add_unique_frame(xit, std::move(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(std::string id, std::filesystem::path path)
+        frame::output::Info<T>* add_output(
+            std::string id,
+            std::optional<std::filesystem::path> path
+        )
         {
             auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            s->frame = path.has_value() ? &add_tagged_frame(xit, std::move(id), std::move(*path))
+                                        : &add_tagged_frame(xit, std::move(id));
             on_load(
                 *s->frame,
                 [s, g = &this->gate](std::string_view tag)
@@ -152,26 +158,21 @@ namespace nil::xit::test
             {
                 if (enabled)
                 {
-                    auto result = cb(rest...);
-                    {
-                        auto batch = core.batch(asyncs);
-                        App::for_each(
-                            batch,
-                            std::move(result),
-                            o_seq,
-                            [](auto* l, auto& r) { l->set_value(std::move(r)); }
-                        );
-                    }
+                    App::for_each(
+                        core.batch(asyncs),
+                        cb(rest...),
+                        o_seq,
+                        [](auto* l, auto& r) { l->set_value(std::move(r)); }
+                    );
                     core.commit();
                 }
             };
 
             if constexpr (o_size > 0)
             {
-                auto edges = add_node_impl(tag, std::move(wrapped_cb), enabler, inputs, i_seq);
                 for_each(
                     outputs,
-                    edges,
+                    add_node_impl(tag, std::move(wrapped_cb), enabler, inputs, i_seq),
                     o_seq,
                     [&](auto* output, auto* edge)
                     {
@@ -221,7 +222,7 @@ namespace nil::xit::test
         void finalize_inputs(std::string_view tag) const;
 
     private:
-        nil::xit::C xit;
+        xit::C xit;
         nil::gate::Core gate;
 
         using frame_id_to_i_info = transparent::hash_map<std::unique_ptr<frame::input::IInfo>>;

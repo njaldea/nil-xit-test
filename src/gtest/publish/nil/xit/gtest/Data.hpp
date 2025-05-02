@@ -6,7 +6,7 @@
 namespace nil::xit::gtest
 {
     template <typename... T>
-    struct Data
+    struct Data final
     {
         std::tuple<T* const...> data;
     };

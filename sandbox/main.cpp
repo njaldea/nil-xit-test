@@ -20,23 +20,23 @@ XIT_FRAME_MAIN("Main.svelte", nlohmann::json);
 // also accepts callable types (nlohamnn::json is a class/struct)
 // [](const std::vector<std::string>& v) { return nlohmann::json(v); }
 
-XIT_FRAME_TAGGED_INPUT(
+XIT_FRAME_TAGGED_INPUT_V(
     "json_input_frame",
     "InputFrame.svelte",
-    from_file_with_finalize("input_frame.json", &to_json, &from_json)
+    from_file_with_finalize<nlohmann::json, "input_frame.json">()
 )
     .value("value");
 
-XIT_FRAME_UNIQUE_INPUT(
+XIT_FRAME_UNIQUE_INPUT_V(
     "slider_frame",
     "Slider.svelte",
-    from_file_with_update("slider_frame", &to_range, &from_range)
+    from_file_with_update<Ranges, "slider_frame">()
 )
     .value("value-1", &Ranges::v1)
     .value("value-2", &Ranges::v2)
     .value("value-3", &Ranges::v3);
 
-XIT_FRAME_OUTPUT("plotly_frame", "PlotlyFrame.svelte", nlohmann::json)
+XIT_FRAME_OUTPUT_V("plotly_frame", "PlotlyFrame.svelte", nlohmann::json)
     .value("value-x", from_json_ptr("/x"))
     .value("value-y", from_json_ptr("/y"));
 
@@ -67,14 +67,14 @@ XIT_TEST_F(Plotly, demo, "plotly/*")
     view["y"][2] = std::int64_t(input_data["y"][2]) * ranges.v3;
 }
 
-XIT_FRAME_TAGGED_INPUT(
+XIT_FRAME_TAGGED_INPUT_V(
     "circles_input_frame",
     "InputFrame.svelte",
-    from_file_with_finalize("circles_frame.json", &to_circles, &from_circles)
+    from_file_with_finalize<Circles, "circles_frame.json">()
 )
     .value("value");
 
-XIT_FRAME_OUTPUT("draw_frame", "DrawFrame.svelte", Circles)
+XIT_FRAME_OUTPUT_V("draw_frame", "DrawFrame.svelte", Circles)
     .value("value-x", &Circles::x)
     .value("value-y", &Circles::y);
 
@@ -110,4 +110,10 @@ XIT_TEST_F(Draw, sample)
     //     ┃       ┗━━━ from Output<"draw_frame">
     //     ┗━━━ type == Circles
     draw = circles;
+}
+
+int main(int argc, const char** argv)
+{
+    // nil::xit::gtest::get_instance().paths
+    return nil::xit::gtest::main(argc, argv);
 }

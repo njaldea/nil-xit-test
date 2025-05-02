@@ -23,7 +23,10 @@
         return Promise.all(
             get(v)
             .map(v => {
-                const [frame_id, mark] = v.split(":");
+                const [frame_id, mark, g] = v.split(":");
+                if (g !== "V") {
+                    return;
+                }
                 if (mark === "T") {
                     return frame_ui(frame_id, tag)
                 } else if (mark === "U") {

@@ -10,6 +10,20 @@
 
 #define XIT_INSTANCE nil::xit::gtest::get_instance()
 
+// --- paths
+#define XIT_PATH_SERVER_DIRECTORY(PATH)                                                            \
+    const auto v_xit_path_server = XIT_IIFE(XIT_INSTANCE.paths.server = (PATH))
+
+#define XIT_PATH_MAIN_UI_DIRECTORY(PATH)                                                           \
+    const auto v_xit_path_main_ui = XIT_IIFE(XIT_INSTANCE.paths.main_ui = (PATH))
+
+#define XIT_PATH_UI_DIRECTORY(PATH)                                                                \
+    const auto v_xit_path_ui = XIT_IIFE(XIT_INSTANCE.paths.ui = (PATH))
+
+#define XIT_PATH_TEST_DIRECTORY(PATH)                                                              \
+    const auto v_xit_path_test = XIT_IIFE(XIT_INSTANCE.paths.test = (PATH))
+
+// --- tests
 #define XIT_TEST_DEFINE(BASE, SUITE, CASE, DIRECTORY)                                              \
     static_assert(nil::xit::gtest::is_valid_test<BASE>);                                           \
     struct xit_test_##SUITE##_##CASE final: XIT_WRAP(BASE)                                         \
@@ -40,38 +54,33 @@
     XIT_TEST_OVERLOAD(__VA_ARGS__, XIT_TEST_DEFINE, XIT_TEST_DEFINE_DEFAULT)                       \
     (SUITE, SUITE, __VA_ARGS__)
 
-#define XIT_FRAME_MAIN(PATH, CONVERTER)                                                            \
+#define XIT_FRAME_MAIN(PATH, ...)                                                                  \
     const auto xit_test_main_frame = XIT_IIFE(                                                     \
-        XIT_INSTANCE.main_builder.create_main(PATH, [](const auto& v) { return CONVERTER(v); })    \
+        XIT_INSTANCE.main_builder.create_main(PATH, [](const auto& v) { return __VA_ARGS__(v); })  \
     )
 
-#define XIT_FRAME_DETAIL(ID, SUFFIX, IMPL)                                                         \
+#define XIT_FRAME_DETAIL(ID, SUFFIX, ...)                                                          \
     template <>                                                                                    \
     struct nil::xit::gtest::detail::Frame<ID>                                                      \
     {                                                                                              \
-        using type = std::remove_cvref_t<decltype(XIT_INSTANCE.frame_builder.IMPL)>::type;         \
+        using type = std::remove_cvref_t<decltype(XIT_INSTANCE.frame_builder.__VA_ARGS__)>::type;  \
         static constexpr auto* value = ID;                                                         \
         static constexpr auto* marked_value = ID SUFFIX;                                           \
         static const void* const holder;                                                           \
     };                                                                                             \
-    const void* const nil::xit::gtest::detail::Frame<ID>::holder = &XIT_INSTANCE.frame_builder.IMPL
+    const void* const nil::xit::gtest::detail::Frame<ID>::holder                                   \
+        = &XIT_INSTANCE.frame_builder.__VA_ARGS__
 
-#define XIT_FRAME_TAGGED_INPUT(ID, PATH, INITIALIZER)                                              \
-    XIT_FRAME_DETAIL(ID, ":T", create_tagged_input(ID, PATH, []() { return INITIALIZER; }))
+#define XIT_FRAME_TAGGED_INPUT(ID, ...)                                                            \
+    XIT_FRAME_DETAIL(ID, ":T:N", create_tagged_input(ID, {}, []() { return __VA_ARGS__; }))
+#define XIT_FRAME_TAGGED_INPUT_V(ID, PATH, ...)                                                    \
+    XIT_FRAME_DETAIL(ID, ":T:V", create_tagged_input(ID, PATH, []() { return __VA_ARGS__; }))
 
-#define XIT_FRAME_UNIQUE_INPUT(ID, PATH, INITIALIZER)                                              \
-    XIT_FRAME_DETAIL(ID, ":U", create_unique_input(ID, PATH, []() { return INITIALIZER; }))
+#define XIT_FRAME_UNIQUE_INPUT(ID, ...)                                                            \
+    XIT_FRAME_DETAIL(ID, ":U:N", create_unique_input(ID, {}, []() { return __VA_ARGS__; }))
+#define XIT_FRAME_UNIQUE_INPUT_V(ID, PATH, ...)                                                    \
+    XIT_FRAME_DETAIL(ID, ":U:V", create_unique_input(ID, PATH, []() { return __VA_ARGS__; }))
 
-#define XIT_FRAME_OUTPUT(ID, PATH, TYPE) XIT_FRAME_DETAIL(ID, ":T", create_output<TYPE>(ID, PATH))
-
-#define XIT_PATH_SERVER_DIRECTORY(PATH)                                                            \
-    const auto v_xit_path_server = XIT_IIFE(XIT_INSTANCE.paths.server = (PATH))
-
-#define XIT_PATH_MAIN_UI_DIRECTORY(PATH)                                                           \
-    const auto v_xit_path_main_ui = XIT_IIFE(XIT_INSTANCE.paths.main_ui = (PATH))
-
-#define XIT_PATH_UI_DIRECTORY(PATH)                                                                \
-    const auto v_xit_path_ui = XIT_IIFE(XIT_INSTANCE.paths.ui = (PATH))
-
-#define XIT_PATH_TEST_DIRECTORY(PATH)                                                              \
-    const auto v_xit_path_test = XIT_IIFE(XIT_INSTANCE.paths.test = (PATH))
+#define XIT_FRAME_OUTPUT(ID, ...) XIT_FRAME_DETAIL(ID, ":T:N", create_output<__VA_ARGS__>(ID, {}))
+#define XIT_FRAME_OUTPUT_V(ID, PATH, ...)                                                          \
+    XIT_FRAME_DETAIL(ID, ":T:V", create_output<__VA_ARGS__>(ID, PATH))

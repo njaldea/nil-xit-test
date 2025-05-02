@@ -21,7 +21,7 @@ namespace nil::xit::gtest::builders::input::unique
 
         Frame(
             std::string init_id,
-            std::filesystem::path init_file,
+            std::optional<std::filesystem::path> init_file,
             std::function<std::unique_ptr<typename Info<T>::IDataManager>()> init_loader_creator
         )
             : id(std::move(init_id))
@@ -32,7 +32,9 @@ namespace nil::xit::gtest::builders::input::unique
 
         void install(test::App& app, const std::filesystem::path& path) override
         {
-            auto* frame = app.add_unique_input<T>(id, path / file, loader_creator());
+            auto* frame = file.has_value()
+                ? app.add_unique_input<T>(id, path / file.value(), loader_creator())
+                : app.add_unique_input<T>(id, {}, loader_creator());
             for (const auto& value_installer : values)
             {
                 value_installer(*frame);
@@ -100,7 +102,7 @@ namespace nil::xit::gtest::builders::input::unique
 
     private:
         std::string id;
-        std::filesystem::path file;
+        std::optional<std::filesystem::path> file;
         std::function<std::unique_ptr<typename Info<T>::IDataManager>()> loader_creator;
         std::vector<std::function<void(Info<T>&)>> values;
         std::vector<std::function<void(Info<T>&)>> signals;

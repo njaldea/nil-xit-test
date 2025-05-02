@@ -34,7 +34,7 @@ namespace nil::xit::gtest::builders
         void install(test::App& app, const std::filesystem::path& relative_path)
         {
             std::filesystem::path p = path;
-            const auto full_path = (relative_path / p);
+            const auto full_path = relative_path / p;
             if (p.filename() == "*")
             {
                 for (const auto& dir : std::filesystem::directory_iterator(full_path.parent_path()))
@@ -45,19 +45,16 @@ namespace nil::xit::gtest::builders
                     }
                 }
             }
-            else
+            else if (std::filesystem::is_directory(full_path))
             {
-                if (std::filesystem::is_directory(full_path))
-                {
-                    install(app, p.string());
-                }
+                install(app, p.string());
             }
         }
 
         void install(headless::Inputs& inputs, const std::filesystem::path& relative_path)
         {
             std::filesystem::path p = path;
-            const auto full_path = (relative_path / p);
+            const auto full_path = relative_path / p;
             if (p.filename() == "*")
             {
                 for (const auto& dir : std::filesystem::directory_iterator(full_path.parent_path()))
@@ -68,17 +65,35 @@ namespace nil::xit::gtest::builders
                     }
                 }
             }
-            else
+            else if (std::filesystem::is_directory(full_path))
             {
-                if (std::filesystem::is_directory(full_path))
+                install(inputs, p.string());
+            }
+        }
+
+        void install(std::ostream& out, const std::filesystem::path& relative_path)
+        {
+            std::filesystem::path p = path;
+            const auto full_path = relative_path / p;
+            if (p.filename() == "*")
+            {
+                for (const auto& dir : std::filesystem::directory_iterator(full_path.parent_path()))
                 {
-                    install(inputs, p.string());
+                    if (dir.is_directory())
+                    {
+                        install(out, (p.parent_path() / dir.path().filename()).string());
+                    }
                 }
+            }
+            else if (std::filesystem::is_directory(full_path))
+            {
+                install(out, p.string());
             }
         }
 
         virtual void install(test::App& app, const std::string& tag) = 0;
         virtual void install(headless::Inputs& inputs, const std::string& tag) = 0;
+        virtual void install(std::ostream& oss, const std::string& tag) = 0;
 
         std::string suite_id;
         std::string test_id;
@@ -106,14 +121,17 @@ namespace nil::xit::gtest::builders
 
                 void install(test::App& app, const std::string& tag) override
                 {
-                    nil::xit::gtest::builders::install<T> //
-                        (app, suite_id, test_id, tag);
+                    builders::install<T>(app, suite_id, test_id, tag);
                 }
 
                 void install(headless::Inputs& inputs, const std::string& tag) override
                 {
-                    nil::xit::gtest::builders::install<T> //
-                        (inputs, suite_id, test_id, tag, file, line);
+                    builders::install<T>(inputs, suite_id, test_id, tag, file, line);
+                }
+
+                void install(std::ostream& oss, const std::string& tag) override
+                {
+                    oss << to_tag(suite_id, test_id, tag);
                 }
             };
 
@@ -122,6 +140,7 @@ namespace nil::xit::gtest::builders
 
         void install(test::App& app, const std::filesystem::path& path) const;
         void install(headless::Inputs& inputs, const std::filesystem::path& path) const;
+        void install(std::ostream& oss, const std::filesystem::path& path) const;
 
     private:
         std::vector<std::unique_ptr<TestInstaller>> installer;

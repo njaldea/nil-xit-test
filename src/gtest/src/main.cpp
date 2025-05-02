@@ -13,67 +13,80 @@
 
 namespace nil::xit::gtest
 {
+    int run_gui(const nil::clix::Options& options)
+    {
+        if (flag(options, "help"))
+        {
+            help(options, std::cout);
+            return 0;
+        }
+
+        auto& instance = get_instance();
+
+        if (flag(options, "list"))
+        {
+            instance.test_builder.install(std::cout, instance.paths.test);
+            return 0;
+        }
+
+        const auto http_server = make_server({
+            .source_path = instance.paths.server,
+            .host = param(options, "host"),
+            .port = std::uint16_t(number(options, "port")),
+            .buffer_size = 1024ul * 1024ul * 100ul //
+        });
+
+        on_ready(
+            http_server,
+            [](const nil::service::ID& id) { std::cout << "http://" << id.text << std::endl; }
+        );
+
+        test::App app(http_server, "nil-xit-gtest");
+        instance.frame_builder.install(app, instance.paths.ui);
+        instance.test_builder.install(app, instance.paths.test);
+        instance.main_builder.install(app, instance.paths.main_ui);
+
+        start(http_server);
+        return 0;
+    }
+
+    int run_headless(const nil::clix::Options& options)
+    {
+        if (flag(options, "help"))
+        {
+            help(options, std::cout);
+            return 0;
+        }
+        headless::Inputs inputs;
+        auto& instance = get_instance();
+        instance.frame_builder.install(inputs);
+        instance.test_builder.install(inputs, instance.paths.test);
+        GTEST_FLAG_SET(list_tests, flag(options, "list"));
+        ::testing::InitGoogleTest();
+        return RUN_ALL_TESTS();
+    }
+
+    void node_gui(nil::clix::Node& node)
+    {
+        flag(node, "help", {.skey = 'h', .msg = "show this help"});
+        flag(node, "list", {.skey = 'l', .msg = "list available tests"});
+        param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
+        number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
+        use(node, run_gui);
+    }
+
+    void node_headless(nil::clix::Node& node)
+    {
+        flag(node, "help", {.skey = 'h', .msg = "show this help"});
+        flag(node, "list", {.skey = 'l', .msg = "list available tests"});
+        sub(node, "gui", "run in gui mode", node_gui);
+        use(node, run_headless);
+    }
+
     int main(int argc, const char** argv)
     {
         auto node = nil::clix::create_node();
-        flag(node, "help", {.skey = 'h', .msg = "show this help"});
-        flag(node, "list", {.skey = 'l', .msg = "list available tests"});
-        sub(node,
-            "gui",
-            "run in gui mode",
-            [](nil::clix::Node& sub_node)
-            {
-                param(sub_node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
-                number(sub_node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
-                flag(sub_node, "help", {.skey = 'h', .msg = "show this help"});
-                use(sub_node,
-                    [](const nil::clix::Options& options)
-                    {
-                        if (flag(options, "help"))
-                        {
-                            help(options, std::cout);
-                            return 0;
-                        }
-                        auto& instance = get_instance();
-
-                        const auto http_server = nil::xit::make_server({
-                            .source_path = instance.paths.server,
-                            .host = param(options, "host"),
-                            .port = std::uint16_t(number(options, "port")),
-                            .buffer_size = 1024ul * 1024ul * 100ul //
-                        });
-
-                        on_ready(
-                            http_server,
-                            [](const nil::service::ID& id)
-                            { std::cout << "http://" << id.text << std::endl; }
-                        );
-
-                        nil::xit::test::App app(http_server, "nil-xit-gtest");
-                        instance.frame_builder.install(app, instance.paths.ui);
-                        instance.test_builder.install(app, instance.paths.test);
-                        instance.main_builder.install(app, instance.paths.main_ui);
-
-                        start(http_server);
-                        return 0;
-                    });
-            });
-        use(node,
-            [](const nil::clix::Options& options)
-            {
-                if (flag(options, "help"))
-                {
-                    help(options, std::cout);
-                    return 0;
-                }
-                headless::Inputs inputs;
-                auto& instance = get_instance();
-                instance.frame_builder.install(inputs);
-                instance.test_builder.install(inputs, instance.paths.test);
-                GTEST_FLAG_SET(list_tests, flag(options, "list"));
-                ::testing::InitGoogleTest();
-                return RUN_ALL_TESTS();
-            });
+        node_headless(node);
         return nil::clix::run(node, argc, argv);
     }
 }

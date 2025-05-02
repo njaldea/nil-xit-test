@@ -3,6 +3,7 @@
 #include <nil/xit/buffer_type.hpp>
 
 #include <nlohmann/json.hpp>
+
 #include <type_traits>
 
 struct Ranges
@@ -28,29 +29,26 @@ bool operator==(const Ranges& l, const Ranges& r);
 bool operator==(const Circle& l, const Circle& r);
 bool operator==(const Circles& l, const Circles& r);
 
-nlohmann::json to_json(std::istream& iss);
-void from_json(std::ostream& oss, const nlohmann::json& data);
+std::istream& operator>>(std::istream& iss, Circles& data);
+std::ostream& operator<<(std::ostream& oss, const Circles& data);
+std::istream& operator>>(std::istream& iss, Ranges& data);
+std::ostream& operator<<(std::ostream& oss, const Ranges& data);
 
-Circles to_circles(std::istream& iss);
-void from_circles(std::ostream& oss, const Circles& data);
-
-Ranges to_range(std::istream& iss);
-void from_range(std::ostream& oss, const Ranges& data);
-
-inline auto from_json_ptr(const std::string& json_ptr)
+struct from_json_ptr
 {
-    struct Accessor
-    {
-        // clang-format off
-        using type = nlohmann::json;
-        type& operator()(type& data) const { return data[ptr]; }
-        const type& operator()(const type& data) const { return data[ptr]; }
-        nlohmann::json::json_pointer ptr;
-        // clang-format on
-    };
+    using type = nlohmann::json;
 
-    return Accessor{nlohmann::json::json_pointer(json_ptr)};
-}
+    explicit from_json_ptr(const std::string& init_json_ptr)
+        : ptr(init_json_ptr)
+    {
+    }
+
+    // clang-format off
+    type& operator()(type& data) const { return data[ptr]; }
+    const type& operator()(const type& data) const { return data[ptr]; }
+    nlohmann::json::json_pointer ptr;
+    // clang-format on
+};
 
 template <>
 struct nlohmann::adl_serializer<Circle>

@@ -10,6 +10,7 @@ namespace nil::xit::test
     {
         gate.set_runner<nil::gate::runners::NonBlocking>();
         on_ready(service, [this]() { gate.commit(); });
+        // std::filesystem::remove_all(std::filesystem::temp_directory_path() / app_name);
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }
 
@@ -18,6 +19,7 @@ namespace nil::xit::test
     {
         gate.set_runner<nil::gate::runners::NonBlocking>();
         on_ready(service, [this]() { gate.commit(); });
+        // std::filesystem::remove_all(std::filesystem::temp_directory_path() / app_name);
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }
 

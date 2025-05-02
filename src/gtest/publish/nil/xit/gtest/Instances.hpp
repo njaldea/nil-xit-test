@@ -8,7 +8,7 @@
 
 namespace nil::xit::gtest
 {
-    struct Instances
+    struct Instances final
     {
         struct
         {

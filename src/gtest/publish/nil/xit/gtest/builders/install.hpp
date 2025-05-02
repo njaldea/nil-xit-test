@@ -2,8 +2,8 @@
 
 #include "../Test.hpp"
 #include "../headless/Inputs.hpp"
-#include "../type.hpp"
 
+#include <nil/xalt/tlist.hpp>
 #include <nil/xit/test/App.hpp>
 
 #include <gtest/gtest.h>
@@ -21,10 +21,10 @@ namespace nil::xit::gtest::builders
         const std::string& dir
     );
 
-    template <typename P, detail::StringLiteral... I, detail::StringLiteral... O>
+    template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
     void install(
         test::App& app,
-        type<Test<Input<I...>, Output<O...>>> /* type */,
+        nil::xalt::tlist_types<Test<Input<I...>, Output<O...>>> /* type */,
         const std::string& suite_id,
         const std::string& test_id,
         const std::string& dir
@@ -37,9 +37,9 @@ namespace nil::xit::gtest::builders
         const auto tag = to_tag(suite_id, test_id, dir);
         app.add_info(tag, {detail::Frame<I>::marked_value...}, {detail::Frame<O>::marked_value...});
 
-        constexpr auto node = [](const detail::frame_t<I>&... args)
+        constexpr auto node = [](const detail::Frame<I>::type&... args)
         {
-            std::tuple<detail::frame_t<O>...> result;
+            std::tuple<typename detail::Frame<O>::type...> result;
             auto inputs = inputs_t{{&args...}};
             auto outputs = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
             try
@@ -60,15 +60,19 @@ namespace nil::xit::gtest::builders
         app.add_node(
             tag,
             node,
-            std::make_tuple(app.get_input<detail::frame_t<I>>(detail::frame_v<I>)...),
-            std::make_tuple(app.get_output<detail::frame_t<O>>(detail::frame_v<O>)...)
+            std::make_tuple( //
+                app.get_input<typename detail::Frame<I>::type>(detail::Frame<I>::value)...
+            ),
+            std::make_tuple( //
+                app.get_output<typename detail::Frame<O>::type>(detail::Frame<O>::value)...
+            )
         );
     }
 
-    template <typename P, detail::StringLiteral... I, detail::StringLiteral... O>
+    template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
     void install(
         headless::Inputs& inputs,
-        type<Test<Input<I...>, Output<O...>>> /* type */,
+        nil::xalt::tlist_types<Test<Input<I...>, Output<O...>>> /* type */,
         const std::string& suite_id,
         const std::string& test_id,
         const std::string& dir,
@@ -99,9 +103,10 @@ namespace nil::xit::gtest::builders
                 using inputs_t = typename base_t::inputs_t;
                 using outputs_t = typename base_t::outputs_t;
 
-                auto input_d
-                    = std::make_tuple(inputs->get<detail::frame_t<I>>(detail::frame_v<I>, tag)...);
-                auto output_d = std::make_tuple(detail::frame_t<O>()...);
+                auto input_d = std::make_tuple(
+                    inputs->get<typename detail::Frame<I>::type>(detail::Frame<I>::value, tag)...
+                );
+                auto output_d = std::make_tuple(typename detail::Frame<O>::type()...);
                 auto i = std::apply([](const auto&... ii) { return inputs_t{{&ii...}}; }, input_d);
                 auto o = std::apply([](auto&... oo) { return outputs_t{{&oo...}}; }, output_d);
                 P p;
@@ -154,7 +159,13 @@ namespace nil::xit::gtest::builders
         const std::string& dir
     )
     {
-        install<T>(app, type<typename T::base_t>(), suite_id, test_id, dir);
+        install<T>(
+            app,
+            nil::xalt::tlist_types<typename T::base_t>(),
+            suite_id,
+            test_id,
+            dir //
+        );
     }
 
     template <typename T>
@@ -167,6 +178,14 @@ namespace nil::xit::gtest::builders
         int line
     )
     {
-        install<T>(inputs, type<typename T::base_t>(), suite_id, test_id, dir, file, line);
+        install<T>(
+            inputs,
+            nil::xalt::tlist_types<typename T::base_t>(),
+            suite_id,
+            test_id,
+            dir,
+            file,
+            line //
+        );
     }
 }

@@ -29,43 +29,35 @@ bool operator==(const Circles& l, const Circles& r)
     return l.x == r.x && l.x == r.y;
 }
 
-nlohmann::json to_json(std::istream& iss)
+std::istream& operator>>(std::istream& iss, Circles& data)
 {
-    return nlohmann::json::parse(iss);
+    data = nlohmann::json::parse(iss);
+    return iss;
 }
 
-void from_json(std::ostream& oss, const nlohmann::json& data)
+std::ostream& operator<<(std::ostream& oss, const Circles& data)
 {
-    oss << data;
+    oss << nlohmann::json(data);
+    return oss;
 }
 
-Circles to_circles(std::istream& iss)
+std::istream& operator>>(std::istream& iss, Ranges& data)
 {
-    return to_json(iss);
-}
-
-void from_circles(std::ostream& oss, const Circles& data)
-{
-    from_json(oss, data);
-}
-
-Ranges to_range(std::istream& iss)
-{
-    auto r = Ranges();
     auto c = char{};
     iss >> c;
-    iss >> r.v1;
+    iss >> data.v1;
     iss >> c;
-    iss >> r.v2;
+    iss >> data.v2;
     iss >> c;
-    iss >> r.v3;
+    iss >> data.v3;
     iss >> c;
-    return r;
+    return iss;
 }
 
-void from_range(std::ostream& oss, const Ranges& data)
+std::ostream& operator<<(std::ostream& oss, const Ranges& data)
 {
     oss << '[' << data.v1 << ',' << data.v2 << ',' << data.v3 << ']';
+    return oss;
 }
 
 void nlohmann::adl_serializer<Circle>::to_json(nlohmann::json& j, const Circle& v)

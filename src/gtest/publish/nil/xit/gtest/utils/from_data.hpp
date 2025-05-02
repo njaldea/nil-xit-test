@@ -5,23 +5,23 @@
 namespace nil::xit::gtest
 {
     template <typename T>
-    auto from_data(T data)
+    struct from_data final
     {
-        struct Loader final
+        explicit from_data(T init_data)
+            : data(std::move(init_data))
         {
-            auto initialize() const
-            {
-                return data;
-            }
+        }
 
-            auto initialize(std::string_view /* tag */) const
-            {
-                return data;
-            }
+        auto initialize() const
+        {
+            return data;
+        }
 
-            T data;
-        };
+        auto initialize(std::string_view /* tag */) const
+        {
+            return data;
+        }
 
-        return Loader{std::move(data)};
-    }
+        T data;
+    };
 }

@@ -69,6 +69,14 @@ namespace nil::xit::gtest
                 t->install(inputs, path);
             }
         }
+
+        void TestBuilder::install(std::ostream& oss, const std::filesystem::path& path) const
+        {
+            for (const auto& t : installer)
+            {
+                t->install(oss, path);
+            }
+        }
     }
 
     Instances& get_instance()
