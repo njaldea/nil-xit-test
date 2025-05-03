@@ -131,7 +131,7 @@ namespace nil::xit::gtest::builders
 
                 void install(std::ostream& oss, const std::string& tag) override
                 {
-                    oss << to_tag(suite_id, test_id, tag);
+                    oss << to_tag(suite_id, test_id, tag) << '\n';
                 }
             };
 

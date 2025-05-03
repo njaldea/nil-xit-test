@@ -29,6 +29,11 @@ namespace nil::xit::gtest
             return 0;
         }
 
+        if (flag(options, "clear"))
+        {
+            std::filesystem::remove_all(std::filesystem::temp_directory_path() / "nil-xit-gtest");
+        }
+
         const auto http_server = make_server({
             .source_path = instance.paths.server,
             .host = param(options, "host"),
@@ -70,6 +75,7 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
+        flag(node, "clear", {.skey = 'c', .msg = "clear cache on boot"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
         use(node, run_gui);
