@@ -64,7 +64,7 @@ namespace nil::xit::test::frame::input::tagged
             }
         }
 
-        template <typename V, is_valid_value_getter<T&> Accessor>
+        template <typename V, is_valid_value_accessor<T&> Accessor>
         void add_value(std::string id, Accessor accessor)
         {
             struct XitAccessor: nil::xit::tagged::IAccessor<V>
@@ -86,6 +86,7 @@ namespace nil::xit::test::frame::input::tagged
                             entry.input->set_value(entry.data.value());
                             parent->gate->commit();
                         }
+                        // return accessor(std::as_const(entry.data.value()));
                         return accessor(entry.data.value());
                     }
                     return V();

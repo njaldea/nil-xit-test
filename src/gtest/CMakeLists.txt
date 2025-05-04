@@ -13,6 +13,7 @@ add_library(
     publish/nil/xit/gtest/MACROS.hpp
     publish/nil/xit/gtest/main.hpp
     publish/nil/xit/gtest/Test.hpp
+    publish/nil/xit/gtest/utils/from_self.hpp
     publish/nil/xit/gtest/utils/from_file.hpp
     publish/nil/xit/gtest/utils/from_data.hpp
     publish/nil/xit/gtest/utils/from_member.hpp

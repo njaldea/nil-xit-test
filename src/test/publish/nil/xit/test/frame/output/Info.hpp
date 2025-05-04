@@ -27,10 +27,9 @@ namespace nil::xit::test::frame::output
     };
 
     template <typename Accessor, typename T>
-    concept is_valid_value_getter //
-        = std::is_same_v<
-            utils::return_t<Accessor, T>,
-            const std::decay_t<utils::return_t<Accessor, T>>&>;
+    concept is_valid_value_accessor //
+        = std::is_lvalue_reference_v<utils::return_t<Accessor, T>>
+        && std::is_const_v<std::remove_reference_t<utils::return_t<Accessor, T>>>;
 
     template <typename T>
     struct Info: IInfo
@@ -41,8 +40,8 @@ namespace nil::xit::test::frame::output
         transparent::hash_map<nil::gate::edges::Mutable<bool>*> requested;
         std::vector<std::function<void(std::string_view, const T&)>> values;
 
-        template <typename V, is_valid_value_getter<const T&> Getter>
-        void add_value(std::string id, Getter getter)
+        template <typename V, is_valid_value_accessor<const T&> Accessor>
+        void add_value(std::string id, Accessor accessor)
         {
             auto* value = &nil::xit::tagged::add_value(
                 *frame,
@@ -50,8 +49,8 @@ namespace nil::xit::test::frame::output
                 [](std::string_view /* tag */) { return V(); }
             );
             values.push_back( //
-                [value, getter = std::move(getter)](std::string_view tag, const T& data)
-                { nil::xit::tagged::post(tag, *value, getter(data)); }
+                [value, accessor = std::move(accessor)](std::string_view tag, const T& data)
+                { nil::xit::tagged::post(tag, *value, accessor(data)); }
             );
         }
     };

@@ -56,7 +56,7 @@ namespace nil::xit::test::frame::input::unique
             }
         }
 
-        template <typename V, is_valid_value_getter<T&> Accessor>
+        template <typename V, is_valid_value_accessor<T&> Accessor>
         void add_value(std::string id, Accessor accessor)
         {
             struct XitAccessor: nil::xit::unique::IAccessor<V>

@@ -73,13 +73,25 @@ namespace nil::xit::test
         template <typename T>
         frame::input::tagged::Info<T>* add_tagged_input(
             std::string id,
-            std::optional<std::filesystem::path> path,
+            std::filesystem::path path,
             std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
-            s->frame = path.has_value() ? &add_tagged_frame(xit, std::move(id), std::move(*path))
-                                        : &add_tagged_frame(xit, std::move(id));
+            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            s->gate = &gate;
+            s->manager = std::move(manager);
+            return s;
+        }
+
+        template <typename T>
+        frame::input::tagged::Info<T>* add_tagged_input(
+            std::string id,
+            std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
+        )
+        {
+            auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
+            s->frame = &add_tagged_frame(xit, std::move(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -88,48 +100,45 @@ namespace nil::xit::test
         template <typename T>
         frame::input::unique::Info<T>* add_unique_input(
             std::string id,
-            std::optional<std::filesystem::path> path,
+            std::filesystem::path path,
             std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
-            s->frame = path.has_value() ? &add_unique_frame(xit, std::move(id), std::move(*path))
-                                        : &add_unique_frame(xit, std::move(id));
+            s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(
+        frame::input::unique::Info<T>* add_unique_input(
             std::string id,
-            std::optional<std::filesystem::path> path
+            std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
         )
         {
+            auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
+            s->frame = &add_unique_frame(xit, std::move(id));
+            s->gate = &gate;
+            s->manager = std::move(manager);
+            return s;
+        }
+
+        template <typename T>
+        frame::output::Info<T>* add_output(std::string id, std::filesystem::path path)
+        {
             auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
-            s->frame = path.has_value() ? &add_tagged_frame(xit, std::move(id), std::move(*path))
-                                        : &add_tagged_frame(xit, std::move(id));
-            on_load(
-                *s->frame,
-                [s, g = &this->gate](std::string_view tag)
-                {
-                    if (const auto it = s->rerun.find(tag); it != s->rerun.end())
-                    {
-                        it->second->set_value({});
-                        g->commit();
-                    }
-                }
-            );
-            on_sub(
-                *s->frame,
-                [s](std::string_view tag, std::size_t count)
-                {
-                    if (const auto it = s->requested.find(tag); it != s->requested.end())
-                    {
-                        it->second->set_value(count > 0);
-                    }
-                }
-            );
+            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            add_output_detail(s);
+            return s;
+        }
+
+        template <typename T>
+        frame::output::Info<T>* add_output(std::string id)
+        {
+            auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
+            s->frame = &add_tagged_frame(xit, std::move(id));
+            add_output_detail(s);
             return s;
         }
 
@@ -277,6 +286,32 @@ namespace nil::xit::test
         static void for_each(L&& a, R&& b, std::index_sequence<I...> /* seq */, const P& predicate)
         {
             ([&]() { predicate(get<I>(a), get<I>(b)); }(), ...);
+        }
+
+        template <typename T>
+        void add_output_detail(frame::output::Info<T>* s)
+        {
+            on_load(
+                *s->frame,
+                [s, g = &this->gate](std::string_view tag)
+                {
+                    if (const auto it = s->rerun.find(tag); it != s->rerun.end())
+                    {
+                        it->second->set_value({});
+                        g->commit();
+                    }
+                }
+            );
+            on_sub(
+                *s->frame,
+                [s](std::string_view tag, std::size_t count)
+                {
+                    if (const auto it = s->requested.find(tag); it != s->requested.end())
+                    {
+                        it->second->set_value(count > 0);
+                    }
+                }
+            );
         }
     };
 }

@@ -72,12 +72,12 @@
         = &XIT_INSTANCE.frame_builder.__VA_ARGS__
 
 #define XIT_FRAME_TAGGED_INPUT(ID, ...)                                                            \
-    XIT_FRAME_DETAIL(ID, ":T:N", create_tagged_input(ID, {}, []() { return __VA_ARGS__; }))
+    XIT_FRAME_DETAIL(ID, ":T:N", create_tagged_input(ID, []() { return __VA_ARGS__; }))
 #define XIT_FRAME_TAGGED_INPUT_V(ID, PATH, ...)                                                    \
     XIT_FRAME_DETAIL(ID, ":T:V", create_tagged_input(ID, PATH, []() { return __VA_ARGS__; }))
 
 #define XIT_FRAME_UNIQUE_INPUT(ID, ...)                                                            \
-    XIT_FRAME_DETAIL(ID, ":U:N", create_unique_input(ID, {}, []() { return __VA_ARGS__; }))
+    XIT_FRAME_DETAIL(ID, ":U:N", create_unique_input(ID, []() { return __VA_ARGS__; }))
 #define XIT_FRAME_UNIQUE_INPUT_V(ID, PATH, ...)                                                    \
     XIT_FRAME_DETAIL(ID, ":U:V", create_unique_input(ID, PATH, []() { return __VA_ARGS__; }))
 

@@ -1,13 +1,14 @@
 #pragma once
 
-#include <nil/xit/test/App.hpp>
-#include <nil/xit/test/frame/input/Unique.hpp>
-#include <type_traits>
-
 #include "../../../headless/Inputs.hpp"
 #include "../../../utils/from_member.hpp"
-
+#include "../../../utils/from_self.hpp"
 #include "Frame.hpp"
+
+#include <nil/xit/test/App.hpp>
+#include <nil/xit/test/frame/input/Unique.hpp>
+
+#include <type_traits>
 
 namespace nil::xit::gtest::builders::input::unique
 {
@@ -67,13 +68,13 @@ namespace nil::xit::gtest::builders::input::unique
             inputs.values.emplace(id, std::make_unique<Cache>(loader_creator()));
         }
 
-        template <test::frame::input::is_valid_value_getter<T&> Getter>
-        Frame<T>& value(std::string value_id, Getter getter)
+        template <test::frame::input::is_valid_value_accessor<T&> Accessor>
+        Frame<T>& value(std::string value_id, Accessor accessor)
         {
-            using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<T&>()))>;
-            values.emplace_back(                                             //
-                [value_id = std::move(value_id), getter = std::move(getter)] //
-                (Info<T> & info) { info.template add_value<getter_return_t>(value_id, getter); }
+            using accessor_return_t = std::remove_cvref_t<decltype(accessor(std::declval<T&>()))>;
+            values.emplace_back(                                                 //
+                [value_id = std::move(value_id), accessor = std::move(accessor)] //
+                (Info<T> & info) { info.template add_value<accessor_return_t>(value_id, accessor); }
             );
             return *this;
         }
@@ -86,7 +87,7 @@ namespace nil::xit::gtest::builders::input::unique
 
         Frame<T>& value(std::string value_id)
         {
-            return value(std::move(value_id), [](T& value) -> T& { return value; });
+            return value(std::move(value_id), from_self<T>());
         }
 
         template <typename Callable>

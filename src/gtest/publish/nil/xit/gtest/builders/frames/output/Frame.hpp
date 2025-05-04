@@ -31,14 +31,14 @@ namespace nil::xit::gtest::builders::output
             }
         }
 
-        template <test::frame::output::is_valid_value_getter<T> Getter>
-        Frame<T>& value(std::string value_id, Getter getter)
+        template <test::frame::output::is_valid_value_accessor<T> Accessor>
+        Frame<T>& value(std::string value_id, Accessor accessor)
         {
-            using getter_return_t = std::remove_cvref_t<decltype(getter(std::declval<T&>()))>;
-            values.emplace_back(                                             //
-                [value_id = std::move(value_id), getter = std::move(getter)] //
+            using accessor_return_t = std::remove_cvref_t<decltype(accessor(std::declval<T&>()))>;
+            values.emplace_back(                                                 //
+                [value_id = std::move(value_id), accessor = std::move(accessor)] //
                 (test::frame::output::Info<T> & info)
-                { info.template add_value<getter_return_t>(value_id, getter); }
+                { info.template add_value<accessor_return_t>(value_id, accessor); }
             );
             return *this;
         }

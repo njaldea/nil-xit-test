@@ -4,6 +4,8 @@
 
 #include "../../utils.hpp"
 
+#include <type_traits>
+
 namespace nil::xit::test::frame::input
 {
     struct IInfo
@@ -18,10 +20,9 @@ namespace nil::xit::test::frame::input
     };
 
     template <typename Accessor, typename T>
-    concept is_valid_value_getter //
-        = std::is_same_v<         //
-            utils::return_t<Accessor, T>,
-            std::decay_t<utils::return_t<Accessor, T>>&>;
+    concept is_valid_value_accessor //
+        = std::is_lvalue_reference_v<utils::return_t<Accessor, T>>
+        && !std::is_const_v<std::remove_reference_t<utils::return_t<Accessor, T>>>;
 
     template <typename T>
     struct Info: IInfo
