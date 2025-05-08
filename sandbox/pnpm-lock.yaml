@@ -12,11 +12,11 @@ importers:
         specifier: 3.1.1
         version: 3.1.1
       '@nil-/xit':
-        specifier: ^0.2.5
-        version: 0.2.5(svelte@5.28.2)
+        specifier: ^0.2.6
+        version: 0.2.6(svelte@5.28.2)
       '@types/plotly.js':
-        specifier: ^2.35.5
-        version: 2.35.5
+        specifier: ^2.35.6
+        version: 2.35.6
       svelte:
         specifier: ^5.28.2
         version: 5.28.2
@@ -123,8 +123,8 @@ packages:
     resolution: {integrity: sha512-DnBpqkMOUGayNVKyTLlkM6ILmU/m/+VUxGkuQlPQVAcvreLz5jn1OlQnWd8uHKL/ZSiljpM12rjRhr51VtvJUQ==}
     engines: {node: '>= 18'}
 
-  '@nil-/xit@0.2.5':
-    resolution: {integrity: sha512-1JjKCVsCNjePVdc1kkwoXb7SUXUlO8A6uKWJo05UC0EoVKlYINfg6etn6gDU9HLZig44wODONVAEEeWU+x7hTQ==}
+  '@nil-/xit@0.2.6':
+    resolution: {integrity: sha512-YeirKJMHqUcjmTAWnpeM4q9kWBkzx1AqlzNtMLIil52gGiwq+L0DPmGLyJJALS3seX9c2vEFbRDxJ5ZfZLtnzQ==}
     peerDependencies:
       svelte: ^5.7.1
 
@@ -149,11 +149,11 @@ packages:
   '@types/msgpack-lite@0.1.11':
     resolution: {integrity: sha512-cdCZS/gw+jIN22I4SUZUFf1ZZfVv5JM1//Br/MuZcI373sxiy3eSSoiyLu0oz+BPatTbGGGBO5jrcvd0siCdTQ==}
 
-  '@types/node@22.15.3':
-    resolution: {integrity: sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==}
+  '@types/node@22.15.16':
+    resolution: {integrity: sha512-3pr+KjwpVujqWqOKT8mNR+rd09FqhBLwg+5L/4t0cNYBzm/yEiYGCxWttjaPBsLtAo+WFNoXzGJfolM1JuRXoA==}
 
-  '@types/plotly.js@2.35.5':
-    resolution: {integrity: sha512-9xczlf0FBsYXlUfKX4OsKBQs4d6CPRuRpfXXi5lp276yHi1BaI+FiVq6jXwt7JlDq84nMjWWU5LIN2Rpeg+vhg==}
+  '@types/plotly.js@2.35.6':
+    resolution: {integrity: sha512-j4c7UZJ5lYNNfTQrwU0ntHbhX21xmdU2312+0Xas7Kff+0YgVYuvEK/Ze69XtOE+gzfWvitcMTOIrnucYxa9pg==}
 
   acorn@8.14.1:
     resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
@@ -385,7 +385,7 @@ snapshots:
 
   '@msgpack/msgpack@3.1.1': {}
 
-  '@nil-/xit@0.2.5(svelte@5.28.2)':
+  '@nil-/xit@0.2.6(svelte@5.28.2)':
     dependencies:
       svelte: 5.28.2
 
@@ -405,13 +405,13 @@ snapshots:
 
   '@types/msgpack-lite@0.1.11':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.15.16
 
-  '@types/node@22.15.3':
+  '@types/node@22.15.16':
     dependencies:
       undici-types: 6.21.0
 
-  '@types/plotly.js@2.35.5': {}
+  '@types/plotly.js@2.35.6': {}
 
   acorn@8.14.1: {}
 

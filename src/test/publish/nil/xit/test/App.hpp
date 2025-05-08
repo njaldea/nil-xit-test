@@ -21,8 +21,8 @@ namespace nil::xit::test
     class App
     {
     public:
-        App(service::S service, std::string_view app_name);
-        App(service::HTTPService& service, std::string_view app_name);
+        App(service::P service, std::string_view app_name);
+        App(service::WebService& service, std::string_view app_name);
 
         ~App() noexcept = default;
         App(App&&) = delete;

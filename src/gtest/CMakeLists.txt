@@ -1,6 +1,7 @@
 project(xit-gtest)
 
 find_package(nil-clix CONFIG REQUIRED)
+find_package(nil-service CONFIG REQUIRED COMPONENTS ssl)
 find_package(GTest CONFIG REQUIRED)
 
 add_library(
@@ -32,6 +33,7 @@ add_library(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC xit-test)
 target_link_libraries(${PROJECT_NAME} PRIVATE nil::clix)
+target_link_libraries(${PROJECT_NAME} PRIVATE nil::service-ssl)
 target_link_libraries(${PROJECT_NAME} PRIVATE GTest::gtest)
 
 target_include_directories(

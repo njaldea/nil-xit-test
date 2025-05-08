@@ -1,6 +1,7 @@
 #include <nil/xit/gtest.hpp>
 
 #include <nil/service/ID.hpp>
+#include <nil/service/http/server/create.hpp>
 #include <nil/service/structs.hpp>
 
 #include <nil/clix.hpp>
@@ -34,12 +35,13 @@ namespace nil::xit::gtest
             std::filesystem::remove_all(std::filesystem::temp_directory_path() / "nil-xit-gtest");
         }
 
-        const auto http_server = make_server({
-            .source_path = instance.paths.server,
+        const auto http_server = nil::service::http::server::create({
             .host = param(options, "host"),
             .port = std::uint16_t(number(options, "port")),
-            .buffer_size = 1024ul * 1024ul * 100ul //
+            .buffer = 1024ul * 1024ul * 100ul //
         });
+
+        nil::xit::setup_server(http_server, instance.paths.server);
 
         on_ready(
             http_server,

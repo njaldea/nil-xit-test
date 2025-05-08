@@ -12,7 +12,13 @@
         },
         "sandbox": {
             "description": "sandbox",
-            "dependencies": ["nlohmann-json"]
+            "dependencies": [
+                "nlohmann-json",
+                {
+                    "name": "nil-service",
+                    "features": ["ssl"]
+                }
+            ]
         }
     }
 }

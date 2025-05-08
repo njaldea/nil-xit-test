@@ -1,3 +1,4 @@
+#include <nil/service/structs.hpp>
 #include <nil/xit/test.hpp>
 
 // TODO: use better runner like asio/parallel
@@ -5,7 +6,7 @@
 
 namespace nil::xit::test
 {
-    App::App(nil::service::S service, std::string_view app_name)
+    App::App(nil::service::P service, std::string_view app_name)
         : xit(nil::xit::make_core(service))
     {
         gate.set_runner<nil::gate::runners::NonBlocking>();
@@ -14,7 +15,7 @@ namespace nil::xit::test
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }
 
-    App::App(nil::service::HTTPService& service, std::string_view app_name)
+    App::App(nil::service::WebService& service, std::string_view app_name)
         : xit(nil::xit::make_core(service))
     {
         gate.set_runner<nil::gate::runners::NonBlocking>();
