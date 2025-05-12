@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@msgpack/msgpack": "3.1.1",
-    "@nil-/xit": "^0.2.6",
+    "@nil-/xit": "^0.2.7",
     "@types/plotly.js": "^2.35.6",
     "svelte": "^5.28.2",
     "vanilla-jsoneditor": "^3.3.1"

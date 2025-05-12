@@ -15,8 +15,7 @@
             "dependencies": [
                 "nlohmann-json",
                 {
-                    "name": "nil-service",
-                    "features": ["ssl"]
+                    "name": "nil-service"
                 }
             ]
         }
