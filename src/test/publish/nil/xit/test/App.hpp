@@ -183,11 +183,11 @@ namespace nil::xit::test
                     outputs,
                     add_node_impl(tag, std::move(wrapped_cb), enabler, inputs, i_seq),
                     o_seq,
-                    [&](auto* output, auto* edge)
+                    [&](auto* output, auto* port)
                     {
                         using output_t = std::remove_cvref_t<decltype(*output)>::type;
                         const auto& [key, rerun]
-                            = *output->rerun.emplace(tag, gate.edge(RerunTag())).first;
+                            = *output->rerun.emplace(tag, gate.port(RerunTag())).first;
                         gate.node(
                             [output, t = std::string_view(key)] //
                             (RerunTag, const output_t& output_data)
@@ -197,7 +197,7 @@ namespace nil::xit::test
                                     value(t, output_data);
                                 }
                             },
-                            {rerun, edge}
+                            {rerun, port}
                         );
                     }
                 );
@@ -257,7 +257,7 @@ namespace nil::xit::test
         }
 
         template <typename Outputs, std::size_t... I>
-        nil::gate::edges::ReadOnly<bool>* add_node_enabler(
+        nil::gate::ports::ReadOnly<bool>* add_node_enabler(
             std::string_view tag,
             const Outputs& outputs,
             std::index_sequence<I...> /* seq */
@@ -266,7 +266,7 @@ namespace nil::xit::test
             return get<0>(gate.node(
                 [](std::conditional_t<true, bool, decltype(I)>... flags)
                 { return (false || ... || flags); },
-                {get<I>(outputs)->requested.emplace(tag, gate.edge(false)).first->second...}
+                {get<I>(outputs)->requested.emplace(tag, gate.port(false)).first->second...}
             ));
         }
 
@@ -274,7 +274,7 @@ namespace nil::xit::test
         auto add_node_impl(
             [[maybe_unused]] std::string_view tag,
             T callable,
-            nil::gate::edges::ReadOnly<bool>* is_enabled,
+            nil::gate::ports::ReadOnly<bool>* is_enabled,
             const Inputs& inputs,
             std::index_sequence<I...> /* seq */
         )

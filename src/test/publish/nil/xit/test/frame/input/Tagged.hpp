@@ -34,7 +34,7 @@ namespace nil::xit::test::frame::input::tagged
         struct Entry
         {
             std::optional<T> data;
-            nil::gate::edges::Mutable<T>* input = nullptr;
+            nil::gate::ports::Mutable<T>* input = nullptr;
         };
 
         nil::xit::tagged::Frame* frame = nullptr;
@@ -42,13 +42,13 @@ namespace nil::xit::test::frame::input::tagged
         std::unique_ptr<IDataManager> manager;
         transparent::hash_map<Entry> info;
 
-        nil::gate::edges::Compatible<T> get_input(std::string_view tag) override
+        nil::gate::ports::Compatible<T> get_input(std::string_view tag) override
         {
             if (const auto it = info.find(tag); it != info.end())
             {
                 return it->second.input;
             }
-            return info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->edge<T>()})
+            return info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->port<T>()})
                 .first->second.input;
         }
 

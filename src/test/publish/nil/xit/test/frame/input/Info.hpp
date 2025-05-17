@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nil/gate/edges/Compatible.hpp>
+#include <nil/gate/ports/Compatible.hpp>
 
 #include "../../utils.hpp"
 
@@ -28,6 +28,6 @@ namespace nil::xit::test::frame::input
     struct Info: IInfo
     {
         using type = T;
-        virtual nil::gate::edges::Compatible<T> get_input(std::string_view tag) = 0;
+        virtual nil::gate::ports::Compatible<T> get_input(std::string_view tag) = 0;
     };
 }

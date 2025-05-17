@@ -36,14 +36,14 @@ namespace nil::xit::test::frame::input::unique
         struct
         {
             std::optional<T> data;
-            nil::gate::edges::Mutable<T>* input = nullptr;
+            nil::gate::ports::Mutable<T>* input = nullptr;
         } info;
 
-        nil::gate::edges::Compatible<T> get_input(std::string_view /* tag */) override
+        nil::gate::ports::Compatible<T> get_input(std::string_view /* tag */) override
         {
             if (info.input == nullptr)
             {
-                info.input = gate->edge<T>();
+                info.input = gate->port<T>();
             }
             return info.input;
         }

@@ -36,8 +36,8 @@ namespace nil::xit::test::frame::output
     {
         using type = T;
         nil::xit::tagged::Frame* frame = nullptr;
-        transparent::hash_map<nil::gate::edges::Mutable<RerunTag>*> rerun;
-        transparent::hash_map<nil::gate::edges::Mutable<bool>*> requested;
+        transparent::hash_map<nil::gate::ports::Mutable<RerunTag>*> rerun;
+        transparent::hash_map<nil::gate::ports::Mutable<bool>*> requested;
         std::vector<std::function<void(std::string_view, const T&)>> values;
 
         template <typename V, is_valid_value_accessor<const T&> Accessor>
