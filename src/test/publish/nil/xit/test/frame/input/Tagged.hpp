@@ -2,7 +2,7 @@
 
 #include "Info.hpp"
 
-#include "../../transparent_hash_map.hpp"
+#include <nil/xalt/transparent_stl.hpp>
 
 #include <nil/xit/tagged/add_signal.hpp>
 #include <nil/xit/tagged/add_value.hpp>
@@ -40,7 +40,7 @@ namespace nil::xit::test::frame::input::tagged
         nil::xit::tagged::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
         std::unique_ptr<IDataManager> manager;
-        transparent::hash_map<Entry> info;
+        xalt::transparent_umap<Entry> info;
 
         nil::gate::ports::Compatible<T> get_input(std::string_view tag) override
         {
@@ -86,7 +86,6 @@ namespace nil::xit::test::frame::input::tagged
                             entry.input->set_value(entry.data.value());
                             parent->gate->commit();
                         }
-                        // return accessor(std::as_const(entry.data.value()));
                         return accessor(entry.data.value());
                     }
                     return V();

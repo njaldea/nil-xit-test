@@ -24,7 +24,7 @@ namespace nil::xit::gtest::builders
     template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
     void install(
         test::App& app,
-        nil::xalt::tlist_types<Test<Input<I...>, Output<O...>>> /* type */,
+        nil::xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
         const std::string& suite_id,
         const std::string& test_id,
         const std::string& dir
@@ -72,7 +72,7 @@ namespace nil::xit::gtest::builders
     template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
     void install(
         headless::Inputs& inputs,
-        nil::xalt::tlist_types<Test<Input<I...>, Output<O...>>> /* type */,
+        nil::xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
         const std::string& suite_id,
         const std::string& test_id,
         const std::string& dir,
@@ -161,7 +161,7 @@ namespace nil::xit::gtest::builders
     {
         install<T>(
             app,
-            nil::xalt::tlist_types<typename T::base_t>(),
+            nil::xalt::tlist<typename T::base_t>(),
             suite_id,
             test_id,
             dir //
@@ -180,7 +180,7 @@ namespace nil::xit::gtest::builders
     {
         install<T>(
             inputs,
-            nil::xalt::tlist_types<typename T::base_t>(),
+            nil::xalt::tlist<typename T::base_t>(),
             suite_id,
             test_id,
             dir,

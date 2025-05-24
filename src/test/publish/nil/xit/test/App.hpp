@@ -11,6 +11,8 @@
 #include <nil/xit/tagged/on_sub.hpp>
 #include <nil/xit/unique/add_signal.hpp>
 
+#include <nil/xalt/transparent_stl.hpp>
+
 #include <filesystem>
 #include <string_view>
 #include <type_traits>
@@ -22,7 +24,6 @@ namespace nil::xit::test
     {
     public:
         App(service::P service, std::string_view app_name);
-        App(service::WebService& service, std::string_view app_name);
 
         ~App() noexcept = default;
         App(App&&) = delete;
@@ -234,9 +235,9 @@ namespace nil::xit::test
         xit::C xit;
         nil::gate::Core gate;
 
-        using frame_id_to_i_info = transparent::hash_map<std::unique_ptr<frame::input::IInfo>>;
-        using frame_id_to_o_info = transparent::hash_map<std::unique_ptr<frame::output::IInfo>>;
-        using tag_to_frame_id = transparent::hash_map<std::vector<std::string_view>>;
+        using frame_id_to_i_info = xalt::transparent_umap<std::unique_ptr<frame::input::IInfo>>;
+        using frame_id_to_o_info = xalt::transparent_umap<std::unique_ptr<frame::output::IInfo>>;
+        using tag_to_frame_id = xalt::transparent_umap<std::vector<std::string_view>>;
 
         frame_id_to_i_info input_frames;
         frame_id_to_o_info output_frames;

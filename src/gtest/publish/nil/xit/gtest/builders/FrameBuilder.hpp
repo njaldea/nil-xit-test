@@ -7,8 +7,6 @@
 
 #include "../utils/from_data.hpp"
 
-#include <nil/xalt/type_id.hpp>
-
 #include <filesystem>
 #include <string_view>
 #include <type_traits>

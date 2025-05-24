@@ -48,7 +48,7 @@ namespace nil::xit::gtest
             [](const nil::service::ID& id) { std::cout << "http://" << id.text << std::endl; }
         );
 
-        test::App app(http_server, "nil-xit-gtest");
+        test::App app(use_ws(http_server, "/ws"), "nil-xit-gtest");
         instance.frame_builder.install(app, instance.paths.ui);
         instance.test_builder.install(app, instance.paths.test);
         instance.main_builder.install(app, instance.paths.main_ui);

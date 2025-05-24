@@ -7,7 +7,6 @@ set(
     SOURCES
         src/App.cpp
         src/RerunTag.cpp
-        src/transparent_hash_map.cpp
 )
 
 set(
@@ -15,7 +14,6 @@ set(
         publish/nil/xit/test.hpp
         publish/nil/xit/test/App.hpp
         publish/nil/xit/test/RerunTag.hpp
-        publish/nil/xit/test/transparent_hash_map.hpp
         publish/nil/xit/test/utils.hpp
         publish/nil/xit/test/frame/input/Info.hpp
         publish/nil/xit/test/frame/input/Unique.hpp

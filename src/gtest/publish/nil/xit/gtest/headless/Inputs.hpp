@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nil/xit/test/transparent_hash_map.hpp>
+#include <nil/xalt/transparent_stl.hpp>
 
 #include <memory>
 #include <string_view>
@@ -35,6 +35,6 @@ namespace nil::xit::gtest::headless
             return T();
         }
 
-        test::transparent::hash_map<std::unique_ptr<ICache>> values;
+        xalt::transparent_umap<std::unique_ptr<ICache>> values;
     };
 }
