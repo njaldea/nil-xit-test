@@ -14,7 +14,7 @@ const auto source_path = std::filesystem::path(__FILE__).parent_path();
 XIT_PATH_MAIN_UI_DIRECTORY(source_path / "gui");
 XIT_PATH_UI_DIRECTORY(source_path / "gui");
 XIT_PATH_TEST_DIRECTORY(source_path / "files");
-XIT_PATH_SERVER_DIRECTORY(source_path / "node_modules/@nil-/xit");
+XIT_PATH_ASSET_DIRECTORY(source_path / "node_modules/@nil-/xit/assets");
 
 XIT_FRAME_MAIN("Main.svelte", nlohmann::json);
 // also accepts callable types (nlohamnn::json is a class/struct)

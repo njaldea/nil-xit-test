@@ -41,7 +41,7 @@ namespace nil::xit::gtest
             .buffer = 1024ul * 1024ul * 100ul //
         });
 
-        nil::xit::setup_server(http_server, instance.paths.server);
+        nil::xit::setup_server(http_server, instance.paths.assets);
 
         on_ready(
             http_server,

@@ -11,8 +11,8 @@
 #define XIT_INSTANCE nil::xit::gtest::get_instance()
 
 // --- paths
-#define XIT_PATH_SERVER_DIRECTORY(PATH)                                                            \
-    const auto v_xit_path_server = XIT_IIFE(XIT_INSTANCE.paths.server = (PATH))
+#define XIT_PATH_ASSET_DIRECTORY(PATH)                                                             \
+    const auto v_xit_path_assets = XIT_IIFE(XIT_INSTANCE.paths.assets.emplace_back((PATH)))
 
 #define XIT_PATH_MAIN_UI_DIRECTORY(PATH)                                                           \
     const auto v_xit_path_main_ui = XIT_IIFE(XIT_INSTANCE.paths.main_ui = (PATH))
