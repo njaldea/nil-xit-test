@@ -31,9 +31,11 @@ namespace nil::xit::test
         App& operator=(App&&) = delete;
         App& operator=(const App&) = delete;
 
-        const std::vector<std::string>& installed_tags() const;
-        const std::vector<std::string_view>& installed_tag_inputs(std::string_view tag) const;
-        const std::vector<std::string_view>& installed_tag_outputs(std::string_view tag) const;
+        std::span<const std::string> installed_tags() const;
+        // marked
+        std::span<const std::string_view> installed_tag_inputs(std::string_view tag) const;
+        // marked
+        std::span<const std::string_view> installed_tag_outputs(std::string_view tag) const;
 
         void add_info(
             std::string tag,
@@ -47,7 +49,11 @@ namespace nil::xit::test
         {
             {
                 auto& frame = add_unique_frame(xit, "index", path);
-                add_value(frame, "tags", [=, this]() { return converter(installed_tags()); });
+                add_value(
+                    frame,
+                    "tags",
+                    [converter, this]() { return converter(installed_tags()); }
+                );
                 add_signal(
                     frame,
                     "finalize",
@@ -305,11 +311,22 @@ namespace nil::xit::test
             );
             on_sub(
                 *s->frame,
-                [s](std::string_view tag, std::size_t count)
+                [this, s](std::string_view tag, std::size_t count)
                 {
                     if (const auto it = s->requested.find(tag); it != s->requested.end())
                     {
                         it->second->set_value(count > 0);
+                    }
+                    if (count == 1)
+                    {
+                        for (const auto& f : this->installed_tag_inputs(tag))
+                        {
+                            if (const auto it = this->input_frames.find(f.substr(0, f.size() - 4));
+                                it != this->input_frames.end())
+                            {
+                                it->second->initialize(tag);
+                            }
+                        }
                     }
                 }
             );

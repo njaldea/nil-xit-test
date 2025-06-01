@@ -12,8 +12,8 @@ namespace nil::xit::gtest
         struct Frame;
 
         // using type = std::remove_cvref_t<decltype(XIT_INSTANCE.frame_builder.__VA_ARGS__)>::type;
-        // static constexpr auto* value = ID;
         // static constexpr auto* marked_value = ID SUFFIX;
+        // static constexpr auto* value = ID;
         // static const void* const holder;
 
         template <>
@@ -36,7 +36,7 @@ namespace nil::xit::gtest
     template <nil::xalt::literal... T>
     struct Output;
 
-    template <typename... T>
+    template <typename I = Input<>, typename O = Output<>>
     struct Test;
 
     template <nil::xalt::literal... I, nil::xalt::literal... O>

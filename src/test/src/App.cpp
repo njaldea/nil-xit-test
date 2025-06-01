@@ -15,12 +15,12 @@ namespace nil::xit::test
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }
 
-    const std::vector<std::string>& App::installed_tags() const
+    std::span<const std::string> App::installed_tags() const
     {
         return tags;
     }
 
-    const std::vector<std::string_view>& App::installed_tag_inputs(std::string_view tag) const
+    std::span<const std::string_view> App::installed_tag_inputs(std::string_view tag) const
     {
         if (auto it = tag_inputs.find(tag); it != tag_inputs.end())
         {
@@ -29,7 +29,7 @@ namespace nil::xit::test
         return blank;
     }
 
-    const std::vector<std::string_view>& App::installed_tag_outputs(std::string_view tag) const
+    std::span<const std::string_view> App::installed_tag_outputs(std::string_view tag) const
     {
         if (auto it = tag_outputs.find(tag); it != tag_outputs.end())
         {
@@ -55,7 +55,8 @@ namespace nil::xit::test
         {
             for (const auto& frame_id : it->second)
             {
-                if (const auto frame_it = input_frames.find(frame_id);
+                if (const auto frame_it
+                    = input_frames.find(frame_id.substr(0, frame_id.size() - 4));
                     frame_it != input_frames.end())
                 {
                     frame_it->second->finalize(tag);

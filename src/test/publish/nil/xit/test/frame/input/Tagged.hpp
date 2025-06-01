@@ -10,8 +10,6 @@
 
 #include <nil/gate/Core.hpp>
 
-#include <type_traits>
-
 namespace nil::xit::test::frame::input::tagged
 {
     template <typename T>
@@ -33,6 +31,7 @@ namespace nil::xit::test::frame::input::tagged
 
         struct Entry
         {
+            // data and input has duplicate data to ease thread safety
             std::optional<T> data;
             nil::gate::ports::Mutable<T>* input = nullptr;
         };
@@ -50,6 +49,20 @@ namespace nil::xit::test::frame::input::tagged
             }
             return info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->port<T>()})
                 .first->second.input;
+        }
+
+        void initialize(std::string_view tag) override
+        {
+            if (auto it = info.find(tag); it != info.end())
+            {
+                if (auto& entry = it->second; !entry.data.has_value())
+                {
+                    entry.data = manager->initialize(tag);
+                    if (entry.input != nullptr) {
+                        entry.input->set_value(entry.data.value());
+                    }
+                }
+            }
         }
 
         void finalize(std::string_view tag) const override
@@ -82,8 +95,7 @@ namespace nil::xit::test::frame::input::tagged
                         auto& entry = it->second;
                         if (!entry.data.has_value())
                         {
-                            entry.data = parent->manager->initialize(tag);
-                            entry.input->set_value(entry.data.value());
+                            parent->initialize(tag);
                             parent->gate->commit();
                         }
                         return accessor(entry.data.value());
@@ -97,7 +109,10 @@ namespace nil::xit::test::frame::input::tagged
                     {
                         auto& entry = it->second;
                         accessor(entry.data.value()) = std::move(new_data);
-                        entry.input->set_value(entry.data.value());
+                        if (entry.input != nullptr)
+                        {
+                            entry.input->set_value(entry.data.value());
+                        }
                         parent->manager->update(tag, entry.data.value());
                         parent->gate->commit();
                     }
@@ -111,27 +126,6 @@ namespace nil::xit::test::frame::input::tagged
                 *frame,
                 std::move(id),
                 std::make_unique<XitAccessor>(this, std::move(accessor))
-            );
-        }
-
-        template <typename Callable>
-            requires std::is_invocable_v<Callable, T, std::string_view>
-        void add_signal(std::string id, Callable callable)
-        {
-            nil::xit::tagged::add_signal(
-                *frame,
-                std::move(id),
-                [this, callable = std::move(callable)](std::string_view tag)
-                {
-                    if (const auto it = info.find(tag); it != info.end())
-                    {
-                        auto& data = it->second.data;
-                        if (data.has_value())
-                        {
-                            callable(data.value(), tag);
-                        }
-                    }
-                }
             );
         }
     };

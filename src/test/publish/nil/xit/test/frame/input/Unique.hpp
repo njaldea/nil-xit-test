@@ -8,8 +8,6 @@
 
 #include <nil/gate/Core.hpp>
 
-#include <type_traits>
-
 namespace nil::xit::test::frame::input::unique
 {
     template <typename T>
@@ -35,6 +33,7 @@ namespace nil::xit::test::frame::input::unique
 
         struct
         {
+            // data and input has duplicate data to ease thread safety
             std::optional<T> data;
             nil::gate::ports::Mutable<T>* input = nullptr;
         } info;
@@ -46,6 +45,18 @@ namespace nil::xit::test::frame::input::unique
                 info.input = gate->port<T>();
             }
             return info.input;
+        }
+
+        void initialize(std::string_view /* tag */) override
+        {
+            if (!info.data.has_value())
+            {
+                info.data = manager->initialize();
+                if (info.input != nullptr)
+                {
+                    info.input->set_value(info.data.value());
+                }
+            }
         }
 
         void finalize(std::string_view /* tag */) const override
@@ -71,8 +82,7 @@ namespace nil::xit::test::frame::input::unique
                 {
                     if (!parent->info.data.has_value())
                     {
-                        parent->info.data = parent->manager->initialize();
-                        parent->info.input->set_value(parent->info.data.value());
+                        parent->initialize({});
                         parent->gate->commit();
                     }
                     return accessor(parent->info.data.value());
@@ -81,7 +91,9 @@ namespace nil::xit::test::frame::input::unique
                 void set(V new_data) override
                 {
                     accessor(parent->info.data.value()) = std::move(new_data);
-                    parent->info.input->set_value(parent->info.data.value());
+                    if (parent->info.input != nullptr) {
+                        parent->info.input->set_value(parent->info.data.value());
+                    }
                     parent->manager->update(parent->info.data.value());
                     parent->gate->commit();
                 }
@@ -94,23 +106,6 @@ namespace nil::xit::test::frame::input::unique
                 *frame,
                 std::move(id),
                 std::make_unique<XitAccessor>(this, std::move(accessor))
-            );
-        }
-
-        template <typename Callable>
-            requires std::is_invocable_v<Callable, T>
-        void add_signal(std::string id, Callable callable)
-        {
-            nil::xit::unique::add_signal(
-                *frame,
-                std::move(id),
-                [this, callable = std::move(callable)]()
-                {
-                    if (info.data.has_value())
-                    {
-                        callable(info.data.value());
-                    }
-                }
             );
         }
     };

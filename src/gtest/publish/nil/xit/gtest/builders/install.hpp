@@ -57,6 +57,7 @@ namespace nil::xit::gtest::builders
             }
             return result;
         };
+
         app.add_node(
             tag,
             node,

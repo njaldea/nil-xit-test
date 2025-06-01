@@ -5,6 +5,7 @@
 #include "builders/TestBuilder.hpp"
 
 #include <filesystem>
+#include <vector>
 
 namespace nil::xit::gtest
 {
@@ -12,7 +13,7 @@ namespace nil::xit::gtest
     {
         struct
         {
-            std::filesystem::path server;
+            std::vector<std::filesystem::path> assets;
             std::filesystem::path main_ui;
             std::filesystem::path ui;
             std::filesystem::path test;

@@ -87,18 +87,6 @@ namespace nil::xit::gtest::builders::input::tagged
             return value(std::move(value_id), from_self<T>());
         }
 
-        template <typename Callable>
-            requires std::is_invocable_v<Callable, T, std::string_view>
-        Frame<T>& signal(std::string signal_id, Callable callable)
-        {
-            bindings.push_back( //
-                [signal_id = std::move(signal_id),
-                 callable = std::move(callable)](test::frame::input::tagged::Info<T>& info)
-                { info.add_signal(signal_id, callable); } //
-            );
-            return *this;
-        }
-
     private:
         std::string id;
         std::optional<std::filesystem::path> file;

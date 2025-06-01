@@ -17,6 +17,7 @@ namespace nil::xit::test::frame::input
         IInfo& operator=(const IInfo&) = delete;
         virtual ~IInfo() = default;
         virtual void finalize(std::string_view tag) const = 0;
+        virtual void initialize(std::string_view tag) = 0;
     };
 
     template <typename Accessor, typename T>

@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "dependencies": ["nil-xit", "nil-gate"],
+    "dependencies": ["nil-xit", "nil-gate", "nil-service"],
     "features": {
         "gtest": {
             "description": "GTest adapter",
@@ -13,10 +13,7 @@
         "sandbox": {
             "description": "sandbox",
             "dependencies": [
-                "nlohmann-json",
-                {
-                    "name": "nil-service"
-                }
+                "nlohmann-json"
             ]
         }
     }

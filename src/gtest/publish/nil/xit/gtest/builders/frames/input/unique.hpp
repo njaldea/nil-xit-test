@@ -90,17 +90,6 @@ namespace nil::xit::gtest::builders::input::unique
             return value(std::move(value_id), from_self<T>());
         }
 
-        template <typename Callable>
-            requires std::is_invocable_v<Callable, T>
-        Frame<T>& signal(std::string signal_id, Callable callable)
-        {
-            signals.push_back(
-                [signal_id = std::move(signal_id), callable = std::move(callable)](Info<T>& info)
-                { info.add_signal(signal_id, callable); } //
-            );
-            return *this;
-        }
-
     private:
         std::string id;
         std::optional<std::filesystem::path> file;
