@@ -24,6 +24,29 @@ namespace nil::xit::gtest
 
         auto& instance = get_instance();
 
+        if (has_value(options, "path_ui_main"))
+        {
+            instance.paths.main_ui = param(options, "path_ui_main");
+        }
+
+        if (has_value(options, "path_ui"))
+        {
+            instance.paths.ui = param(options, "path_ui");
+        }
+
+        if (has_value(options, "path_test"))
+        {
+            instance.paths.test = param(options, "path_test");
+        }
+
+        if (has_value(options, "path_assets"))
+        {
+            for (const auto& asset_path: params(options, "path_assets"))
+            {
+                instance.paths.assets.emplace_back(asset_path);
+            }
+        }
+
         if (flag(options, "list"))
         {
             instance.test_builder.install(std::cout, instance.paths.test);
@@ -64,8 +87,33 @@ namespace nil::xit::gtest
             help(options, std::cout);
             return 0;
         }
+        
         headless::Inputs inputs;
         auto& instance = get_instance();
+
+        if (has_value(options, "path_ui_main"))
+        {
+            instance.paths.main_ui = param(options, "path_ui_main");
+        }
+
+        if (has_value(options, "path_ui"))
+        {
+            instance.paths.ui = param(options, "path_ui");
+        }
+
+        if (has_value(options, "path_test"))
+        {
+            instance.paths.test = param(options, "path_test");
+        }
+
+        if (has_value(options, "path_assets"))
+        {
+            for (const auto& asset_path: params(options, "path_assets"))
+            {
+                instance.paths.assets.emplace_back(asset_path);
+            }
+        }
+
         instance.frame_builder.install(inputs);
         instance.test_builder.install(inputs, instance.paths.test);
         GTEST_FLAG_SET(list_tests, flag(options, "list"));
@@ -80,6 +128,10 @@ namespace nil::xit::gtest
         flag(node, "clear", {.skey = 'c', .msg = "clear cache on boot"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
+        param(node, "path_ui_main", {.skey = 'U', .msg = "use as main ui path"});
+        param(node, "path_ui", {.skey = 'u', .msg = "use as ui path"});
+        param(node, "path_test", {.skey = 't', .msg = "use as test path"});
+        params(node, "path_assets", {.skey = 'a', .msg = "use as assets path"});
         use(node, run_gui);
     }
 
@@ -87,6 +139,10 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
+        param(node, "path_ui_main", {.skey = 'U', .msg = "use as main ui path"});
+        param(node, "path_ui", {.skey = 'u', .msg = "use as ui path"});
+        param(node, "path_test", {.skey = 't', .msg = "use as test path"});
+        params(node, "path_assets", {.skey = 'a', .msg = "use as assets path"});
         sub(node, "gui", "run in gui mode", node_gui);
         use(node, run_headless);
     }

@@ -40,68 +40,68 @@ namespace nil::xit::gtest
         }
     }
 
-    template <typename T, nil::xalt::literal file_name>
+    template <typename T, nil::xalt::literal file_name, typename I = T>
     struct from_file final
     {
         T initialize() const
         {
-            return detail::read<T, file_name>(get_instance().paths.test);
+            return detail::read<I, file_name>(get_instance().paths.test);
         }
 
         T initialize(std::string_view tag) const
         {
-            return detail::read<T, file_name>(get_instance().paths.test / detail::tag_to_dir(tag));
+            return detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag));
         }
     };
 
-    template <typename T, nil::xalt::literal file_name>
+    template <typename T, nil::xalt::literal file_name, typename I = T>
     struct from_file_with_finalize final
     {
         T initialize() const
         {
-            return from_file<T, file_name>().initialize();
+            return T(detail::read<I, file_name>(get_instance().paths.test));
         }
 
         T initialize(std::string_view tag) const
         {
-            return from_file<T, file_name>().initialize(tag);
+            return T(detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag)));
         }
 
         void finalize(const T& new_value) const
         {
-            detail::write<T, file_name>(get_instance().paths.test, new_value);
+            detail::write<I, file_name>(get_instance().paths.test, new_value);
         }
 
         void finalize(std::string_view tag, const T& new_value) const
         {
-            detail::write<T, file_name>(
+            detail::write<I, file_name>(
                 get_instance().paths.test / detail::tag_to_dir(tag),
                 new_value
             );
         }
     };
 
-    template <typename T, nil::xalt::literal file_name>
+    template <typename T, nil::xalt::literal file_name, typename I = T>
     struct from_file_with_update final
     {
         T initialize() const
         {
-            return from_file<T, file_name>().initialize();
+            return T(detail::read<I, file_name>(get_instance().paths.test));
         }
 
         T initialize(std::string_view tag) const
         {
-            return from_file<T, file_name>().initialize(tag);
+            return T(detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag)));
         }
 
         void update(const T& new_value) const
         {
-            detail::write<T, file_name>(get_instance().paths.test, new_value);
+            detail::write<I, file_name>(get_instance().paths.test, new_value);
         }
 
         void update(std::string_view tag, const T& new_value) const
         {
-            detail::write<T, file_name>(
+            detail::write<I, file_name>(
                 get_instance().paths.test / detail::tag_to_dir(tag),
                 new_value
             );
