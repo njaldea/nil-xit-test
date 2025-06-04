@@ -26,23 +26,23 @@ namespace nil::xit::gtest
             return suite_id + '.' + to_tag_suffix(test_id, dir);
         }
 
-        void MainBuilder::install(test::App& app, const std::filesystem::path& path) const
+        void MainBuilder::install(test::App& app) const
         {
             if (frame)
             {
-                frame->install(app, path);
+                frame->install(app);
             }
         }
 
-        void FrameBuilder::install(test::App& app, const std::filesystem::path& path) const
+        void FrameBuilder::install(test::App& app) const
         {
             for (const auto& frame : input_frames)
             {
-                frame->install(app, path);
+                frame->install(app);
             }
             for (const auto& frame : output_frames)
             {
-                frame->install(app, path);
+                frame->install(app);
             }
         }
 

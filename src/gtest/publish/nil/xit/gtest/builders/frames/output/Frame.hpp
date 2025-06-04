@@ -14,17 +14,17 @@ namespace nil::xit::gtest::builders::output
     public:
         using type = T;
 
-        Frame(std::string init_id, std::optional<std::filesystem::path> init_file)
+        Frame(std::string init_id, std::optional<FileInfo> init_file_info)
             : IFrame()
             , id(std::move(init_id))
-            , file(std::move(init_file))
+            , file_info(std::move(init_file_info))
         {
         }
 
-        void install(test::App& app, const std::filesystem::path& path) override
+        void install(test::App& app) override
         {
-            auto* frame = file.has_value() ? app.add_output<T>(id, path / file.value())
-                                           : app.add_output<T>(id, {});
+            auto* frame = file_info.has_value() ? app.add_output<T>(id, file_info.value())
+                                                : app.add_output<T>(id);
             for (const auto& value_installer : values)
             {
                 value_installer(*frame);
@@ -56,7 +56,7 @@ namespace nil::xit::gtest::builders::output
 
     private:
         std::string id;
-        std::optional<std::filesystem::path> file;
+        std::optional<FileInfo> file_info;
         std::vector<std::function<void(nil::xit::test::frame::output::Info<T>&)>> values;
     };
 }

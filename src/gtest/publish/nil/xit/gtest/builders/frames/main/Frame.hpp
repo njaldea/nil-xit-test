@@ -4,7 +4,6 @@
 
 #include <nil/xit/test/App.hpp>
 
-#include <filesystem>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -15,19 +14,19 @@ namespace nil::xit::gtest::builders::main
         requires std::is_invocable_v<Converter, std::vector<std::string>>
     struct Frame final: IFrame
     {
-        explicit Frame(std::filesystem::path init_file, Converter init_converter)
+        explicit Frame(FileInfo init_file_info, Converter init_converter)
             : IFrame()
-            , file(std::move(init_file))
+            , file_info(std::move(init_file_info))
             , converter(std::move(init_converter))
         {
         }
 
-        void install(test::App& app, const std::filesystem::path& path) override
+        void install(test::App& app) override
         {
-            app.add_main(path / file, converter);
+            app.add_main(file_info, converter);
         }
 
-        std::filesystem::path file;
+        FileInfo file_info;
         Converter converter;
     };
 }

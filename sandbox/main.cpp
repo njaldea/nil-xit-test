@@ -10,33 +10,28 @@ using nil::xit::gtest::from_file_with_finalize; // NOLINT(misc-unused-using-decl
 using nil::xit::gtest::from_file_with_update;   // NOLINT(misc-unused-using-decls)
 
 // TODO: move to command line arguments or env var?
-const auto source_path = std::filesystem::path(__FILE__).parent_path();
-XIT_PATH_MAIN_UI_DIRECTORY(source_path / "gui");
-XIT_PATH_UI_DIRECTORY(source_path / "gui");
-XIT_PATH_TEST_DIRECTORY(source_path / "files");
-XIT_PATH_ASSET_DIRECTORY(source_path / "node_modules/@nil-/xit/assets");
 
-XIT_FRAME_MAIN("Main.svelte", nlohmann::json);
+XIT_FRAME_MAIN("$base/Main.svelte", nlohmann::json);
 // also accepts callable types (nlohamnn::json is a class/struct)
 // [](const std::vector<std::string>& v) { return nlohmann::json(v); }
 
 XIT_FRAME_TAGGED_INPUT_V(
     "json_input_frame",
-    "InputFrame.svelte",
+    "$base/InputFrame.svelte",
     from_file_with_finalize<nlohmann::json, "input_frame.json">()
 )
     .value("value");
 
 XIT_FRAME_UNIQUE_INPUT_V(
     "slider_frame",
-    "Slider.svelte",
+    "$base/Slider.svelte",
     from_file_with_update<Ranges, "slider_frame">()
 )
     .value("value-1", &Ranges::v1)
     .value("value-2", &Ranges::v2)
     .value("value-3", &Ranges::v3);
 
-XIT_FRAME_OUTPUT_V("plotly_frame", "PlotlyFrame.svelte", nlohmann::json)
+XIT_FRAME_OUTPUT_V("plotly_frame", "$base/PlotlyFrame.svelte", nlohmann::json)
     .value("value-x", from_json_ptr("/x"))
     .value("value-y", from_json_ptr("/y"));
 
@@ -69,12 +64,12 @@ XIT_TEST_F(Plotly, demo, "plotly/*")
 
 XIT_FRAME_TAGGED_INPUT_V(
     "circles_input_frame",
-    "InputFrame.svelte",
+    "$base/InputFrame.svelte",
     from_file_with_finalize<Circles, "circles_frame.json">()
 )
     .value("value");
 
-XIT_FRAME_OUTPUT_V("draw_frame", "DrawFrame.svelte", Circles)
+XIT_FRAME_OUTPUT_V("draw_frame", "$base/DrawFrame.svelte", Circles)
     .value("value-x", &Circles::x)
     .value("value-y", &Circles::y);
 
@@ -110,10 +105,4 @@ XIT_TEST_F(Draw, sample)
     //     ┃       ┗━━━ from Output<"draw_frame">
     //     ┗━━━ type == Circles
     draw = circles;
-}
-
-int main(int argc, const char** argv)
-{
-    // nil::xit::gtest::get_instance().paths
-    return nil::xit::gtest::main(argc, argv);
 }

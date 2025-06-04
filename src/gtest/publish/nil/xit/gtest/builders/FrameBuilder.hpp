@@ -5,7 +5,10 @@
 #include "frames/input/unique.hpp"
 #include "frames/output/Frame.hpp"
 
+#include "../Test.hpp"
 #include "../utils/from_data.hpp"
+
+#include <nil/xalt/transparent_stl.hpp>
 
 #include <filesystem>
 #include <string_view>
@@ -47,25 +50,17 @@ namespace nil::xit::gtest::builders
     public:
         template <typename Loader>
             requires(!is_loader_tagged<Loader>)
-        auto& create_tagged_input(
-            std::string id,
-            std::optional<std::filesystem::path> file,
-            Loader loader
-        )
+        auto& create_tagged_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_tagged_input(
                 std::move(id),
-                std::move(file),
+                std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <is_loader_tagged Loader>
-        auto& create_tagged_input(
-            std::string id,
-            std::optional<std::filesystem::path> file,
-            Loader loader
-        )
+        auto& create_tagged_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
@@ -105,7 +100,7 @@ namespace nil::xit::gtest::builders
             return static_cast<input::tagged::Frame<type>&>(
                 *input_frames.emplace_back(std::make_unique<input::tagged::Frame<type>>(
                     std::move(id),
-                    std::move(file),
+                    std::move(file_info),
                     [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
                     { return std::make_unique<DataManager>(loader()); }
                 ))
@@ -114,25 +109,17 @@ namespace nil::xit::gtest::builders
 
         template <typename Loader>
             requires(!is_loader_unique<Loader>)
-        auto& create_unique_input(
-            std::string id,
-            std::optional<std::filesystem::path> file,
-            Loader loader
-        )
+        auto& create_unique_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_unique_input(
                 std::move(id),
-                std::move(file),
+                std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <is_loader_unique Loader>
-        auto& create_unique_input(
-            std::string id,
-            std::optional<std::filesystem::path> file,
-            Loader loader
-        )
+        auto& create_unique_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize())>;
@@ -172,7 +159,7 @@ namespace nil::xit::gtest::builders
             return static_cast<input::unique::Frame<type>&>(
                 *input_frames.emplace_back(std::make_unique<input::unique::Frame<type>>(
                     std::move(id),
-                    std::move(file),
+                    std::move(file_info),
                     [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
                     { return std::make_unique<DataManager>(loader()); }
                 ))
@@ -180,15 +167,15 @@ namespace nil::xit::gtest::builders
         }
 
         template <typename T>
-        auto& create_output(std::string id, std::optional<std::filesystem::path> file)
+        auto& create_output(std::string id, std::optional<FileInfo> file_info)
         {
             using type = std::remove_cvref_t<T>;
             return static_cast<output::Frame<type>&>(*output_frames.emplace_back(
-                std::make_unique<output::Frame<type>>(std::move(id), std::move(file))
+                std::make_unique<output::Frame<type>>(std::move(id), std::move(file_info))
             ));
         }
 
-        void install(test::App& app, const std::filesystem::path& path) const;
+        void install(test::App& app) const;
         void install(headless::Inputs& inputs) const;
 
     private:

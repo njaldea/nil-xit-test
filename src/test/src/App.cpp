@@ -1,4 +1,5 @@
 #include <nil/service/structs.hpp>
+#include <nil/xit/structs.hpp>
 #include <nil/xit/test.hpp>
 
 // TODO: use better runner like asio/parallel
@@ -13,6 +14,11 @@ namespace nil::xit::test
         on_ready(service, [this]() { gate.commit(); });
         // std::filesystem::remove_all(std::filesystem::temp_directory_path() / app_name);
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
+    }
+
+    void App::set_ui_paths(const xalt::transparent_umap<std::filesystem::path>& paths)
+    {
+        set_ui_directories(xit, paths);
     }
 
     std::span<const std::string> App::installed_tags() const

@@ -58,7 +58,8 @@ namespace nil::xit::test::frame::input::tagged
                 if (auto& entry = it->second; !entry.data.has_value())
                 {
                     entry.data = manager->initialize(tag);
-                    if (entry.input != nullptr) {
+                    if (entry.input != nullptr)
+                    {
                         entry.input->set_value(entry.data.value());
                     }
                 }

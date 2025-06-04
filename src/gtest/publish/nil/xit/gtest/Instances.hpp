@@ -4,6 +4,8 @@
 #include "builders/MainBuilder.hpp"
 #include "builders/TestBuilder.hpp"
 
+#include <nil/xalt/transparent_stl.hpp>
+
 #include <filesystem>
 #include <vector>
 
@@ -14,8 +16,7 @@ namespace nil::xit::gtest
         struct
         {
             std::vector<std::filesystem::path> assets;
-            std::filesystem::path main_ui;
-            std::filesystem::path ui;
+            xalt::transparent_umap<std::filesystem::path> ui;
             std::filesystem::path test;
         } paths;
 

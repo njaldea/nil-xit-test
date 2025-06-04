@@ -1,25 +1,19 @@
 {
-	"compilerOptions": {
-		"verbatimModuleSyntax": true,
-		"isolatedModules": true,
-		"lib": [
-			"esnext",
-			"DOM",
-			"DOM.Iterable"
-		],
-		"moduleResolution": "bundler",
-		"module": "esnext",
-		"noEmit": true,
-		"target": "esnext",
-        "allowJs": true,
+    "compilerOptions": {
+        "baseUrl": ".",
         "checkJs": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "skipLibCheck": true,
-        "sourceMap": true,
-        "strict": true
-	},
-	"include": [ "./gui/**/*.svelte", "./gui/**/*.js" ],
-	"exclude": [ "../node_modules/**" ]
+        "allowJs": true,
+		"module": "esnext",
+		"target": "esnext",
+        "paths": {
+            "$components/*": [ "./gui/components/*" ]
+        }
+    },
+    "include": [
+        "./global.d.ts",
+        "./**/*.js",
+        "./**/*.ts", 
+        "./**/*.svelte"
+    ],
+    "exclude": [ "./node_modules" ],
 }

@@ -4,7 +4,8 @@
 
 #include <nil/xit/test/App.hpp>
 
-#include <filesystem>
+#include <nil/xalt/transparent_stl.hpp>
+
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -17,12 +18,15 @@ namespace nil::xit::gtest::builders
     public:
         template <typename FromVS>
             requires std::is_invocable_v<FromVS, std::vector<std::string>>
-        void create_main(std::filesystem::path file, FromVS converter)
+        void create_main(FileInfo file_info, FromVS converter)
         {
-            frame = std::make_unique<main::Frame<FromVS>>(std::move(file), std::move(converter));
+            frame = std::make_unique<main::Frame<FromVS>>( //
+                std::move(file_info),
+                std::move(converter)
+            );
         }
 
-        void install(test::App& app, const std::filesystem::path& path) const;
+        void install(test::App& app) const;
 
     private:
         std::unique_ptr<IFrame> frame;

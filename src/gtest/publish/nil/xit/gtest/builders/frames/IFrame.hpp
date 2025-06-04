@@ -1,6 +1,6 @@
 #pragma once
 
-#include <filesystem>
+#include <nil/xalt/transparent_stl.hpp>
 
 namespace nil::xit::test
 {
@@ -17,6 +17,6 @@ namespace nil::xit::gtest::builders
         IFrame(const IFrame&) = delete;
         IFrame& operator=(IFrame&&) = delete;
         IFrame& operator=(const IFrame&) = delete;
-        virtual void install(test::App& app, const std::filesystem::path& path) = 0;
+        virtual void install(test::App& app) = 0;
     };
 }

@@ -18,6 +18,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <iostream>
+
 namespace nil::xit::test
 {
     class App
@@ -30,6 +32,8 @@ namespace nil::xit::test
         App(const App&) = delete;
         App& operator=(App&&) = delete;
         App& operator=(const App&) = delete;
+
+        void set_ui_paths(const xalt::transparent_umap<std::filesystem::path>& paths);
 
         std::span<const std::string> installed_tags() const;
         // marked
@@ -45,10 +49,10 @@ namespace nil::xit::test
 
         template <typename FromVS>
             requires std::is_invocable_v<FromVS, std::vector<std::string>>
-        void add_main(const std::filesystem::path& path, const FromVS& converter)
+        void add_main(FileInfo file_info, const FromVS& converter)
         {
             {
-                auto& frame = add_unique_frame(xit, "index", path);
+                auto& frame = add_unique_frame(xit, "index", std::move(file_info));
                 add_value(
                     frame,
                     "tags",
@@ -80,12 +84,12 @@ namespace nil::xit::test
         template <typename T>
         frame::input::tagged::Info<T>* add_tagged_input(
             std::string id,
-            std::filesystem::path path,
+            FileInfo file_info,
             std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            s->frame = &add_tagged_frame(xit, std::move(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -107,12 +111,12 @@ namespace nil::xit::test
         template <typename T>
         frame::input::unique::Info<T>* add_unique_input(
             std::string id,
-            std::filesystem::path path,
+            FileInfo file_info,
             std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
-            s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
+            s->frame = &add_unique_frame(xit, std::move(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -132,10 +136,10 @@ namespace nil::xit::test
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(std::string id, std::filesystem::path path)
+        frame::output::Info<T>* add_output(std::string id, FileInfo file_info)
         {
             auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            s->frame = &add_tagged_frame(xit, std::move(id), std::move(file_info));
             add_output_detail(s);
             return s;
         }

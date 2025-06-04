@@ -24,14 +24,17 @@ namespace nil::xit::gtest
 
         auto& instance = get_instance();
 
-        if (has_value(options, "path_ui_main"))
-        {
-            instance.paths.main_ui = param(options, "path_ui_main");
-        }
-
         if (has_value(options, "path_ui"))
         {
-            instance.paths.ui = param(options, "path_ui");
+            for (const auto& path_ui : params(options, "path_ui"))
+            {
+                auto i = path_ui.find_first_of('=');
+                if (i == std::string::npos)
+                {
+                    throw std::runtime_error("path has invalid format");
+                }
+                instance.paths.ui.emplace(path_ui.substr(0, i), path_ui.substr(i + 1));
+            }
         }
 
         if (has_value(options, "path_test"))
@@ -41,7 +44,7 @@ namespace nil::xit::gtest
 
         if (has_value(options, "path_assets"))
         {
-            for (const auto& asset_path: params(options, "path_assets"))
+            for (const auto& asset_path : params(options, "path_assets"))
             {
                 instance.paths.assets.emplace_back(asset_path);
             }
@@ -72,9 +75,10 @@ namespace nil::xit::gtest
         );
 
         test::App app(use_ws(http_server, "/ws"), "nil-xit-gtest");
-        instance.frame_builder.install(app, instance.paths.ui);
+        app.set_ui_paths(instance.paths.ui);
+        instance.frame_builder.install(app);
         instance.test_builder.install(app, instance.paths.test);
-        instance.main_builder.install(app, instance.paths.main_ui);
+        instance.main_builder.install(app);
 
         start(http_server);
         return 0;
@@ -87,31 +91,13 @@ namespace nil::xit::gtest
             help(options, std::cout);
             return 0;
         }
-        
+
         headless::Inputs inputs;
         auto& instance = get_instance();
-
-        if (has_value(options, "path_ui_main"))
-        {
-            instance.paths.main_ui = param(options, "path_ui_main");
-        }
-
-        if (has_value(options, "path_ui"))
-        {
-            instance.paths.ui = param(options, "path_ui");
-        }
 
         if (has_value(options, "path_test"))
         {
             instance.paths.test = param(options, "path_test");
-        }
-
-        if (has_value(options, "path_assets"))
-        {
-            for (const auto& asset_path: params(options, "path_assets"))
-            {
-                instance.paths.assets.emplace_back(asset_path);
-            }
         }
 
         instance.frame_builder.install(inputs);
@@ -128,8 +114,7 @@ namespace nil::xit::gtest
         flag(node, "clear", {.skey = 'c', .msg = "clear cache on boot"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
-        param(node, "path_ui_main", {.skey = 'U', .msg = "use as main ui path"});
-        param(node, "path_ui", {.skey = 'u', .msg = "use as ui path"});
+        params(node, "path_ui", {.skey = 'u', .msg = "use as ui path"});
         param(node, "path_test", {.skey = 't', .msg = "use as test path"});
         params(node, "path_assets", {.skey = 'a', .msg = "use as assets path"});
         use(node, run_gui);
@@ -139,10 +124,7 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
-        param(node, "path_ui_main", {.skey = 'U', .msg = "use as main ui path"});
-        param(node, "path_ui", {.skey = 'u', .msg = "use as ui path"});
         param(node, "path_test", {.skey = 't', .msg = "use as test path"});
-        params(node, "path_assets", {.skey = 'a', .msg = "use as assets path"});
         sub(node, "gui", "run in gui mode", node_gui);
         use(node, run_headless);
     }

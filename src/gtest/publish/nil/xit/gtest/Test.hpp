@@ -3,11 +3,39 @@
 #include "Data.hpp"
 
 #include <nil/xalt/literal.hpp>
+#include <nil/xalt/str_name.hpp>
+
+#include <nil/xit/structs.hpp>
 
 namespace nil::xit::gtest
 {
     namespace detail
     {
+        template <xalt::literal lit>
+        consteval auto get_fg_name()
+        {
+            static_assert(xalt::starts_with<lit, "$">());
+            const auto i = xalt::find_first<lit, "/">();
+            return xalt::literal_v<xalt::substr<lit, 1, i - 1>()>; // NOLINT
+        }
+
+        template <xalt::literal lit>
+        auto get_fg_path()
+        {
+            static_assert(xalt::starts_with<lit, "$">());
+            const auto i = xalt::find_first<lit, "/">();
+            return xalt::literal_v<xalt::substr<lit, i + 1, sizeof(lit) - i - 2>()>; // NOLINT
+        }
+
+        template <xalt::literal lit>
+        auto get_file_info()
+        {
+            return FileInfo{
+                get_fg_name<lit>(),
+                get_fg_path<lit>(),
+            };
+        }
+
         template <nil::xalt::literal S>
         struct Frame;
 

@@ -91,7 +91,8 @@ namespace nil::xit::test::frame::input::unique
                 void set(V new_data) override
                 {
                     accessor(parent->info.data.value()) = std::move(new_data);
-                    if (parent->info.input != nullptr) {
+                    if (parent->info.input != nullptr)
+                    {
                         parent->info.input->set_value(parent->info.data.value());
                     }
                     parent->manager->update(parent->info.data.value());

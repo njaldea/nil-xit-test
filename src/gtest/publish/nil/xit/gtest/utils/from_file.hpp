@@ -64,7 +64,8 @@ namespace nil::xit::gtest
 
         T initialize(std::string_view tag) const
         {
-            return T(detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag)));
+            return T(detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag))
+            );
         }
 
         void finalize(const T& new_value) const
@@ -91,7 +92,8 @@ namespace nil::xit::gtest
 
         T initialize(std::string_view tag) const
         {
-            return T(detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag)));
+            return T(detail::read<I, file_name>(get_instance().paths.test / detail::tag_to_dir(tag))
+            );
         }
 
         void update(const T& new_value) const

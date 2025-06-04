@@ -6,22 +6,10 @@
 #define XIT_WRAP(A) A
 // clang-format off
 #define XIT_IIFE(X) []() { X; return 0; }()
+#define XIT_WRAP_R(...) []() { return __VA_ARGS__; }
 // clang-format on
 
 #define XIT_INSTANCE nil::xit::gtest::get_instance()
-
-// --- paths
-#define XIT_PATH_ASSET_DIRECTORY(PATH)                                                             \
-    const auto v_xit_path_assets = XIT_IIFE(XIT_INSTANCE.paths.assets.emplace_back(PATH))
-
-#define XIT_PATH_MAIN_UI_DIRECTORY(PATH)                                                           \
-    const auto v_xit_path_main_ui = XIT_IIFE(XIT_INSTANCE.paths.main_ui = (PATH))
-
-#define XIT_PATH_UI_DIRECTORY(PATH)                                                                \
-    const auto v_xit_path_ui = XIT_IIFE(XIT_INSTANCE.paths.ui = (PATH))
-
-#define XIT_PATH_TEST_DIRECTORY(PATH)                                                              \
-    const auto v_xit_path_test = XIT_IIFE(XIT_INSTANCE.paths.test = (PATH))
 
 // --- tests
 #define XIT_TEST_DEFINE(BASE, SUITE, CASE, DIRECTORY)                                              \
@@ -39,6 +27,8 @@
         [[maybe_unused]] outputs_t& xit_outputs                                                    \
     )
 
+#define XIT_FG(P) nil::xit::gtest::detail::get_file_info<P>()
+
 #define XIT_TEST_DEFINE_DEFAULT(BASE, SUITE, CASE) XIT_TEST_DEFINE(BASE, SUITE, CASE, ".")
 
 #define XIT_TEST_OVERLOAD(_0, _1, NAME, ...) NAME
@@ -50,9 +40,10 @@
     (SUITE, SUITE, __VA_ARGS__)
 
 #define XIT_FRAME_MAIN(PATH, ...)                                                                  \
-    const auto xit_test_main_frame = XIT_IIFE(                                                     \
-        XIT_INSTANCE.main_builder.create_main(PATH, [](const auto& v) { return __VA_ARGS__(v); })  \
-    )
+    const auto xit_test_main_frame = XIT_IIFE(XIT_INSTANCE.main_builder.create_main(               \
+        XIT_FG(PATH),                                                                              \
+        [](const auto& v) { return __VA_ARGS__(v); }                                               \
+    ))
 
 #define XIT_FRAME_DETAIL(ID, SUFFIX, ...)                                                          \
     template <>                                                                                    \
@@ -67,15 +58,15 @@
         = &XIT_INSTANCE.frame_builder.__VA_ARGS__
 
 #define XIT_FRAME_TAGGED_INPUT(ID, ...)                                                            \
-    XIT_FRAME_DETAIL(ID, ":T:N", create_tagged_input(ID, {}, []() { return __VA_ARGS__; }))
+    XIT_FRAME_DETAIL(ID, ":T:N", create_tagged_input(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_TAGGED_INPUT_V(ID, PATH, ...)                                                    \
-    XIT_FRAME_DETAIL(ID, ":T:V", create_tagged_input(ID, PATH, []() { return __VA_ARGS__; }))
+    XIT_FRAME_DETAIL(ID, ":T:V", create_tagged_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 
 #define XIT_FRAME_UNIQUE_INPUT(ID, ...)                                                            \
-    XIT_FRAME_DETAIL(ID, ":U:N", create_unique_input(ID, {}, []() { return __VA_ARGS__; }))
+    XIT_FRAME_DETAIL(ID, ":U:N", create_unique_input(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_UNIQUE_INPUT_V(ID, PATH, ...)                                                    \
-    XIT_FRAME_DETAIL(ID, ":U:V", create_unique_input(ID, PATH, []() { return __VA_ARGS__; }))
+    XIT_FRAME_DETAIL(ID, ":U:V", create_unique_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 
-#define XIT_FRAME_OUTPUT(ID, ...) XIT_FRAME_DETAIL(ID, ":T:N", create_output<__VA_ARGS__>(ID, {}))
+// #define XIT_FRAME_OUTPUT(ID, ...) XIT_FRAME_DETAIL(ID, ":T:N", create_output<__VA_ARGS__>(ID))
 #define XIT_FRAME_OUTPUT_V(ID, PATH, ...)                                                          \
-    XIT_FRAME_DETAIL(ID, ":T:V", create_output<__VA_ARGS__>(ID, PATH))
+    XIT_FRAME_DETAIL(ID, ":T:V", create_output<__VA_ARGS__>(ID, XIT_FG(PATH)))

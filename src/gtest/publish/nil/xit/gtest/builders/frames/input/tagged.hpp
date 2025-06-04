@@ -20,22 +20,22 @@ namespace nil::xit::gtest::builders::input::tagged
 
         Frame(
             std::string init_id,
-            std::optional<std::filesystem::path> init_file,
+            std::optional<FileInfo> init_file_info,
             std::function<
                 std::unique_ptr<typename test::frame::input::tagged::Info<T>::IDataManager>()>
                 init_loader_creator
         )
             : id(std::move(init_id))
-            , file(std::move(init_file))
+            , file_info(std::move(init_file_info))
             , loader_creator(std::move(init_loader_creator))
         {
         }
 
-        void install(test::App& app, const std::filesystem::path& path) override
+        void install(test::App& app) override
         {
-            auto* frame = file.has_value()
-                ? app.add_tagged_input<T>(id, path / file.value(), loader_creator())
-                : app.add_tagged_input<T>(id, {}, loader_creator());
+            auto* frame = file_info.has_value()
+                ? app.add_tagged_input<T>(id, file_info.value(), loader_creator())
+                : app.add_tagged_input<T>(id, loader_creator());
             for (const auto& installer : bindings)
             {
                 installer(*frame);
@@ -89,7 +89,7 @@ namespace nil::xit::gtest::builders::input::tagged
 
     private:
         std::string id;
-        std::optional<std::filesystem::path> file;
+        std::optional<FileInfo> file_info;
 
         std::function<std::unique_ptr<typename test::frame::input::tagged::Info<T>::IDataManager>()>
             loader_creator;
