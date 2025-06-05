@@ -16,8 +16,7 @@ namespace nil::xit::gtest
         struct
         {
             std::vector<std::filesystem::path> assets;
-            xalt::transparent_umap<std::filesystem::path> ui;
-            std::filesystem::path test;
+            xalt::transparent_umap<std::filesystem::path> groups;
         } paths;
 
         builders::MainBuilder main_builder;

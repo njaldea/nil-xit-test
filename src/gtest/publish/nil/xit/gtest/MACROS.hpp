@@ -7,12 +7,13 @@
 // clang-format off
 #define XIT_IIFE(X) []() { X; return 0; }()
 #define XIT_WRAP_R(...) []() { return __VA_ARGS__; }
+#define XIT_FG(P) nil::xit::gtest::detail::get_file_info<P>()
 // clang-format on
 
 #define XIT_INSTANCE nil::xit::gtest::get_instance()
 
 // --- tests
-#define XIT_TEST_DEFINE(BASE, SUITE, CASE, DIRECTORY)                                              \
+#define XIT_TEST_DEFINE(BASE, SUITE, CASE, PATH)                                                   \
     static_assert(nil::xit::gtest::is_valid_test<BASE>);                                           \
     struct xit_test_##SUITE##_##CASE final: XIT_WRAP(BASE)                                         \
     {                                                                                              \
@@ -20,14 +21,12 @@
     };                                                                                             \
     const auto v_xit_test_##SUITE##_##CASE = XIT_IIFE(                                             \
         XIT_INSTANCE.test_builder                                                                  \
-            .add_test<xit_test_##SUITE##_##CASE>(#SUITE, #CASE, DIRECTORY, __FILE__, __LINE__)     \
+            .add_test<xit_test_##SUITE##_##CASE>(#SUITE, #CASE, XIT_FG(PATH), __FILE__, __LINE__)  \
     );                                                                                             \
     void xit_test_##SUITE##_##CASE::run(                                                           \
         [[maybe_unused]] const inputs_t& xit_inputs,                                               \
         [[maybe_unused]] outputs_t& xit_outputs                                                    \
     )
-
-#define XIT_FG(P) nil::xit::gtest::detail::get_file_info<P>()
 
 #define XIT_TEST_DEFINE_DEFAULT(BASE, SUITE, CASE) XIT_TEST_DEFINE(BASE, SUITE, CASE, ".")
 
@@ -58,15 +57,19 @@
         = &XIT_INSTANCE.frame_builder.__VA_ARGS__
 
 #define XIT_FRAME_TAGGED_INPUT(ID, ...)                                                            \
+    static_assert(nil::xit::gtest::builders::is_loader_tagged<decltype(__VA_ARGS__)>);             \
     XIT_FRAME_DETAIL(ID, ":T:N", create_tagged_input(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_TAGGED_INPUT_V(ID, PATH, ...)                                                    \
+    static_assert(nil::xit::gtest::builders::is_loader_tagged<decltype(__VA_ARGS__)>);             \
     XIT_FRAME_DETAIL(ID, ":T:V", create_tagged_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 
 #define XIT_FRAME_UNIQUE_INPUT(ID, ...)                                                            \
+    static_assert(nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);             \
     XIT_FRAME_DETAIL(ID, ":U:N", create_unique_input(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_UNIQUE_INPUT_V(ID, PATH, ...)                                                    \
+    static_assert(nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);             \
     XIT_FRAME_DETAIL(ID, ":U:V", create_unique_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 
-// #define XIT_FRAME_OUTPUT(ID, ...) XIT_FRAME_DETAIL(ID, ":T:N", create_output<__VA_ARGS__>(ID))
+#define XIT_FRAME_OUTPUT(ID, ...) XIT_FRAME_DETAIL(ID, ":T:N", create_output<__VA_ARGS__>(ID, {}))
 #define XIT_FRAME_OUTPUT_V(ID, PATH, ...)                                                          \
     XIT_FRAME_DETAIL(ID, ":T:V", create_output<__VA_ARGS__>(ID, XIT_FG(PATH)))

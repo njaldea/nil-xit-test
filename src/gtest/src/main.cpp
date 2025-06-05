@@ -24,22 +24,17 @@ namespace nil::xit::gtest
 
         auto& instance = get_instance();
 
-        if (has_value(options, "path_ui"))
+        if (has_value(options, "path_group"))
         {
-            for (const auto& path_ui : params(options, "path_ui"))
+            for (const auto& path_group : params(options, "path_group"))
             {
-                auto i = path_ui.find_first_of('=');
+                auto i = path_group.find_first_of('=');
                 if (i == std::string::npos)
                 {
                     throw std::runtime_error("path has invalid format");
                 }
-                instance.paths.ui.emplace(path_ui.substr(0, i), path_ui.substr(i + 1));
+                instance.paths.groups.emplace(path_group.substr(0, i), path_group.substr(i + 1));
             }
-        }
-
-        if (has_value(options, "path_test"))
-        {
-            instance.paths.test = param(options, "path_test");
         }
 
         if (has_value(options, "path_assets"))
@@ -52,7 +47,7 @@ namespace nil::xit::gtest
 
         if (flag(options, "list"))
         {
-            instance.test_builder.install(std::cout, instance.paths.test);
+            instance.test_builder.install(std::cout, instance.paths.groups);
             return 0;
         }
 
@@ -75,9 +70,9 @@ namespace nil::xit::gtest
         );
 
         test::App app(use_ws(http_server, "/ws"), "nil-xit-gtest");
-        app.set_ui_paths(instance.paths.ui);
+        app.set_frame_groups(instance.paths.groups);
         instance.frame_builder.install(app);
-        instance.test_builder.install(app, instance.paths.test);
+        instance.test_builder.install(app, instance.paths.groups);
         instance.main_builder.install(app);
 
         start(http_server);
@@ -95,13 +90,21 @@ namespace nil::xit::gtest
         headless::Inputs inputs;
         auto& instance = get_instance();
 
-        if (has_value(options, "path_test"))
+        if (has_value(options, "path_group"))
         {
-            instance.paths.test = param(options, "path_test");
+            for (const auto& path_group : params(options, "path_group"))
+            {
+                auto i = path_group.find_first_of('=');
+                if (i == std::string::npos)
+                {
+                    throw std::runtime_error("path has invalid format");
+                }
+                instance.paths.groups.emplace(path_group.substr(0, i), path_group.substr(i + 1));
+            }
         }
 
         instance.frame_builder.install(inputs);
-        instance.test_builder.install(inputs, instance.paths.test);
+        instance.test_builder.install(inputs, instance.paths.groups);
         GTEST_FLAG_SET(list_tests, flag(options, "list"));
         ::testing::InitGoogleTest();
         return RUN_ALL_TESTS();
@@ -114,8 +117,7 @@ namespace nil::xit::gtest
         flag(node, "clear", {.skey = 'c', .msg = "clear cache on boot"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
-        params(node, "path_ui", {.skey = 'u', .msg = "use as ui path"});
-        param(node, "path_test", {.skey = 't', .msg = "use as test path"});
+        params(node, "path_group", {.skey = 'g', .msg = "add group path"});
         params(node, "path_assets", {.skey = 'a', .msg = "use as assets path"});
         use(node, run_gui);
     }
@@ -124,7 +126,7 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
-        param(node, "path_test", {.skey = 't', .msg = "use as test path"});
+        params(node, "path_group", {.skey = 'g', .msg = "add group path"});
         sub(node, "gui", "run in gui mode", node_gui);
         use(node, run_headless);
     }

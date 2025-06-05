@@ -5,12 +5,10 @@
 #include "frames/input/unique.hpp"
 #include "frames/output/Frame.hpp"
 
-#include "../Test.hpp"
 #include "../utils/from_data.hpp"
 
 #include <nil/xalt/transparent_stl.hpp>
 
-#include <filesystem>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -20,15 +18,15 @@ namespace nil::xit::gtest::builders
     template <typename T>
     concept is_loader_unique = requires() {
         { T::initialize() };
-    } || requires(T maker) {
-        { maker().initialize() };
+    } || requires(T loader) {
+        { loader.initialize() };
     };
 
     template <typename T>
     concept is_loader_tagged = requires() {
         { T::initialize(std::declval<std::string_view>()) };
-    } || requires(T maker) {
-        { maker().initialize(std::declval<std::string_view>()) };
+    } || requires(T loader) {
+        { loader.initialize(std::declval<std::string_view>()) };
     };
 
     template <typename T, typename... Args>
@@ -49,7 +47,7 @@ namespace nil::xit::gtest::builders
     {
     public:
         template <typename Loader>
-            requires(!is_loader_tagged<Loader>)
+            requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
         auto& create_tagged_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_tagged_input(
@@ -59,7 +57,8 @@ namespace nil::xit::gtest::builders
             );
         }
 
-        template <is_loader_tagged Loader>
+        template <typename Loader>
+            requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
         auto& create_tagged_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
@@ -108,7 +107,7 @@ namespace nil::xit::gtest::builders
         }
 
         template <typename Loader>
-            requires(!is_loader_unique<Loader>)
+            requires(!is_loader_unique<decltype(std::declval<Loader>()())>)
         auto& create_unique_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_unique_input(
@@ -118,7 +117,8 @@ namespace nil::xit::gtest::builders
             );
         }
 
-        template <is_loader_unique Loader>
+        template <typename Loader>
+            requires(is_loader_unique<decltype(std::declval<Loader>()())>)
         auto& create_unique_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;

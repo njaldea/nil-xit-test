@@ -18,8 +18,6 @@
 #include <type_traits>
 #include <utility>
 
-#include <iostream>
-
 namespace nil::xit::test
 {
     class App
@@ -33,7 +31,7 @@ namespace nil::xit::test
         App& operator=(App&&) = delete;
         App& operator=(const App&) = delete;
 
-        void set_ui_paths(const xalt::transparent_umap<std::filesystem::path>& paths);
+        void set_frame_groups(const xalt::transparent_umap<std::filesystem::path>& paths);
 
         std::span<const std::string> installed_tags() const;
         // marked

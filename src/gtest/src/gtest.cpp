@@ -1,29 +1,40 @@
+#include <nil/xit/gtest/Instances.hpp>
 #include <nil/xit/gtest/builders/FrameBuilder.hpp>
 #include <nil/xit/gtest/builders/MainBuilder.hpp>
 #include <nil/xit/gtest/builders/TestBuilder.hpp>
 
-#include <nil/xit/gtest/Instances.hpp>
+#include <nil/xit/structs.hpp>
+
+#include <sstream>
 
 namespace nil::xit::gtest
 {
     namespace builders
     {
-        std::string to_tag_suffix(const std::string& test_id, const std::string& dir)
+        std::string to_tag_suffix(std::string_view test_id, const FileInfo& file_info)
         {
-            if (dir == ".")
+            std::ostringstream ss;
+            ss << test_id << '[' << file_info.group;
+            if (file_info.path.filename() == ".")
             {
-                return test_id;
+                ss << ']';
             }
-            return test_id + '[' + dir + ']';
+            else
+            {
+                ss << ':' << file_info.path.c_str() << ']';
+            }
+            return ss.str();
         }
 
         std::string to_tag(
-            const std::string& suite_id,
-            const std::string& test_id,
-            const std::string& dir
+            std::string_view suite_id,
+            std::string_view test_id,
+            const FileInfo& file_info
         )
         {
-            return suite_id + '.' + to_tag_suffix(test_id, dir);
+            std::ostringstream ss;
+            ss << suite_id << '.' << to_tag_suffix(test_id, file_info);
+            return ss.str();
         }
 
         void MainBuilder::install(test::App& app) const
@@ -54,27 +65,27 @@ namespace nil::xit::gtest
             }
         }
 
-        void TestBuilder::install(test::App& app, const std::filesystem::path& path) const
+        void TestBuilder::install(test::App& app, const group_map& groups) const
         {
             for (const auto& t : installer)
             {
-                t->install(app, path);
+                t->install(app, groups);
             }
         }
 
-        void TestBuilder::install(headless::Inputs& inputs, const std::filesystem::path& path) const
+        void TestBuilder::install(headless::Inputs& inputs, const group_map& groups) const
         {
             for (const auto& t : installer)
             {
-                t->install(inputs, path);
+                t->install(inputs, groups);
             }
         }
 
-        void TestBuilder::install(std::ostream& oss, const std::filesystem::path& path) const
+        void TestBuilder::install(std::ostream& oss, const group_map& groups) const
         {
             for (const auto& t : installer)
             {
-                t->install(oss, path);
+                t->install(oss, groups);
             }
         }
     }
@@ -87,15 +98,19 @@ namespace nil::xit::gtest
 
     namespace detail
     {
-        std::string_view tag_to_dir(std::string_view tag)
+        xit::FileInfo tag_to_file_info(std::string_view tag)
         {
-            const auto i1 = tag.find_last_of('[') + 1;
-            const auto i2 = tag.find_last_of(']');
-            if (i1 < tag.size() - 1 && i2 == tag.size() - 1)
+            const auto i1 = tag.find_last_of('[');
+            const auto i2 = tag.find_last_of(':');
+            const auto i3 = tag.find_last_of(']');
+            if (i2 == std::string_view::npos)
             {
-                return tag.substr(i1, i2 - i1);
+                return FileInfo{.group = std::string(tag.substr(i1 + 1, i3 - i1 - 1)), .path = "."};
             }
-            return ".";
+            return FileInfo{
+                .group = std::string(tag.substr(i1 + 1, i2 - i1 - 1)),
+                .path = tag.substr(i2 + 1, i3 - i2 - 1)
+            };
         }
     }
 }

@@ -12,13 +12,12 @@ namespace nil::xit::test
     {
         gate.set_runner<nil::gate::runners::NonBlocking>();
         on_ready(service, [this]() { gate.commit(); });
-        // std::filesystem::remove_all(std::filesystem::temp_directory_path() / app_name);
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }
 
-    void App::set_ui_paths(const xalt::transparent_umap<std::filesystem::path>& paths)
+    void App::set_frame_groups(const xalt::transparent_umap<std::filesystem::path>& paths)
     {
-        set_ui_directories(xit, paths);
+        nil::xit::set_frame_groups(xit, paths);
     }
 
     std::span<const std::string> App::installed_tags() const

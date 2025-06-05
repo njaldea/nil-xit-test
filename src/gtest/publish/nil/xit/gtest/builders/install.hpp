@@ -4,6 +4,7 @@
 #include "../headless/Inputs.hpp"
 
 #include <nil/xalt/tlist.hpp>
+#include <nil/xit/structs.hpp>
 #include <nil/xit/test/App.hpp>
 
 #include <gtest/gtest.h>
@@ -13,28 +14,28 @@
 
 namespace nil::xit::gtest::builders
 {
-    std::string to_tag_suffix(const std::string& test_id, const std::string& dir);
+    std::string to_tag_suffix(std::string_view test_id, const FileInfo& file_info);
 
     std::string to_tag(
-        const std::string& suite_id,
-        const std::string& test_id,
-        const std::string& dir
+        std::string_view suite_id,
+        std::string_view test_id,
+        const FileInfo& file_info
     );
 
     template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
     void install(
         test::App& app,
         nil::xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
-        const std::string& suite_id,
-        const std::string& test_id,
-        const std::string& dir
+        std::string_view suite_id,
+        std::string_view test_id,
+        const FileInfo& file_info
     )
     {
         using base_t = Test<Input<I...>, Output<O...>>;
         using inputs_t = typename base_t::inputs_t;
         using outputs_t = typename base_t::outputs_t;
 
-        const auto tag = to_tag(suite_id, test_id, dir);
+        const auto tag = to_tag(suite_id, test_id, file_info);
         app.add_info(tag, {detail::Frame<I>::marked_value...}, {detail::Frame<O>::marked_value...});
 
         constexpr auto node = [](const detail::Frame<I>::type&... args)
@@ -76,7 +77,7 @@ namespace nil::xit::gtest::builders
         nil::xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
         const std::string& suite_id,
         const std::string& test_id,
-        const std::string& dir,
+        const FileInfo& file_info,
         const char* file,
         int line
     )
@@ -140,7 +141,7 @@ namespace nil::xit::gtest::builders
 
         testing::internal::MakeAndRegisterTestInfo(
             suite_id,
-            to_tag_suffix(test_id, dir).c_str(),
+            to_tag_suffix(test_id, file_info).c_str(),
             nullptr,
             nullptr,
             ::testing::internal::CodeLocation(file, line),
@@ -148,7 +149,7 @@ namespace nil::xit::gtest::builders
             ::testing::internal::SuiteApiResolver<XitTest>::GetSetUpCaseOrSuite(file, line),
             ::testing::internal::SuiteApiResolver<XitTest>::GetTearDownCaseOrSuite(file, line),
             // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-            new Factory(to_tag(suite_id, test_id, dir), &inputs)
+            new Factory(to_tag(suite_id, test_id, file_info), &inputs)
         );
     }
 
@@ -157,7 +158,7 @@ namespace nil::xit::gtest::builders
         test::App& app,
         const std::string& suite_id,
         const std::string& test_id,
-        const std::string& dir
+        const FileInfo& file_info
     )
     {
         install<T>(
@@ -165,7 +166,7 @@ namespace nil::xit::gtest::builders
             nil::xalt::tlist<typename T::base_t>(),
             suite_id,
             test_id,
-            dir //
+            file_info //
         );
     }
 
@@ -174,7 +175,7 @@ namespace nil::xit::gtest::builders
         headless::Inputs& inputs,
         const std::string& suite_id,
         const std::string& test_id,
-        const std::string& dir,
+        const FileInfo& file_info,
         const char* file,
         int line
     )
@@ -184,7 +185,7 @@ namespace nil::xit::gtest::builders
             nil::xalt::tlist<typename T::base_t>(),
             suite_id,
             test_id,
-            dir,
+            file_info,
             file,
             line //
         );

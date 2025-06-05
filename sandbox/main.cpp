@@ -1,7 +1,5 @@
 #include "userland_utils.hpp"
 
-#include <filesystem>
-
 #include <nil/xit/gtest.hpp>
 
 using nil::xit::gtest::from_data;               // NOLINT(misc-unused-using-decls)
@@ -15,6 +13,9 @@ XIT_FRAME_MAIN("$base/Main.svelte", nlohmann::json);
 // also accepts callable types (nlohamnn::json is a class/struct)
 // [](const std::vector<std::string>& v) { return nlohmann::json(v); }
 
+static_assert(nil::xit::gtest::builders::is_loader_tagged<
+              from_file_with_finalize<nlohmann::json, "input_frame.json">>);
+
 XIT_FRAME_TAGGED_INPUT_V(
     "json_input_frame",
     "$base/InputFrame.svelte",
@@ -25,7 +26,7 @@ XIT_FRAME_TAGGED_INPUT_V(
 XIT_FRAME_UNIQUE_INPUT_V(
     "slider_frame",
     "$base/Slider.svelte",
-    from_file_with_update<Ranges, "slider_frame">()
+    from_file_with_update<Ranges, "$test/slider_frame">()
 )
     .value("value-1", &Ranges::v1)
     .value("value-2", &Ranges::v2)
@@ -43,7 +44,7 @@ using nil::xit::gtest::TestOutputs;
 
 using Plotly = Test<Input<"slider_frame", "json_input_frame">, Output<"plotly_frame">>;
 
-XIT_TEST_F(Plotly, demo, "plotly/*")
+XIT_TEST_F(Plotly, demo, "$test/plotly/*")
 {
     const auto& [ranges, input_data] = xit_inputs;
     //           ┃           ┃         ┗━━━ from Input<"slider_frame", "input_frame">
@@ -75,7 +76,7 @@ XIT_FRAME_OUTPUT_V("draw_frame", "$base/DrawFrame.svelte", Circles)
 
 using DrawWithInput = Test<Input<"circles_input_frame">, Output<"draw_frame">>;
 
-XIT_TEST_F(DrawWithInput, demo, "draw")
+XIT_TEST_F(DrawWithInput, demo, "$test/draw")
 {
     const auto& [input_data] = xit_inputs;
     //           ┃             ┗━━━ from Input<"input_frame">
@@ -95,14 +96,15 @@ XIT_TEST_F(DrawWithInput, demo, "draw")
 
 using Draw = TestOutputs<"draw_frame">;
 
-XIT_TEST_F(Draw, sample)
-{
-    Circles circles;
-
-    // Execute test here
-
-    auto& [draw] = xit_outputs;
-    //     ┃       ┗━━━ from Output<"draw_frame">
-    //     ┗━━━ type == Circles
-    draw = circles;
-}
+// TODO: should this be still supported>
+// XIT_TEST_F(Draw, sample)
+// {
+//     Circles circles;
+//
+//     // Execute test here
+//
+//     auto& [draw] = xit_outputs;
+//     //     ┃       ┗━━━ from Output<"draw_frame">
+//     //     ┗━━━ type == Circles
+//     draw = circles;
+// }
