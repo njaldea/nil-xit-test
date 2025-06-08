@@ -1,11 +1,11 @@
 # MACROS
 
-The library provides a variety of MACROS to register tests and frames.
+MACROS for registering tests and frames.
 
 > **Related documentation:**
-> - [Concepts: Test Structure](./03-concepts.md#test-structure) - For understanding test organization
-> - [CLI Options](./04-cli.md) - For running tests with proper arguments
-> - [Frame Bindings](./07-frame-bindings.md) - For binding data to UI components
+> - [Concepts: Test Structure](./03-concepts.md#test-structure) - Test organization
+> - [CLI Options](./04-cli.md) - Running tests
+> - [Frame Bindings](./07-frame-bindings.md) - Binding data to UI components
 
 ## XIT_TEST
 
@@ -16,23 +16,19 @@ XIT_TEST(Suite, Case, "$group/.")
 }
 ```
 
-Register a test without input/output.
+Registers a test without input/output.
 
-The 3rd argument is a group and the path to be used to generate the test. See [Concepts: Group](./03-concepts.md#group) for details on group paths.
+The 3rd argument specifies the group path for test generation. This creates a test named `Suite.Case[group:.]`.
 
-This will generate a test named `Suite.Case[group:.]`. See [Concepts: Test Identification](./03-concepts.md#test-identification) for more on test naming.
-
-If the last path is an `*`, it will instead create multiple tests for the same tests.
-Let's assume there are two folders inside group named `a` and `b`, the following tests should be registered:
+**Wildcard paths:** If the path ends with `*`, multiple tests are created for each subdirectory. For example, if group contains folders `a` and `b`, these tests are registered:
 - `Suite.Case[group:./a]`
 - `Suite.Case[group:./b]`
 
-This path is going to be used to load inputs that depend on a path, resulting in easier way of doing parameterized testing.
+This enables easier parameterized testing by loading different inputs based on the path.
 
 ## XIT_TEST_F
 
 ```cpp
-
 using Suite = nil::xit::gate::Test<
     nil::xit::gate::Input<...>,
     nil::xit::gate::Output<...>
@@ -44,75 +40,65 @@ XIT_TEST_F(Suite, Case, "$group/.")
 }
 ```
 
-Register a test with the set of inputs/outputs.
+Registers a test with input/output frames.
 
 ## XIT_FRAME_MAIN
 
 ```cpp
 XIT_FRAME_MAIN("$group/File.svelte")
 
-// or 
+// or with converter
 
 XIT_FRAME_MAIN("$group/File.svelte", Converter)
 ```
 
-`Converter` could be a functor or a type that can convert `std::vector<std::string>` to a serializable type.
-This is goign to be used for advanced use case where the UI needs to query about available tests and their
-equivalent inputs/outputs
+`Converter` can be a functor or type that converts `std::vector<std::string>` to a serializable type. Used for advanced cases where the UI needs to query available tests and their inputs/outputs.
 
-## XIT_FRAME_TEST_INPUT / XIT_FRAME_GLOBAL_INPUT
+## Input Frame Registration
+
+### XIT_FRAME_TEST_INPUT / XIT_FRAME_GLOBAL_INPUT
 
 ```cpp
 XIT_FRAME_TEST_INPUT("test_frame_id", initializer());
 XIT_FRAME_GLOBAL_INPUT("global_frame_id", initializer());
 ```
 
-Registers a frame without an equivalent UI file to be used as an input to a test.
+Registers frames without UI files for test input.
 
-See [Custon Types](./06-custom-types.md) for more detail.
-See [Frame Bindings](./07-frame-bindings.md) for more detail.
-
-## XIT_FRAME_TEST_INPUT_V / XIT_FRAME_GLOBAL_INPUT_V
+### XIT_FRAME_TEST_INPUT_V / XIT_FRAME_GLOBAL_INPUT_V
 
 ```cpp
 XIT_FRAME_TEST_INPUT_V("test_frame_id", "$group/File.svelte", initializer());
 XIT_FRAME_GLOBAL_INPUT_V("global_frame_id", "$group/File.svelte", initializer());
 ```
 
-Registers a frame with an equivalent UI file to be used as an input to a test.
+Registers frames with UI files for test input.
 
-See [Custon Types](./06-custom-types.md) for more detail.
-See [Frame Bindings](./07-frame-bindings.md) for more detail.
-
-## XIT_FRAME_TEST_V / XIT_FRAME_GLOBAL_V
+### XIT_FRAME_TEST_V / XIT_FRAME_GLOBAL_V
 
 ```cpp
 XIT_FRAME_TEST_V("test_frame_id", "$group/File.svelte");
 XIT_FRAME_GLOBAL_V("global_frame_id", "$group/File.svelte");
 ```
 
-Registers a frame with an equivalent data.
+Registers frames with data and UI files.
 
-See [Frame Bindings](./07-frame-bindings.md) for more detail.
+## Output Frame Registration
 
-## XIT_FRAME_OUTPUT
+### XIT_FRAME_OUTPUT (without UI)
 
 ```cpp
 XIT_FRAME_OUTPUT("output_frame_id", DataType)
 ```
 
-Registers a frame without equivalent UI file to be used as an output of the test.
+Registers output frames without UI files.
 
-See [Custon Types](./06-custom-types.md) for more detail.
-See [Frame Bindings](./07-frame-bindings.md) for more detail.
-
-## XIT_FRAME_OUTPUT
+### XIT_FRAME_OUTPUT (with UI)
 
 ```cpp
 XIT_FRAME_OUTPUT("output_frame_id", "$group/File.svelte", DataType)
 ```
 
-Registers a frame without equivalent UI file to be used as an output of the test.
+Registers output frames with UI files.
 
-See [Custon Types](./06-custom-types.md) for more detail.
-See [Frame Bindings](./07-frame-bindings.md) for more detail.
+> **See also:** [Custom Types](./06-custom-types.md) and [Frame Bindings](./07-frame-bindings.md) for detailed usage examples.

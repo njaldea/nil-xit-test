@@ -36,17 +36,15 @@
 
 The `-g` or `--path-group` option maps a group identifier to a filesystem path:
 
-```
+```bash
 -g "group=path/to/directory"
 ```
 
-For example:
-```
+Example:
+```bash
 -g "test=./test_resources" -g "base=./ui_components"
 ```
 
-This allows tests and frames to reference resources using the `$group/path` syntax. For example, `$test/data.json` would resolve to `./test_resources/data.json` with the mapping above.
+This allows tests to reference resources using `$group/path` syntax. For example, `$test/data.json` resolves to `./test_resources/data.json`.
 
-The `-i` or `--ignore-missing-groups` option prevents errors when encountering undefined groups. Without this option, the application will fail if a test references a group that isn't defined with `-g`.
-
-See the [Groups concept documentation](./03-concepts.md#group) for more information on how group paths work.
+The `-i` or `--ignore-missing-groups` option prevents errors when encountering undefined groups. Without this option, the application fails if a test references an undefined group.

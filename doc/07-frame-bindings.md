@@ -1,11 +1,11 @@
 # Frame Bindings
 
-MACROS registering a frame allows a more granular data binding with the frontend. This document explains how to bind C++ data to the frontend UI components.
+Bind C++ data to frontend UI components with granular control.
 
 > **Related documentation:**
-> - [MACROS](./05-MACROS.md) - For frame registration syntax
-> - [Custom Types](./06-custom-types.md) - For working with complex data types
-> - [File Utilities](./08-file-utilities.md) - For persisting frame data
+> - [MACROS](./05-MACROS.md) - Frame registration syntax
+> - [Custom Types](./06-custom-types.md) - Working with complex data types
+> - [File Utilities](./08-file-utilities.md) - Persisting frame data
 
 ```cpp
 struct Ranges
@@ -16,7 +16,7 @@ struct Ranges
 };
 ```
 
-## Binding to member attributes
+## Binding Individual Members
 
 ```cpp
 XIT_FRAME_GLOBAL_INPUT_V("frame_id", "$base/File.svelte", Ranges())
@@ -25,31 +25,24 @@ XIT_FRAME_GLOBAL_INPUT_V("frame_id", "$base/File.svelte", Ranges())
     .value("value-3", &Ranges::v3);
 ```
 
-The binding above allows the frontend to access value-1, value-2, and value-3 separately.
+Allows frontend to access `value-1`, `value-2`, and `value-3` separately.
 
-## Binding to the whole object
+## Binding Whole Object
 
 ```cpp
 XIT_FRAME_GLOBAL_INPUT_V("frame_id", "$base/File.svelte", Ranges())
     .value("value");
 ```
 
-## Accessor
+## Custom Accessors
 
-Accessor is a callable object that returns the data to be bound.
+Use callable objects to customize data access:
 
 ```cpp
 struct Accessor
 {
-    auto& operator()(Ranges& data) const
-    {
-        return data.v1;
-    }
-
-    const auto& operator()(const Ranges& data) const
-    {
-        return data.v1;
-    }
+    auto& operator()(Ranges& data) const { return data.v1; }
+    const auto& operator()(const Ranges& data) const { return data.v1; }
 };
 
 XIT_FRAME_GLOBAL_INPUT_V("frame_id", "$base/File.svelte", Ranges())
@@ -58,7 +51,7 @@ XIT_FRAME_GLOBAL_INPUT_V("frame_id", "$base/File.svelte", Ranges())
 
 ## Frontend Integration
 
-The values bound through the `.value()` method become available in the frontend Svelte components. See the [Concepts: UI Components](./03-concepts.md#ui-components) section for more details on how the frontend accesses these values.
+Bound values become available in Svelte components:
 
 ```svelte
 <script lang="ts">
@@ -73,4 +66,4 @@ The values bound through the `.value()` method become available in the frontend 
 </script>
 ```
 
-> **Note:** A more detailed documentation about the frontend integration will be available in the separate frontend documentation.
+> **Note:** Detailed frontend integration documentation is available separately.

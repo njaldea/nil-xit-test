@@ -1,30 +1,29 @@
 # File Utilities
 
-The library provides the following utility methods to be able to read from a file and write to a file.
+Utilities for reading and writing test data to files.
 
 > **Related documentation:**
-> - [Custom Types](./06-custom-types.md) - For creating serializable custom types
-> - [Migration Guide](./02-migration.md#step-5-save-input-to-file) - For examples of using these utilities
-> - [Concepts: Data Flow](./03-concepts.md#data-flow) - For understanding how file persistence fits into the framework
+> - [Custom Types](./06-custom-types.md) - Creating serializable custom types
+> - [Migration Guide](./02-migration.md#step-5-save-input-to-file) - Usage examples
+> - [Concepts: Data Flow](./03-concepts.md#data-flow) - How file persistence fits the framework
+
+## Utility Classes
 
 - `nil::xit::gtest::from_file<T, literal>`
 - `nil::xit::gtest::from_file_with_finalize<T, literal>`
 - `nil::xit::gtest::from_file_with_update<T, literal>`
 
-The utility classes provides the following functions:
+## Available Methods
 
-- `T initialize()` / `T initialize(std::string_view)`
-    - for reading the file
-- `T finalize()` / `T finalize(std::string_view)`
-    - for writing the data
-    - used when the finalize hook is triggered by the frontend
-- `T update()` / `T update(std::string_view)`
-    - for writing the data
-    - used every time the frontend changes the value
+- `T initialize()` / `T initialize(std::string_view)` - Read from file
+- `T finalize()` / `T finalize(std::string_view)` - Write data (triggered by frontend finalize hook)
+- `T update()` / `T update(std::string_view)` - Write data (triggered by frontend value changes)
 
-By default, the utility methods will use `buffer_type` specialization for the types.
+By default, utilities use `buffer_type` specialization for serialization.
 
-If file format has to differ from `buffer_type`, a specialization to `file_codec` can be used.
+## Custom File Format
+
+To use a different file format than `buffer_type`, specialize `file_codec`:
 
 ```cpp
 template <>
