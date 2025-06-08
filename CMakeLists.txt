@@ -7,6 +7,7 @@ include(cmake/toolchain.cmake)
 include(cmake/quality.cmake)
 include(cmake/test.cmake)
 include(cmake/coverage.cmake)
+include(cmake/nil-xit-gtest.cmake)
 
 add_subdirectory(src)
 add_subdirectory(sandbox)

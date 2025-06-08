@@ -107,9 +107,9 @@ namespace nil::xit::gtest
 
         auto& instance = get_instance();
 
-        if (has_value(options, "path_assets"))
+        if (has_value(options, "path-assets"))
         {
-            for (const auto& asset_path : params(options, "path_assets"))
+            for (const auto& asset_path : params(options, "path-assets"))
             {
                 instance.paths.assets.emplace_back(asset_path);
             }
