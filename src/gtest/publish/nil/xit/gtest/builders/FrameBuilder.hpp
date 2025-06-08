@@ -1,8 +1,8 @@
 #pragma once
 
 #include "frames/IFrame.hpp"
-#include "frames/input/tagged.hpp"
-#include "frames/input/unique.hpp"
+#include "frames/input/global.hpp"
+#include "frames/input/test.hpp"
 #include "frames/output/Frame.hpp"
 
 #include "../utils/from_data.hpp"
@@ -23,7 +23,7 @@ namespace nil::xit::gtest::builders
     };
 
     template <typename T>
-    concept is_loader_tagged = requires() {
+    concept is_test_loader = requires() {
         { T::initialize(std::declval<std::string_view>()) };
     } || requires(T loader) {
         { loader.initialize(std::declval<std::string_view>()) };
@@ -47,10 +47,10 @@ namespace nil::xit::gtest::builders
     {
     public:
         template <typename Loader>
-            requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
-        auto& create_tagged_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+            requires(!is_test_loader<decltype(std::declval<Loader>()())>)
+        auto& create_test_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
-            return create_tagged_input(
+            return create_test_input(
                 std::move(id),
                 std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
@@ -58,12 +58,12 @@ namespace nil::xit::gtest::builders
         }
 
         template <typename Loader>
-            requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
-        auto& create_tagged_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+            requires(is_test_loader<decltype(std::declval<Loader>()())>)
+        auto& create_test_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
-            using IDataManager = xit::test::frame::input::tagged::Info<type>::IDataManager;
+            using IDataManager = xit::test::frame::input::test::Info<type>::IDataManager;
 
             struct DataManager: IDataManager
             {
@@ -96,8 +96,8 @@ namespace nil::xit::gtest::builders
                 loader_t loader;
             };
 
-            return static_cast<input::tagged::Frame<type>&>(
-                *input_frames.emplace_back(std::make_unique<input::tagged::Frame<type>>(
+            return static_cast<input::test::Frame<type>&>(
+                *input_frames.emplace_back(std::make_unique<input::test::Frame<type>>(
                     std::move(id),
                     std::move(file_info),
                     [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
@@ -108,9 +108,9 @@ namespace nil::xit::gtest::builders
 
         template <typename Loader>
             requires(!is_loader_unique<decltype(std::declval<Loader>()())>)
-        auto& create_unique_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+        auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
-            return create_unique_input(
+            return create_global_input(
                 std::move(id),
                 std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
@@ -119,11 +119,11 @@ namespace nil::xit::gtest::builders
 
         template <typename Loader>
             requires(is_loader_unique<decltype(std::declval<Loader>()())>)
-        auto& create_unique_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+        auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize())>;
-            using IDataManager = xit::test::frame::input::unique::Info<type>::IDataManager;
+            using IDataManager = xit::test::frame::input::global::Info<type>::IDataManager;
 
             struct DataManager: IDataManager
             {
@@ -156,8 +156,8 @@ namespace nil::xit::gtest::builders
                 loader_t loader;
             };
 
-            return static_cast<input::unique::Frame<type>&>(
-                *input_frames.emplace_back(std::make_unique<input::unique::Frame<type>>(
+            return static_cast<input::global::Frame<type>&>(
+                *input_frames.emplace_back(std::make_unique<input::global::Frame<type>>(
                     std::move(id),
                     std::move(file_info),
                     [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>

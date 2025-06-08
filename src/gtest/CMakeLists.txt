@@ -27,8 +27,8 @@ add_library(
     publish/nil/xit/gtest/builders/frames/main/Frame.hpp
     publish/nil/xit/gtest/builders/frames/output/Frame.hpp
     publish/nil/xit/gtest/builders/frames/input/Frame.hpp
-    publish/nil/xit/gtest/builders/frames/input/unique.hpp
-    publish/nil/xit/gtest/builders/frames/input/tagged.hpp
+    publish/nil/xit/gtest/builders/frames/input/global.hpp
+    publish/nil/xit/gtest/builders/frames/input/test.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC xit-test)

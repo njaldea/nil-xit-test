@@ -12,8 +12,8 @@ importers:
         specifier: 3.1.1
         version: 3.1.1
       '@nil-/xit':
-        specifier: ^0.3.0
-        version: 0.3.0(svelte@5.33.14)
+        specifier: ^0.4.0
+        version: 0.4.0(svelte@5.33.14)
       '@types/plotly.js':
         specifier: ^2.35.6
         version: 2.35.6
@@ -123,8 +123,8 @@ packages:
     resolution: {integrity: sha512-DnBpqkMOUGayNVKyTLlkM6ILmU/m/+VUxGkuQlPQVAcvreLz5jn1OlQnWd8uHKL/ZSiljpM12rjRhr51VtvJUQ==}
     engines: {node: '>= 18'}
 
-  '@nil-/xit@0.3.0':
-    resolution: {integrity: sha512-SweaBwpU5hTZwi+L1HmA+7g+MjceTnm/UtTZV5CRgrzspJG8VWREKu0aXgKDNhMsSNB86kivzV/qDcIguNJGcg==}
+  '@nil-/xit@0.4.0':
+    resolution: {integrity: sha512-z6Jz/mGvACkVvxVpm+8YcVsrCUR5PhLm69EUS+cme5wZpxMs6BIQBczxOjYU++OHSnjXGs09aCU/tQ3HDApDxw==}
     peerDependencies:
       svelte: ^5.7.1
 
@@ -386,7 +386,7 @@ snapshots:
 
   '@msgpack/msgpack@3.1.1': {}
 
-  '@nil-/xit@0.3.0(svelte@5.33.14)':
+  '@nil-/xit@0.4.0(svelte@5.33.14)':
     dependencies:
       svelte: 5.33.14
 

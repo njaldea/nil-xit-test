@@ -1,0 +1,6 @@
+{
+  "name": "test",
+  "dependencies": {
+    "@nil-/xit": "^0.4.0"
+  }
+}

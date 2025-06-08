@@ -14,28 +14,98 @@
 
 namespace nil::xit::gtest
 {
-    int run_gui(const nil::clix::Options& options)
+    int run_help(const nil::clix::Options& options)
     {
-        if (flag(options, "help"))
-        {
-            help(options, std::cout);
-            return 0;
-        }
-
         auto& instance = get_instance();
 
-        if (has_value(options, "path_group"))
+        help(options, std::cout);
+
+        std::cout << "EXPECTED GROUPS:\n";
+        for (const auto& g : instance.paths.expected_groups)
         {
-            for (const auto& path_group : params(options, "path_group"))
+            std::cout << " -  " << g << '\n';
+        }
+        return 0;
+    }
+
+    bool parse_groups(const nil::clix::Options& options)
+    {
+        bool status = true;
+        auto& instance = get_instance();
+        if (has_value(options, "path-group"))
+        {
+            for (const auto& path_group : params(options, "path-group"))
             {
                 auto i = path_group.find_first_of('=');
                 if (i == std::string::npos)
                 {
-                    throw std::runtime_error("path has invalid format");
+                    if (status)
+                    {
+                        std::cerr << "incorrect path_group format\n";
+                    }
+                    std::cerr << " -  " << path_group << '\n';
+                    status = false;
                 }
-                instance.paths.groups.emplace(path_group.substr(0, i), path_group.substr(i + 1));
+                else
+                {
+                    instance.paths.groups.emplace(
+                        path_group.substr(0, i),
+                        path_group.substr(i + 1)
+                    );
+                }
+            }
+            if (!status)
+            {
+                std::cerr << "expecting: <key>=<value>\n\n";
             }
         }
+
+        if (!flag(options, "ignore-missing-groups"))
+        {
+            for (const auto& group : instance.paths.expected_groups)
+            {
+                if (!instance.paths.groups.contains(group))
+                {
+                    status = false;
+                    std::cerr << "missing group: " << group << '\n';
+                }
+            }
+        }
+
+        return status;
+    }
+
+    void print_groups()
+    {
+        auto& instance = get_instance();
+        std::cout << "GROUPS:\n";
+        for (const auto& g : instance.paths.expected_groups)
+        {
+            auto it = instance.paths.groups.find(g);
+            if (it != instance.paths.groups.end())
+            {
+                std::cout << " -  " << g << '=' << it->second.c_str() << '\n';
+            }
+            else
+            {
+                std::cout << " -  " << g << "=??\n";
+            }
+        }
+    }
+
+    int run_gui(const nil::clix::Options& options)
+    {
+        if (flag(options, "help"))
+        {
+            return run_help(options);
+        }
+
+        if (!parse_groups(options))
+        {
+            return 1;
+        }
+
+        auto& instance = get_instance();
 
         if (has_value(options, "path_assets"))
         {
@@ -45,15 +115,19 @@ namespace nil::xit::gtest
             }
         }
 
-        if (flag(options, "list"))
-        {
-            instance.test_builder.install(std::cout, instance.paths.groups);
-            return 0;
-        }
-
         if (flag(options, "clear"))
         {
             std::filesystem::remove_all(std::filesystem::temp_directory_path() / "nil-xit-gtest");
+        }
+
+        if (flag(options, "list"))
+        {
+            instance.test_builder.install(std::cout, instance.paths.groups);
+            if (flag(options, "verbose"))
+            {
+                print_groups();
+            }
+            return 0;
         }
 
         const auto http_server = nil::service::http::server::create({
@@ -70,7 +144,7 @@ namespace nil::xit::gtest
         );
 
         test::App app(use_ws(http_server, "/ws"), "nil-xit-gtest");
-        app.set_frame_groups(instance.paths.groups);
+        app.set_groups(instance.paths.groups);
         instance.frame_builder.install(app);
         instance.test_builder.install(app, instance.paths.groups);
         instance.main_builder.install(app);
@@ -83,42 +157,41 @@ namespace nil::xit::gtest
     {
         if (flag(options, "help"))
         {
-            help(options, std::cout);
-            return 0;
+            return run_help(options);
         }
 
-        headless::Inputs inputs;
+        if (!parse_groups(options))
+        {
+            return 1;
+        }
+
         auto& instance = get_instance();
 
-        if (has_value(options, "path_group"))
-        {
-            for (const auto& path_group : params(options, "path_group"))
-            {
-                auto i = path_group.find_first_of('=');
-                if (i == std::string::npos)
-                {
-                    throw std::runtime_error("path has invalid format");
-                }
-                instance.paths.groups.emplace(path_group.substr(0, i), path_group.substr(i + 1));
-            }
-        }
-
+        headless::Inputs inputs;
         instance.frame_builder.install(inputs);
         instance.test_builder.install(inputs, instance.paths.groups);
         GTEST_FLAG_SET(list_tests, flag(options, "list"));
         ::testing::InitGoogleTest();
-        return RUN_ALL_TESTS();
+        const auto result = RUN_ALL_TESTS();
+
+        if (flag(options, "list") && flag(options, "verbose"))
+        {
+            print_groups();
+        }
+        return result;
     }
 
     void node_gui(nil::clix::Node& node)
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
+        flag(node, "verbose", {.skey = 'v', .msg = "list additiona information like groups"});
         flag(node, "clear", {.skey = 'c', .msg = "clear cache on boot"});
+        flag(node, "ignore-missing-groups", {.skey = 'i', .msg = "ignore missing groups"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
-        params(node, "path_group", {.skey = 'g', .msg = "add group path"});
-        params(node, "path_assets", {.skey = 'a', .msg = "use as assets path"});
+        params(node, "path-group", {.skey = 'g', .msg = "add group path"});
+        params(node, "path-assets", {.skey = 'a', .msg = "use for assets"});
         use(node, run_gui);
     }
 
@@ -126,7 +199,9 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
-        params(node, "path_group", {.skey = 'g', .msg = "add group path"});
+        flag(node, "verbose", {.skey = 'v', .msg = "list additiona information like groups"});
+        flag(node, "ignore-missing-groups", {.skey = 'i', .msg = "ignore missing groups"});
+        params(node, "path-group", {.skey = 'g', .msg = "add group path"});
         sub(node, "gui", "run in gui mode", node_gui);
         use(node, run_headless);
     }

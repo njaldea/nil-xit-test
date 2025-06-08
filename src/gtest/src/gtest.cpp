@@ -14,15 +14,12 @@ namespace nil::xit::gtest
         std::string to_tag_suffix(std::string_view test_id, const FileInfo& file_info)
         {
             std::ostringstream ss;
-            ss << test_id << '[' << file_info.group;
-            if (file_info.path.filename() == ".")
-            {
-                ss << ']';
-            }
-            else
-            {
-                ss << ':' << file_info.path.c_str() << ']';
-            }
+            ss << test_id                //
+               << '['                    //
+               << file_info.group        //
+               << ':'                    //
+               << file_info.path.c_str() //
+               << ']';
             return ss.str();
         }
 

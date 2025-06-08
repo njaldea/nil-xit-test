@@ -10,6 +10,8 @@ find_package(nlohmann_json CONFIG REQUIRED)
 add_executable(
     ${PROJECT_NAME}
     main.cpp
+    main2.cpp
+    frame_setup.hpp
     userland_utils.cpp
     userland_utils.hpp
 )

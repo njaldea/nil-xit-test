@@ -10,7 +10,7 @@
 
 #include <nil/gate/Core.hpp>
 
-namespace nil::xit::test::frame::input::tagged
+namespace nil::xit::test::frame::input::test
 {
     template <typename T>
     struct Info final: input::Info<T>

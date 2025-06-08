@@ -16,8 +16,8 @@ set(
         publish/nil/xit/test/RerunTag.hpp
         publish/nil/xit/test/utils.hpp
         publish/nil/xit/test/frame/input/Info.hpp
-        publish/nil/xit/test/frame/input/Unique.hpp
-        publish/nil/xit/test/frame/input/Tagged.hpp
+        publish/nil/xit/test/frame/input/Global.hpp
+        publish/nil/xit/test/frame/input/Test.hpp
         publish/nil/xit/test/frame/output/Info.hpp
 )
 

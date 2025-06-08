@@ -22,10 +22,10 @@ namespace nil::xit::gtest::builders
         const FileInfo& file_info
     );
 
-    template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
+    template <typename P, xalt::literal... I, xalt::literal... O>
     void install(
         test::App& app,
-        nil::xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
+        xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
         std::string_view suite_id,
         std::string_view test_id,
         const FileInfo& file_info
@@ -71,10 +71,10 @@ namespace nil::xit::gtest::builders
         );
     }
 
-    template <typename P, nil::xalt::literal... I, nil::xalt::literal... O>
+    template <typename P, xalt::literal... I, xalt::literal... O>
     void install(
         headless::Inputs& inputs,
-        nil::xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
+        xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
         const std::string& suite_id,
         const std::string& test_id,
         const FileInfo& file_info,
@@ -163,7 +163,7 @@ namespace nil::xit::gtest::builders
     {
         install<T>(
             app,
-            nil::xalt::tlist<typename T::base_t>(),
+            xalt::tlist<typename T::base_t>(),
             suite_id,
             test_id,
             file_info //
@@ -182,7 +182,7 @@ namespace nil::xit::gtest::builders
     {
         install<T>(
             inputs,
-            nil::xalt::tlist<typename T::base_t>(),
+            xalt::tlist<typename T::base_t>(),
             suite_id,
             test_id,
             file_info,

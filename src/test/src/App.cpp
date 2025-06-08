@@ -15,9 +15,9 @@ namespace nil::xit::test
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }
 
-    void App::set_frame_groups(const xalt::transparent_umap<std::filesystem::path>& paths)
+    void App::set_groups(const xalt::transparent_umap<std::filesystem::path>& paths)
     {
-        nil::xit::set_frame_groups(xit, paths);
+        nil::xit::set_groups(xit, paths);
     }
 
     std::span<const std::string> App::installed_tags() const

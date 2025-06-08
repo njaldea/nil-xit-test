@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nil/xit/buffer_type.hpp>
+#include <nil/xit/gtest/utils/from_file.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -11,28 +12,34 @@ struct Ranges
     std::int64_t v1 = {};
     std::int64_t v2 = {};
     std::int64_t v3 = {};
+
+    bool operator==(const Ranges& o) const
+    {
+        return v1 == o.v1 && v2 == o.v2 && v3 == o.v3;
+    }
 };
 
 struct Circle
 {
     std::array<double, 2> position = {};
     double radius = 1.0;
+
+    bool operator==(const Circle& o) const
+    {
+        return position == o.position && radius == o.radius;
+    }
 };
 
 struct Circles
 {
     Circle x = {};
     Circle y = {};
+
+    bool operator==(const Circles& o) const
+    {
+        return x == o.x && y == o.y;
+    }
 };
-
-bool operator==(const Ranges& l, const Ranges& r);
-bool operator==(const Circle& l, const Circle& r);
-bool operator==(const Circles& l, const Circles& r);
-
-std::istream& operator>>(std::istream& iss, Circles& data);
-std::ostream& operator<<(std::ostream& oss, const Circles& data);
-std::istream& operator>>(std::istream& iss, Ranges& data);
-std::ostream& operator<<(std::ostream& oss, const Ranges& data);
 
 struct from_json_ptr
 {
@@ -64,7 +71,13 @@ struct nlohmann::adl_serializer<Circles>
     static void from_json(const nlohmann::json& j, Circles& v);
 };
 
-// this is necessary when publishing a custom data through the network going to the UI
+template <>
+struct nlohmann::adl_serializer<Ranges>
+{
+    static void to_json(nlohmann::json& j, const Ranges& v);
+    static void from_json(const nlohmann::json& j, Ranges& v);
+};
+
 template <>
 struct nil::xit::buffer_type<nlohmann::json>
 {

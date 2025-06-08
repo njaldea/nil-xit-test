@@ -36,7 +36,7 @@ namespace nil::xit::gtest
             };
         }
 
-        template <nil::xalt::literal S>
+        template <xalt::literal S>
         struct Frame;
 
         // using type = std::remove_cvref_t<decltype(XIT_INSTANCE.frame_builder.__VA_ARGS__)>::type;
@@ -44,10 +44,18 @@ namespace nil::xit::gtest
         // static constexpr auto* value = ID;
         // static const void* const holder;
 
+        enum class EFrameType
+        {
+            Utility,
+            Input,
+            Output
+        };
+
         template <>
         struct Frame<"index"> final
         {
             // this is reserved for main gui
+            static constexpr auto frame_type = EFrameType::Utility;
         };
 
         template <>
@@ -55,19 +63,26 @@ namespace nil::xit::gtest
         {
             // this is reserved for getting frame details
             // of a specific tag (test)
+            static constexpr auto frame_type = EFrameType::Utility;
         };
     }
 
-    template <nil::xalt::literal... T>
-    struct Input;
+    template <xalt::literal... T>
+        requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::Input))
+    struct Input
+    {
+    };
 
-    template <nil::xalt::literal... T>
-    struct Output;
+    template <xalt::literal... T>
+        requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::Output))
+    struct Output
+    {
+    };
 
     template <typename I = Input<>, typename O = Output<>>
     struct Test;
 
-    template <nil::xalt::literal... I, nil::xalt::literal... O>
+    template <xalt::literal... I, xalt::literal... O>
     struct Test<Input<I...>, Output<O...>>
     {
         Test() = default;
@@ -84,6 +99,12 @@ namespace nil::xit::gtest
         virtual void setup() {};
         virtual void teardown() {};
         virtual void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) = 0;
+
+        static constexpr auto are_inputs_valid
+            = (true && ... && (detail::Frame<I>::frame_type == detail::EFrameType::Input));
+
+        static constexpr auto are_outputs_valid
+            = (true && ... && (detail::Frame<O>::frame_type == detail::EFrameType::Output));
     };
 
     template <xalt::literal... S>
@@ -100,5 +121,18 @@ namespace nil::xit::gtest
         t.setup();
         t.teardown();
         t.run(std::declval<const typename T::inputs_t&>(), std::declval<typename T::outputs_t&>());
+    };
+
+    template <xalt::literal lit>
+    concept is_valid_path               //
+        = xalt::starts_with<lit, "$">() //
+        && (xalt::find_first<lit, "/">() < sizeof(lit));
+
+    struct none
+    {
+        bool operator==(const none& /* o */) const
+        {
+            return false;
+        }
     };
 }

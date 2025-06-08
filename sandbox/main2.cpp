@@ -8,7 +8,7 @@ using Plotly = nil::xit::gtest::Test<
     nil::xit::gtest::Input<"slider_frame", "json_input_frame">,
     nil::xit::gtest::Output<"plotly_frame">>;
 
-XIT_TEST_F(Plotly, demo, "$test/plotly/*")
+XIT_TEST_F(Plotly, demo2, "$test/plotly/*")
 {
     const auto& [ranges, input_data] = xit_inputs;
     //           ┃           ┃         ┗━━━ from Input<"slider_frame", "input_frame">
@@ -30,7 +30,7 @@ XIT_TEST_F(Plotly, demo, "$test/plotly/*")
 using DrawWithInput = nil::xit::gtest::
     Test<nil::xit::gtest::Input<"circles_input_frame">, nil::xit::gtest::Output<"draw_frame">>;
 
-XIT_TEST_F(DrawWithInput, demo, "$test/draw")
+XIT_TEST_F(DrawWithInput, demo2, "$test/draw")
 {
     const auto& [input_data] = xit_inputs;
     //           ┃             ┗━━━ from Input<"input_frame">
@@ -50,7 +50,7 @@ XIT_TEST_F(DrawWithInput, demo, "$test/draw")
 
 using Draw = nil::xit::gtest::TestOutputs<"draw_frame">;
 
-XIT_TEST_F(Draw, sample, "$test/.")
+XIT_TEST_F(Draw, sample2, "$test/.")
 {
     Circles circles;
 

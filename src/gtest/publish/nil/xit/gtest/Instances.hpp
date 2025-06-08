@@ -7,6 +7,7 @@
 #include <nil/xalt/transparent_stl.hpp>
 
 #include <filesystem>
+#include <set>
 #include <vector>
 
 namespace nil::xit::gtest
@@ -17,6 +18,7 @@ namespace nil::xit::gtest
         {
             std::vector<std::filesystem::path> assets;
             xalt::transparent_umap<std::filesystem::path> groups;
+            std::set<std::string> expected_groups;
         } paths;
 
         builders::MainBuilder main_builder;

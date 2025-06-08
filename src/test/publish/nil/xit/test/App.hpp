@@ -1,11 +1,12 @@
 #pragma once
 
-#include "frame/input/Tagged.hpp"
-#include "frame/input/Unique.hpp"
+#include "frame/input/Global.hpp"
+#include "frame/input/Test.hpp"
 #include "frame/output/Info.hpp"
 
 #include <nil/service/structs.hpp>
 #include <nil/xit/add_frame.hpp>
+#include <nil/xit/buffer_type.hpp>
 #include <nil/xit/structs.hpp>
 #include <nil/xit/tagged/on_load.hpp>
 #include <nil/xit/tagged/on_sub.hpp>
@@ -14,6 +15,7 @@
 #include <nil/xalt/transparent_stl.hpp>
 
 #include <filesystem>
+#include <sstream>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -31,7 +33,7 @@ namespace nil::xit::test
         App& operator=(App&&) = delete;
         App& operator=(const App&) = delete;
 
-        void set_frame_groups(const xalt::transparent_umap<std::filesystem::path>& paths);
+        void set_groups(const xalt::transparent_umap<std::filesystem::path>& paths);
 
         std::span<const std::string> installed_tags() const;
         // marked
@@ -49,44 +51,53 @@ namespace nil::xit::test
             requires std::is_invocable_v<FromVS, std::vector<std::string>>
         void add_main(FileInfo file_info, const FromVS& converter)
         {
+            if constexpr (!std::is_same_v<
+                              decltype(installed_tags()),
+                              decltype(converter(installed_tags()))>)
             {
-                auto& frame = add_unique_frame(xit, "index", std::move(file_info));
-                add_value(
-                    frame,
-                    "tags",
-                    [converter, this]() { return converter(installed_tags()); }
-                );
-                add_signal(
-                    frame,
-                    "finalize",
-                    [this](std::string_view tag) { return finalize_inputs(tag); }
-                );
+                {
+                    auto& frame = add_unique_frame(xit, "index", std::move(file_info));
+                    add_value(
+                        frame,
+                        "tags",
+                        [converter, this]() { return converter(installed_tags()); }
+                    );
+                    add_signal(
+                        frame,
+                        "finalize",
+                        [this](std::string_view tag) { return finalize_inputs(tag); }
+                    );
+                }
+                {
+                    auto& frame = add_tagged_frame(xit, "frame_info");
+                    add_value(
+                        frame,
+                        "inputs",
+                        [converter, this](std::string_view tag)
+                        { return converter(installed_tag_inputs(tag)); }
+                    );
+                    add_value(
+                        frame,
+                        "outputs",
+                        [converter, this](std::string_view tag)
+                        { return converter(installed_tag_outputs(tag)); }
+                    );
+                }
             }
+            else
             {
-                auto& frame = add_tagged_frame(xit, "frame_info");
-                add_value(
-                    frame,
-                    "inputs",
-                    [converter, this](std::string_view tag)
-                    { return converter(installed_tag_inputs(tag)); }
-                );
-                add_value(
-                    frame,
-                    "outputs",
-                    [converter, this](std::string_view tag)
-                    { return converter(installed_tag_outputs(tag)); }
-                );
+                add_unique_frame(xit, "index", std::move(file_info));
             }
         }
 
         template <typename T>
-        frame::input::tagged::Info<T>* add_tagged_input(
+        frame::input::test::Info<T>* add_test_input(
             std::string id,
             FileInfo file_info,
-            std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
+            std::unique_ptr<typename frame::input::test::Info<T>::IDataManager> manager
         )
         {
-            auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
+            auto* s = make_frame<frame::input::test::Info<T>>(id, input_frames);
             s->frame = &add_tagged_frame(xit, std::move(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
@@ -94,12 +105,12 @@ namespace nil::xit::test
         }
 
         template <typename T>
-        frame::input::tagged::Info<T>* add_tagged_input(
+        frame::input::test::Info<T>* add_test_input(
             std::string id,
-            std::unique_ptr<typename frame::input::tagged::Info<T>::IDataManager> manager
+            std::unique_ptr<typename frame::input::test::Info<T>::IDataManager> manager
         )
         {
-            auto* s = make_frame<frame::input::tagged::Info<T>>(id, input_frames);
+            auto* s = make_frame<frame::input::test::Info<T>>(id, input_frames);
             s->frame = &add_tagged_frame(xit, std::move(id));
             s->gate = &gate;
             s->manager = std::move(manager);
@@ -107,13 +118,13 @@ namespace nil::xit::test
         }
 
         template <typename T>
-        frame::input::unique::Info<T>* add_unique_input(
+        frame::input::global::Info<T>* add_global_input(
             std::string id,
             FileInfo file_info,
-            std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
+            std::unique_ptr<typename frame::input::global::Info<T>::IDataManager> manager
         )
         {
-            auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
+            auto* s = make_frame<frame::input::global::Info<T>>(id, input_frames);
             s->frame = &add_unique_frame(xit, std::move(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
@@ -121,12 +132,12 @@ namespace nil::xit::test
         }
 
         template <typename T>
-        frame::input::unique::Info<T>* add_unique_input(
+        frame::input::global::Info<T>* add_global_input(
             std::string id,
-            std::unique_ptr<typename frame::input::unique::Info<T>::IDataManager> manager
+            std::unique_ptr<typename frame::input::global::Info<T>::IDataManager> manager
         )
         {
-            auto* s = make_frame<frame::input::unique::Info<T>>(id, input_frames);
+            auto* s = make_frame<frame::input::global::Info<T>>(id, input_frames);
             s->frame = &add_unique_frame(xit, std::move(id));
             s->gate = &gate;
             s->manager = std::move(manager);
@@ -165,29 +176,32 @@ namespace nil::xit::test
             constexpr auto o_seq = std::make_index_sequence<o_size>();
             auto* enabler = add_node_enabler(tag, outputs, o_seq);
 
-            auto wrapped_cb =                     //
-                [cb = std::move(callable), o_seq] //
-                (                                 //
-                    const nil::gate::Core& core,
-                    nil::gate::async_outputs<typename Outputs::type...> asyncs,
-                    bool enabled,
-                    const typename Inputs::type&... rest //
-                )
+            if constexpr (o_size == 0)
             {
-                if (enabled)
+            }
+            else
+            {
+                auto wrapped_cb =                     //
+                    [cb = std::move(callable), o_seq] //
+                    (                                 //
+                        const nil::gate::Core& core,
+                        nil::gate::async_outputs<typename Outputs::type...> asyncs,
+                        bool enabled,
+                        const typename Inputs::type&... rest //
+                    )
                 {
-                    App::for_each(
-                        core.batch(asyncs),
-                        cb(rest...),
-                        o_seq,
-                        [](auto* l, auto& r) { l->set_value(std::move(r)); }
-                    );
-                    core.commit();
-                }
-            };
+                    if (enabled)
+                    {
+                        App::for_each(
+                            core.batch(asyncs),
+                            cb(rest...),
+                            o_seq,
+                            [](auto* l, auto& r) { l->set_value(std::move(r)); }
+                        );
+                        core.commit();
+                    }
+                };
 
-            if constexpr (o_size > 0)
-            {
                 for_each(
                     outputs,
                     add_node_impl(tag, std::move(wrapped_cb), enabler, inputs, i_seq),
@@ -210,10 +224,6 @@ namespace nil::xit::test
                         );
                     }
                 );
-            }
-            else
-            {
-                add_node_impl(tag, std::move(wrapped_cb), enabler, inputs);
             }
         }
 
@@ -272,11 +282,20 @@ namespace nil::xit::test
             std::index_sequence<I...> /* seq */
         )
         {
-            return get<0>(gate.node(
-                [](std::conditional_t<true, bool, decltype(I)>... flags)
-                { return (false || ... || flags); },
-                {get<I>(outputs)->requested.emplace(tag, gate.port(false)).first->second...}
-            ));
+            if constexpr (sizeof...(I) > 0)
+            {
+                return get<0>(gate.node(
+                    [](std::conditional_t<true, bool, decltype(I)>... flags)
+                    { return (false || ... || flags); },
+                    {get<I>(outputs)->requested.emplace(tag, gate.port(false)).first->second...}
+                ));
+            }
+            else
+            {
+                // will not run tests that does not have any outputs
+                // TODO: include inputs?
+                return get<0>(gate.node([]() { return false; }));
+            }
         }
 
         template <typename T, typename Inputs, std::size_t... I>

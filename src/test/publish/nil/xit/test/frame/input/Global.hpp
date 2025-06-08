@@ -8,7 +8,7 @@
 
 #include <nil/gate/Core.hpp>
 
-namespace nil::xit::test::frame::input::unique
+namespace nil::xit::test::frame::input::global
 {
     template <typename T>
     struct Info final: input::Info<T>

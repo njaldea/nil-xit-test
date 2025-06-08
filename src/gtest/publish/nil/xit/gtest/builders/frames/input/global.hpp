@@ -6,13 +6,13 @@
 #include "Frame.hpp"
 
 #include <nil/xit/test/App.hpp>
-#include <nil/xit/test/frame/input/Unique.hpp>
+#include <nil/xit/test/frame/input/Global.hpp>
 
 #include <type_traits>
 
-namespace nil::xit::gtest::builders::input::unique
+namespace nil::xit::gtest::builders::input::global
 {
-    using nil::xit::test::frame::input::unique::Info;
+    using nil::xit::test::frame::input::global::Info;
 
     template <typename T>
     class Frame final: public input::Frame
@@ -34,8 +34,8 @@ namespace nil::xit::gtest::builders::input::unique
         void install(test::App& app) override
         {
             auto* frame = file_info.has_value()
-                ? app.add_unique_input<T>(id, file_info.value(), loader_creator())
-                : app.add_unique_input<T>(id, loader_creator());
+                ? app.add_global_input<T>(id, file_info.value(), loader_creator())
+                : app.add_global_input<T>(id, loader_creator());
             for (const auto& value_installer : values)
             {
                 value_installer(*frame);
