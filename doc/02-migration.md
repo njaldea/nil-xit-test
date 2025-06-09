@@ -1,4 +1,4 @@
-# Migration Guide: GTest to nil-xit-test
+# Migration Guide: GTest to xit-test
 
 Convert your first Google Test to a visual test in about 15 minutes.
 
@@ -20,7 +20,7 @@ TEST(Sample, circle) {
 }
 ```
 
-## Step 2: Convert to nil-xit-test
+## Step 2: Convert to xit-test
 
 Replace `TEST` with `XIT_TEST` and add a group path:
 
@@ -56,7 +56,7 @@ XIT_FRAME_OUTPUT_V("output", "$group/Step_3.svelte", Circle)
     .value("y", &Circle::y)
     .value("radius", &Circle::radius);
 
-// Equality operator (required for nil-xit-test)
+// Equality operator (required for xit-test)
 bool operator==(const Circle& l, const Circle& r) {
     return l.x == r.x && l.y == r.y && l.radius == r.radius;
 }
@@ -123,7 +123,7 @@ XIT_FRAME_TEST_INPUT_V("input", "$group/Step_4Input.svelte", Circle{0.1, 0.1, 0.
     .value("y", &Circle::y)
     .value("radius", &Circle::radius);
 
-// Equality operator (required for nil-xit-test)
+// Equality operator (required for xit-test)
 bool operator==(const Circle& l, const Circle& r) {
     return l.x == r.x && l.y == r.y && l.radius == r.radius;
 }
@@ -198,7 +198,7 @@ XIT_FRAME_TEST_INPUT_V(
     .value("y", &Circle::y)
     .value("radius", &Circle::radius);
 
-// Equality operator (required for nil-xit-test)
+// Equality operator (required for xit-test)
 bool operator==(const Circle& l, const Circle& r) {
     return l.x == r.x && l.y == r.y && l.radius == r.radius;
 }

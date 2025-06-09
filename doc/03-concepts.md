@@ -1,6 +1,6 @@
 # Core Concepts
 
-Key concepts and terminology used throughout nil-xit-test.
+Key concepts and terminology used throughout xit-test.
 
 ## Frame
 

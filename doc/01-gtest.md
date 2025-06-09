@@ -1,6 +1,6 @@
-# nil-xit-test Documentation
+# xit-test Documentation
 
-Complete reference for using nil-xit-test with Google Test.
+Complete reference for using xit-test with Google Test.
 
 ## Getting Started
 

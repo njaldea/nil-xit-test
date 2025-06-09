@@ -17,6 +17,7 @@ write_basic_package_version_file(
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config-version.cmake"
+    "cmake/nil-xit-gtest.cmake"
     DESTINATION "share/${CMAKE_PROJECT_NAME}"
 )
 

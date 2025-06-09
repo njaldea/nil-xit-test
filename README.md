@@ -4,18 +4,18 @@
 
 ![version](https://img.shields.io/badge/status-early%20development-blue)
 
-nil-xit-test adds interactive visualization to your existing C++ tests. See your data, adjust parameters in real-time, and share visual test results with your team.
+xit-test adds interactive visualization to your existing C++ tests. See your data, adjust parameters in real-time, and share visual test results with your team.
 
-## Why nil-xit-test?
+## Why xit-test?
 
-Traditional tests tell you **if** code works. nil-xit-test shows you **how** and **why**:
+Traditional tests tell you **if** code works. xit-test shows you **how** and **why**:
 
 - **📊 Visualize data** - See complex structures and algorithm behaviors
 - **⚡ Fast iteration** - Change parameters without recompiling  
 - **👥 Better communication** - Share visual results with teammates
 - **📚 Living documentation** - Tests that explain themselves
 
-nil-xit-test works with your existing test framework (currently supports Google Test).
+xit-test works with your existing test framework (currently supports Google Test).
 
 ## Quick Start
 
@@ -66,7 +66,7 @@ XIT_TEST_F(MyTest, visualize, "$group/test")
 **Reference** 
 - [Complete Documentation](./doc/01-gtest.md) - All documentation links
 - [MACROS Reference](./doc/05-MACROS.md) - API reference
-- [Best Practices](./doc/09-conclusion.md) - When and how to use nil-xit-test
+- [Best Practices](./doc/09-conclusion.md) - When and how to use xit-test
 
 **Framework Support**
 - Google Test (GTest) - Available now
