@@ -4,6 +4,7 @@ Complete reference for using xit-test with Google Test.
 
 ## Getting Started
 
+- **[Installation Guide](./10-installation.md)** - Set up xit-test in your project
 - **[Migration Guide](./02-migration.md)** - Convert your first GTest to visual test
 - **[Core Concepts](./03-concepts.md)** - Frames, groups, and key terminology
 

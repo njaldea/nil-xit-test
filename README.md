@@ -60,6 +60,7 @@ XIT_TEST_F(MyTest, visualize, "$group/test")
 ## Documentation
 
 **Getting Started**
+- [Installation Guide](./doc/10-installation.md) - Set up xit-test in your project
 - [Migration Guide](./doc/02-migration.md) - Convert your first test
 - [Core Concepts](./doc/03-concepts.md) - Key ideas and terminology
 

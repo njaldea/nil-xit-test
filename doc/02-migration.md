@@ -2,6 +2,8 @@
 
 Convert your first Google Test to a visual test in about 15 minutes.
 
+> **Prerequisites**: Make sure you have xit-test installed in your project. See the [Installation Guide](./10-installation.md) for setup instructions.
+
 ## Step 1: Start with a GTest
 
 ```cpp
