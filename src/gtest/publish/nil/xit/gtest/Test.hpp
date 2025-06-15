@@ -14,7 +14,6 @@ namespace nil::xit::gtest
         template <xalt::literal lit>
         consteval auto get_fg_name()
         {
-            static_assert(xalt::starts_with<lit, "$">());
             const auto i = xalt::find_first<lit, "/">();
             return xalt::literal_v<xalt::substr<lit, 1, i - 1>()>; // NOLINT
         }
@@ -22,7 +21,6 @@ namespace nil::xit::gtest
         template <xalt::literal lit>
         auto get_fg_path()
         {
-            static_assert(xalt::starts_with<lit, "$">());
             const auto i = xalt::find_first<lit, "/">();
             return xalt::literal_v<xalt::substr<lit, i + 1, sizeof(lit) - i - 2>()>; // NOLINT
         }
@@ -30,6 +28,8 @@ namespace nil::xit::gtest
         template <xalt::literal lit>
         auto get_file_info()
         {
+            static_assert(xalt::starts_with<lit, "$">());
+            static_assert(xalt::find_first<lit, "/">() != sizeof(lit));
             return FileInfo{
                 get_fg_name<lit>(),
                 get_fg_path<lit>(),

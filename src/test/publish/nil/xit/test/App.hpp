@@ -4,6 +4,7 @@
 #include "frame/input/Test.hpp"
 #include "frame/output/Info.hpp"
 
+#include <nil/gate/traits/compare.hpp>
 #include <nil/service/structs.hpp>
 #include <nil/xit/add_frame.hpp>
 #include <nil/xit/buffer_type.hpp>
@@ -15,10 +16,19 @@
 #include <nil/xalt/transparent_stl.hpp>
 
 #include <filesystem>
-#include <sstream>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+
+template <typename T>
+    requires(!requires() { std::declval<T>() == std::declval<T>(); })
+struct nil::gate::traits::compare<T>
+{
+    static bool match(const T& /* l */, const T& /* r */)
+    {
+        return true;
+    }
+};
 
 namespace nil::xit::test
 {
@@ -49,14 +59,14 @@ namespace nil::xit::test
 
         template <typename FromVS>
             requires std::is_invocable_v<FromVS, std::vector<std::string>>
-        void add_main(FileInfo file_info, const FromVS& converter)
+        void add_main(std::string path, const FromVS& converter)
         {
             if constexpr (!std::is_same_v<
                               decltype(installed_tags()),
                               decltype(converter(installed_tags()))>)
             {
                 {
-                    auto& frame = add_unique_frame(xit, "index", std::move(file_info));
+                    auto& frame = add_unique_frame(xit, "index", std::move(path));
                     add_value(
                         frame,
                         "tags",
@@ -86,19 +96,19 @@ namespace nil::xit::test
             }
             else
             {
-                add_unique_frame(xit, "index", std::move(file_info));
+                add_unique_frame(xit, "index", std::move(path));
             }
         }
 
         template <typename T>
         frame::input::test::Info<T>* add_test_input(
             std::string id,
-            FileInfo file_info,
+            std::string path,
             std::unique_ptr<typename frame::input::test::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::test::Info<T>>(id, input_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(file_info));
+            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -120,12 +130,12 @@ namespace nil::xit::test
         template <typename T>
         frame::input::global::Info<T>* add_global_input(
             std::string id,
-            FileInfo file_info,
+            std::string path,
             std::unique_ptr<typename frame::input::global::Info<T>::IDataManager> manager
         )
         {
             auto* s = make_frame<frame::input::global::Info<T>>(id, input_frames);
-            s->frame = &add_unique_frame(xit, std::move(id), std::move(file_info));
+            s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -145,10 +155,10 @@ namespace nil::xit::test
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(std::string id, FileInfo file_info)
+        frame::output::Info<T>* add_output(std::string id, std::string path)
         {
             auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(file_info));
+            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
             add_output_detail(s);
             return s;
         }

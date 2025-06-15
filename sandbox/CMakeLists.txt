@@ -17,6 +17,7 @@ add_xit_test(
         userland_utils.cpp
         userland_utils.hpp
     GROUPS
+        "xit=${CMAKE_CURRENT_SOURCE_DIR}/gui"
         "base=${CMAKE_CURRENT_SOURCE_DIR}/gui"
         "test=${CMAKE_CURRENT_SOURCE_DIR}/files"
 )

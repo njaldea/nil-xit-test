@@ -20,21 +20,21 @@ namespace nil::xit::gtest::builders::input::test
 
         Frame(
             std::string init_id,
-            std::optional<FileInfo> init_file_info,
+            std::optional<std::string> init_path,
             std::function<
                 std::unique_ptr<typename xit::test::frame::input::test::Info<T>::IDataManager>()>
                 init_loader_creator
         )
             : id(std::move(init_id))
-            , file_info(std::move(init_file_info))
+            , path(std::move(init_path))
             , loader_creator(std::move(init_loader_creator))
         {
         }
 
         void install(xit::test::App& app) override
         {
-            auto* frame = file_info.has_value()
-                ? app.add_test_input<T>(id, file_info.value(), loader_creator())
+            auto* frame = path.has_value()
+                ? app.add_test_input<T>(id, path.value(), loader_creator())
                 : app.add_test_input<T>(id, loader_creator());
             for (const auto& installer : bindings)
             {
@@ -89,7 +89,7 @@ namespace nil::xit::gtest::builders::input::test
 
     private:
         std::string id;
-        std::optional<FileInfo> file_info;
+        std::optional<std::string> path;
 
         std::function<
             std::unique_ptr<typename xit::test::frame::input::test::Info<T>::IDataManager>()>

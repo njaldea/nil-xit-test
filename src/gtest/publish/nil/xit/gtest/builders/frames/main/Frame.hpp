@@ -14,19 +14,19 @@ namespace nil::xit::gtest::builders::main
         requires std::is_invocable_v<Converter, std::vector<std::string>>
     struct Frame final: IFrame
     {
-        explicit Frame(FileInfo init_file_info, Converter init_converter)
+        explicit Frame(std::string init_path, Converter init_converter)
             : IFrame()
-            , file_info(std::move(init_file_info))
+            , path(std::move(init_path))
             , converter(std::move(init_converter))
         {
         }
 
         void install(test::App& app) override
         {
-            app.add_main(file_info, converter);
+            app.add_main(path, converter);
         }
 
-        FileInfo file_info;
+        std::string path;
         Converter converter;
     };
 }

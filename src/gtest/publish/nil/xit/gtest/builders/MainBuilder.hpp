@@ -18,10 +18,10 @@ namespace nil::xit::gtest::builders
     public:
         template <typename FromVS>
             requires std::is_invocable_v<FromVS, std::vector<std::string>>
-        void create_main(FileInfo file_info, FromVS converter)
+        void create_main(std::string path, FromVS converter)
         {
             frame = std::make_unique<main::Frame<FromVS>>( //
-                std::move(file_info),
+                std::move(path),
                 std::move(converter)
             );
         }

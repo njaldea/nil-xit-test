@@ -48,18 +48,18 @@ namespace nil::xit::gtest::builders
     public:
         template <typename Loader>
             requires(!is_test_loader<decltype(std::declval<Loader>()())>)
-        auto& create_test_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+        auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)
         {
             return create_test_input(
                 std::move(id),
-                std::move(file_info),
+                std::move(path),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <typename Loader>
             requires(is_test_loader<decltype(std::declval<Loader>()())>)
-        auto& create_test_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+        auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
@@ -99,7 +99,7 @@ namespace nil::xit::gtest::builders
             return static_cast<input::test::Frame<type>&>(
                 *input_frames.emplace_back(std::make_unique<input::test::Frame<type>>(
                     std::move(id),
-                    std::move(file_info),
+                    std::move(path),
                     [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
                     { return std::make_unique<DataManager>(loader()); }
                 ))
@@ -108,18 +108,18 @@ namespace nil::xit::gtest::builders
 
         template <typename Loader>
             requires(!is_loader_unique<decltype(std::declval<Loader>()())>)
-        auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+        auto& create_global_input(std::string id, std::optional<std::string> path, Loader loader)
         {
             return create_global_input(
                 std::move(id),
-                std::move(file_info),
+                std::move(path),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <typename Loader>
             requires(is_loader_unique<decltype(std::declval<Loader>()())>)
-        auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
+        auto& create_global_input(std::string id, std::optional<std::string> path, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize())>;
@@ -159,7 +159,7 @@ namespace nil::xit::gtest::builders
             return static_cast<input::global::Frame<type>&>(
                 *input_frames.emplace_back(std::make_unique<input::global::Frame<type>>(
                     std::move(id),
-                    std::move(file_info),
+                    std::move(path),
                     [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
                     { return std::make_unique<DataManager>(loader()); }
                 ))
@@ -167,11 +167,11 @@ namespace nil::xit::gtest::builders
         }
 
         template <typename T>
-        auto& create_output(std::string id, std::optional<FileInfo> file_info)
+        auto& create_output(std::string id, std::optional<std::string> path)
         {
             using type = std::remove_cvref_t<T>;
             return static_cast<output::Frame<type>&>(*output_frames.emplace_back(
-                std::make_unique<output::Frame<type>>(std::move(id), std::move(file_info))
+                std::make_unique<output::Frame<type>>(std::move(id), std::move(path))
             ));
         }
 

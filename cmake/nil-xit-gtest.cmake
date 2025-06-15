@@ -2,8 +2,9 @@
 
 include(ExternalProject)
 
-set(TARBALL_URL "https://registry.npmjs.org/@nil-/xit/-/xit-0.4.0.tgz")
-set(TARBALL_PATH "${CMAKE_BINARY_DIR}/xit-0.4.0.tgz")
+set(TARBALL_FILE "xit-0.4.6.tgz")
+set(TARBALL_URL "https://registry.npmjs.org/@nil-/xit/-/${TARBALL_FILE}")
+set(TARBALL_PATH "${CMAKE_BINARY_DIR}/${TARBALL_FILE}")
 set(EXTRACT_DIR "${CMAKE_BINARY_DIR}/assets/xit")
 
 ExternalProject_Add(
@@ -63,7 +64,7 @@ function(add_xit_test TARGET)
     
     # Create GUI launch target
     add_custom_target(${TARGET}_gui
-        COMMAND $<TARGET_FILE:${TARGET}> ${gui_args}
+        COMMAND $<TARGET_FILE:${TARGET}> ${gui_args} -c
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Launching ${TARGET} in GUI mode"
         USES_TERMINAL
