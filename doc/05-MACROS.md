@@ -29,9 +29,9 @@ This enables easier parameterized testing by loading different inputs based on t
 ## XIT_TEST_F
 
 ```cpp
-using Suite = nil::xit::gate::Test<
-    nil::xit::gate::Input<...>,
-    nil::xit::gate::Output<...>
+using Suite = nil::xit::gtest::Test<
+    nil::xit::gtest::Input<...>,
+    nil::xit::gtest::Output<...>
 >;
 
 XIT_TEST_F(Suite, Case, "$group/.")
@@ -93,10 +93,10 @@ XIT_FRAME_OUTPUT("output_frame_id", DataType)
 
 Registers output frames without UI files.
 
-### XIT_FRAME_OUTPUT (with UI)
+### XIT_FRAME_OUTPUT_V (with UI)
 
 ```cpp
-XIT_FRAME_OUTPUT("output_frame_id", "$group/File.svelte", DataType)
+XIT_FRAME_OUTPUT_V("output_frame_id", "$group/File.svelte", DataType)
 ```
 
 Registers output frames with UI files.

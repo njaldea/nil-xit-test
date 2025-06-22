@@ -12,17 +12,17 @@ importers:
         specifier: 3.1.1
         version: 3.1.1
       '@nil-/xit':
-        specifier: ^0.4.6
-        version: 0.4.6(svelte@5.34.3)
+        specifier: ^0.4.14
+        version: 0.4.14(svelte@5.34.7)
       '@types/plotly.js':
         specifier: ^2.35.6
         version: 2.35.6
       svelte:
-        specifier: ^5.34.3
-        version: 5.34.3
+        specifier: ^5.34.7
+        version: 5.34.7
       vanilla-jsoneditor:
-        specifier: ^3.5.0
-        version: 3.5.0
+        specifier: ^3.6.0
+        version: 3.6.0
     devDependencies:
       '@types/msgpack-lite':
         specifier: ^0.1.11
@@ -40,8 +40,8 @@ packages:
   '@codemirror/commands@6.8.1':
     resolution: {integrity: sha512-KlGVYufHMQzxbdQONiLyGQDUW0itrLZwq3CcY7xpv9ZLRHqzkBSoteocBHtMCoY7/Ci4xhzSrToIeLg7FxHuaw==}
 
-  '@codemirror/lang-json@6.0.1':
-    resolution: {integrity: sha512-+T1flHdgpqDDlJZ2Lkil/rLiRy684WMLc74xUnjJH48GQdfJo/pudlTRreZmKwzP8/tGdKf83wlbAdOCzlJOGQ==}
+  '@codemirror/lang-json@6.0.2':
+    resolution: {integrity: sha512-x2OtO+AvwEHrEwR0FyyPtfDUiloG3rnVTSZV1W8UteaLL8/MajQd8DpvUb2YVzC+/T18aSDv0H9mu+xw0EStoQ==}
 
   '@codemirror/language@6.11.1':
     resolution: {integrity: sha512-5kS1U7emOGV84vxC+ruBty5sUgcD0te6dyupyRVG2zaSjhTDM73LhVKUtVwiqSe6QwmEoA4SCiU8AKPFyumAWQ==}
@@ -123,8 +123,8 @@ packages:
     resolution: {integrity: sha512-DnBpqkMOUGayNVKyTLlkM6ILmU/m/+VUxGkuQlPQVAcvreLz5jn1OlQnWd8uHKL/ZSiljpM12rjRhr51VtvJUQ==}
     engines: {node: '>= 18'}
 
-  '@nil-/xit@0.4.6':
-    resolution: {integrity: sha512-9lvBTtV0+NOzDVKBB8fGNkVAWPuuxT0+dA7u6sAl/HqU2GzfWDlehgKbuMlt18h4Nx24bLQ+Ho2OInUYHUKMRQ==}
+  '@nil-/xit@0.4.14':
+    resolution: {integrity: sha512-nGpsDqV62DHOrvxMaeX/ietJlghHhPPIUuGl8vPF/Qj3B5pOQqVwTPoUwDXxiWNRyuBWPONc3vusLhR/mWI8ZA==}
     peerDependencies:
       svelte: ^5.7.1
 
@@ -149,8 +149,8 @@ packages:
   '@types/msgpack-lite@0.1.11':
     resolution: {integrity: sha512-cdCZS/gw+jIN22I4SUZUFf1ZZfVv5JM1//Br/MuZcI373sxiy3eSSoiyLu0oz+BPatTbGGGBO5jrcvd0siCdTQ==}
 
-  '@types/node@24.0.1':
-    resolution: {integrity: sha512-MX4Zioh39chHlDJbKmEgydJDS3tspMP/lnQC67G3SWsTnb9NeYVWOjkxpOSy4oMfPs4StcWHwBrvUb4ybfnuaw==}
+  '@types/node@24.0.3':
+    resolution: {integrity: sha512-R4I/kzCYAdRLzfiCabn9hxWfbuHS573x+r0dJMkkzThEa7pbrcDWK+9zu3e7aBOouf+rQAciqPFMnxwr0aWgKg==}
 
   '@types/plotly.js@2.35.6':
     resolution: {integrity: sha512-j4c7UZJ5lYNNfTQrwU0ntHbhX21xmdU2312+0Xas7Kff+0YgVYuvEK/Ze69XtOE+gzfWvitcMTOIrnucYxa9pg==}
@@ -252,15 +252,15 @@ packages:
   style-mod@4.1.2:
     resolution: {integrity: sha512-wnD1HyVqpJUI2+eKZ+eo1UwghftP6yuFheBqqe+bWCotBjC2K1YnteJILRMs3SM4V/0dLEW1SC27MWP5y+mwmw==}
 
-  svelte@5.34.3:
-    resolution: {integrity: sha512-Y0QKP2rfWD+ARKe91c4JgZgc/nXa2BfOnVBUjYUMB819m7VyPszihkjdzXPIV0qlGRZYEukpgNq7hgbzTbopJw==}
+  svelte@5.34.7:
+    resolution: {integrity: sha512-5PEg+QQKce4t1qiOtVUhUS3AQRTtxJyGBTpxLcNWnr0Ve8q4r06bMo0Gv8uhtCPWlztZHoi3Ye7elLhu+PCTMg==}
     engines: {node: '>=18'}
 
   undici-types@7.8.0:
     resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
 
-  vanilla-jsoneditor@3.5.0:
-    resolution: {integrity: sha512-BLr3AajXQAMQ1cPTW5yT8k3sBQ89b/YMlE5AX1toE36vqPJEAZTj6ZXtD8CeBpNaC1W0DWgZQDI9MzeAPORR1g==}
+  vanilla-jsoneditor@3.6.0:
+    resolution: {integrity: sha512-x+SSCob2elc81/pedbtpIXwhZCPEYXfx6IvZpEIbYeZowqlkO+zg8Qt05C+PXQaWPwAo4/l/YUzvfPVrg+e9tQ==}
 
   vanilla-picker@2.12.3:
     resolution: {integrity: sha512-qVkT1E7yMbUsB2mmJNFmaXMWE2hF8ffqzMMwe9zdAikd8u2VfnsVY2HQcOUi2F38bgbxzlJBEdS1UUhOXdF9GQ==}
@@ -292,7 +292,7 @@ snapshots:
       '@codemirror/view': 6.37.2
       '@lezer/common': 1.2.3
 
-  '@codemirror/lang-json@6.0.1':
+  '@codemirror/lang-json@6.0.2':
     dependencies:
       '@codemirror/language': 6.11.1
       '@lezer/json': 1.0.3
@@ -386,9 +386,9 @@ snapshots:
 
   '@msgpack/msgpack@3.1.1': {}
 
-  '@nil-/xit@0.4.6(svelte@5.34.3)':
+  '@nil-/xit@0.4.14(svelte@5.34.7)':
     dependencies:
-      svelte: 5.34.3
+      svelte: 5.34.7
 
   '@replit/codemirror-indentation-markers@6.5.3(@codemirror/language@6.11.1)(@codemirror/state@6.5.2)(@codemirror/view@6.37.2)':
     dependencies:
@@ -406,9 +406,9 @@ snapshots:
 
   '@types/msgpack-lite@0.1.11':
     dependencies:
-      '@types/node': 24.0.1
+      '@types/node': 24.0.3
 
-  '@types/node@24.0.1':
+  '@types/node@24.0.3':
     dependencies:
       undici-types: 7.8.0
 
@@ -487,7 +487,7 @@ snapshots:
 
   style-mod@4.1.2: {}
 
-  svelte@5.34.3:
+  svelte@5.34.7:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -506,11 +506,11 @@ snapshots:
 
   undici-types@7.8.0: {}
 
-  vanilla-jsoneditor@3.5.0:
+  vanilla-jsoneditor@3.6.0:
     dependencies:
       '@codemirror/autocomplete': 6.18.6
       '@codemirror/commands': 6.8.1
-      '@codemirror/lang-json': 6.0.1
+      '@codemirror/lang-json': 6.0.2
       '@codemirror/language': 6.11.1
       '@codemirror/lint': 6.8.5
       '@codemirror/search': 6.5.11
@@ -532,7 +532,7 @@ snapshots:
       lodash-es: 4.17.21
       memoize-one: 6.0.0
       natural-compare-lite: 1.4.0
-      svelte: 5.34.3
+      svelte: 5.34.7
       vanilla-picker: 2.12.3
 
   vanilla-picker@2.12.3:

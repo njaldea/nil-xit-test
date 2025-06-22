@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../../headless/Inputs.hpp"
+#include "../../../utils/from_data.hpp"
 #include "../../../utils/from_member.hpp"
 #include "../../../utils/from_self.hpp"
 #include "Frame.hpp"
@@ -68,7 +69,8 @@ namespace nil::xit::gtest::builders::input::global
             inputs.values.emplace(id, std::make_unique<Cache>(loader_creator()));
         }
 
-        template <test::frame::input::is_valid_value_accessor<T&> Accessor>
+        template <typename Accessor>
+            requires(test::frame::input::is_valid_value_accessor<Accessor, T&>)
         Frame<T>& value(std::string value_id, Accessor accessor)
         {
             using accessor_return_t = std::remove_cvref_t<decltype(accessor(std::declval<T&>()))>;
@@ -79,8 +81,9 @@ namespace nil::xit::gtest::builders::input::global
             return *this;
         }
 
-        template <typename U>
-        Frame<T>& value(std::string value_id, U T::*member)
+        template <typename Z, typename U>
+            requires(std::is_same_v<T, Z>)
+        Frame<T>& value(std::string value_id, U Z::*member)
         {
             return value(std::move(value_id), from_member(member));
         }
@@ -88,6 +91,13 @@ namespace nil::xit::gtest::builders::input::global
         Frame<T>& value(std::string value_id)
         {
             return value(std::move(value_id), from_self<T>());
+        }
+
+        template <typename Z>
+            requires(!std::is_same_v<T, Z> && !test::frame::input::is_valid_value_accessor<Z, T&>)
+        Frame<T>& value(std::string value_id, Z unrelated_value)
+        {
+            return value(std::move(value_id), from_data<Z>(std::move(unrelated_value)));
         }
 
     private:

@@ -46,7 +46,10 @@ namespace nil::xit::gtest::builders::output
         template <std::same_as<T> Z, typename U>
         Frame<T>& value(std::string value_id, U Z::*member)
         {
-            return value(std::move(value_id), from_member<T, U>(member));
+            return value(
+                std::move(value_id),
+                [member](const Z& value) -> const U& { return value.*member; }
+            );
         }
 
         Frame<T>& value(std::string value_id)

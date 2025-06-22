@@ -10,7 +10,7 @@ namespace nil::xit::gtest
         {
         }
 
-        M& operator()(C& data) const
+        M& operator()(C& data)
         {
             return data.*member_ptr;
         }

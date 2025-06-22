@@ -22,6 +22,18 @@ namespace nil::xit::gtest
             return data;
         }
 
+        template <typename U>
+        T& operator()(U& /* data */)
+        {
+            return data;
+        }
+
+        template <typename U>
+        const T& operator()(const U& /* data */) const
+        {
+            return data;
+        }
+
         T data;
     };
 }

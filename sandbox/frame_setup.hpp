@@ -27,7 +27,8 @@ XIT_FRAME_GLOBAL_INPUT_V(
 )
     .value("value-1", &Ranges::v1)
     .value("value-2", &Ranges::v2)
-    .value("value-3", &Ranges::v3);
+    .value("value-3", &Ranges::v3)
+    .value("value-y", std::int64_t(1100));
 
 XIT_FRAME_OUTPUT_V("plotly_frame", "$base/PlotlyFrame.svelte", nlohmann::json)
     .value("value-x", from_json_ptr("/x"))
@@ -38,7 +39,10 @@ XIT_FRAME_TEST_INPUT_V(
     "$base/InputFrame.svelte",
     from_file_with_finalize<Circles, "circles_frame.msgpack">()
 )
-    .value("value");
+    .value("value")
+    .value("value-y", std::int64_t(1100));
+
+XIT_FRAME_TEST_INPUT_V("pod", "$base/InputFrame.svelte", 100).value("value");
 
 XIT_FRAME_TEST_V("FF", "$base/InputFrame.svelte");
 

@@ -12,7 +12,6 @@ add_xit_test(
     ${PROJECT_NAME}
     SOURCES
         main.cpp
-        main2.cpp
         frame_setup.hpp
         userland_utils.cpp
         userland_utils.hpp
