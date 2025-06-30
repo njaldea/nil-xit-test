@@ -77,7 +77,7 @@
     XIT_FRAME_DETAIL(ID, ":U:V", Utility, global_input(ID, PATH, XIT_WRAP_R(nil::xit::gtest::none())))
 
 #define XIT_FRAME_OUTPUT(ID, ...)                                                                               \
-    XIT_FRAME_DETAIL(ID, ":T:N", output<__VA_ARGS__>(ID, {}))
+    XIT_FRAME_DETAIL(ID, ":T:N", Output, output<__VA_ARGS__>(ID, {}))
 #define XIT_FRAME_OUTPUT_V(ID, PATH, ...)                                                                       \
     XIT_FRAME_DETAIL(ID, ":T:V", Output, output<__VA_ARGS__>(ID, PATH))
 // clang-format on
