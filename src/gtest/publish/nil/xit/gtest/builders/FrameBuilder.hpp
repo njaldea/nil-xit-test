@@ -147,7 +147,7 @@ namespace nil::xit::gtest::builders
 
                 void finalize(const type& value) const override
                 {
-                    if constexpr (has_finalize<loader_t, std::string_view, type>)
+                    if constexpr (has_finalize<loader_t, type>)
                     {
                         loader.finalize(value);
                     }
