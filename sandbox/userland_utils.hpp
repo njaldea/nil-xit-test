@@ -12,33 +12,18 @@ struct Ranges
     std::int64_t v1 = {};
     std::int64_t v2 = {};
     std::int64_t v3 = {};
-
-    bool operator==(const Ranges& o) const
-    {
-        return v1 == o.v1 && v2 == o.v2 && v3 == o.v3;
-    }
 };
 
 struct Circle
 {
     std::array<double, 2> position = {};
     double radius = 1.0;
-
-    bool operator==(const Circle& o) const
-    {
-        return position == o.position && radius == o.radius;
-    }
 };
 
 struct Circles
 {
     Circle x = {};
     Circle y = {};
-
-    bool operator==(const Circles& o) const
-    {
-        return x == o.x && y == o.y;
-    }
 };
 
 struct from_json_ptr

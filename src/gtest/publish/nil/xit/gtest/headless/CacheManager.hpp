@@ -1,9 +1,8 @@
 #pragma once
 
-#include <nil/xalt/transparent_stl.hpp>
-
 #include <memory>
 #include <string_view>
+#include <unordered_map>
 
 namespace nil::xit::gtest::headless
 {
@@ -23,7 +22,7 @@ namespace nil::xit::gtest::headless
         virtual T get(std::string_view) const = 0;
     };
 
-    struct Inputs
+    struct CacheManager
     {
         template <typename T>
         T get(std::string_view id, const std::string& tag) const
@@ -35,6 +34,7 @@ namespace nil::xit::gtest::headless
             return T();
         }
 
-        xalt::transparent_umap<std::unique_ptr<ICache>> values;
+        // sv is owned by the builder
+        std::unordered_map<std::string_view, std::unique_ptr<ICache>> values;
     };
 }

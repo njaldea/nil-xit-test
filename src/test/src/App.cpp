@@ -20,45 +20,62 @@ namespace nil::xit::test
         nil::xit::set_groups(xit, paths);
     }
 
-    std::span<const std::string> App::installed_tags() const
+    std::span<const std::string_view> App::installed_tags() const
     {
-        return tags;
+        return tags_view;
     }
 
     std::span<const std::string_view> App::installed_tag_inputs(std::string_view tag) const
     {
-        if (auto it = tag_inputs.find(tag); it != tag_inputs.end())
+        if (auto it = tag_info.find(tag); it != tag_info.end())
         {
-            return it->second;
+            return it->second.inputs;
         }
-        return blank;
+        return {};
     }
 
     std::span<const std::string_view> App::installed_tag_outputs(std::string_view tag) const
     {
-        if (auto it = tag_outputs.find(tag); it != tag_outputs.end())
+        if (auto it = tag_info.find(tag); it != tag_info.end())
         {
-            return it->second;
+            return it->second.outputs;
         }
-        return blank;
+        return {};
     }
 
-    void App::add_info(
+    std::span<const std::string_view> App::installed_tag_expects(std::string_view tag) const
+    {
+        if (auto it = tag_info.find(tag); it != tag_info.end())
+        {
+            return it->second.expects;
+        }
+        return {};
+    }
+
+    std::string_view App::add_info(
         std::string tag,
         std::vector<std::string_view> inputs,
-        std::vector<std::string_view> outputs
+        std::vector<std::string_view> outputs,
+        std::vector<std::string_view> expects
     )
     {
-        tag_inputs.emplace(tag, std::move(inputs));
-        tag_outputs.emplace(tag, std::move(outputs));
-        tags.emplace_back(std::move(tag));
+        auto sv = std::string_view(*tags.emplace(std::move(tag)).first);
+        tag_info.emplace(
+            sv,
+            TagInfo{
+                .inputs = std::move(inputs),
+                .outputs = std::move(outputs),
+                .expects = std::move(expects)
+            }
+        );
+        return tags_view.emplace_back(sv);
     }
 
     void App::finalize_inputs(std::string_view tag) const
     {
-        if (const auto it = tag_inputs.find(tag); it != tag_inputs.end())
+        if (const auto it = tag_info.find(tag); it != tag_info.end())
         {
-            for (const auto& frame_id : it->second)
+            for (const auto& frame_id : it->second.inputs)
             {
                 if (const auto frame_it
                     = input_frames.find(frame_id.substr(0, frame_id.size() - 4));

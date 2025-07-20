@@ -2,10 +2,9 @@
 
 #include "Data.hpp"
 
-#include <nil/xalt/literal.hpp>
-#include <nil/xalt/str_name.hpp>
-
 #include <nil/xit/structs.hpp>
+
+#include <nil/xalt/literal.hpp>
 
 namespace nil::xit::gtest
 {
@@ -14,14 +13,14 @@ namespace nil::xit::gtest
         template <xalt::literal lit>
         consteval auto get_fg_name()
         {
-            const auto i = xalt::find_first<lit, "/">();
+            const auto i = xalt::find<lit, "/">();
             return xalt::literal_v<xalt::substr<lit, 1, i - 1>()>; // NOLINT
         }
 
         template <xalt::literal lit>
         auto get_fg_path()
         {
-            const auto i = xalt::find_first<lit, "/">();
+            const auto i = xalt::find<lit, "/">();
             return xalt::literal_v<xalt::substr<lit, i + 1, sizeof(lit) - i - 2>()>; // NOLINT
         }
 
@@ -29,7 +28,7 @@ namespace nil::xit::gtest
         auto get_file_info()
         {
             static_assert(xalt::starts_with<lit, "$">());
-            static_assert(xalt::find_first<lit, "/">() != sizeof(lit));
+            static_assert(xalt::find<lit, "/">() != sizeof(lit));
             return FileInfo{
                 get_fg_name<lit>(),
                 get_fg_path<lit>(),
@@ -48,7 +47,8 @@ namespace nil::xit::gtest
         {
             Utility,
             Input,
-            Output
+            Output,
+            Expect
         };
 
         template <>
@@ -69,21 +69,73 @@ namespace nil::xit::gtest
 
     template <xalt::literal... T>
         requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::Input))
-    struct Input
+    struct Inputs
     {
+        using type = Data<const typename detail::Frame<T>::type...>;
     };
 
     template <xalt::literal... T>
         requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::Output))
-    struct Output
+    struct Outputs
     {
+        using type = Data<typename detail::Frame<T>::type...>;
     };
 
-    template <typename I = Input<>, typename O = Output<>>
-    struct Test;
+    template <xalt::literal... T>
+        requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::Expect))
+    struct Expects
+    {
+        using type = Data<typename detail::Frame<T>::type...>;
+    };
 
-    template <xalt::literal... I, xalt::literal... O>
-    struct Test<Input<I...>, Output<O...>>
+    namespace detail
+    {
+        template <typename T>
+        struct InputFramesDefaulter
+        {
+            using type = Inputs<>;
+        };
+
+        template <typename T>
+            requires requires() { typename T::input_frames; }
+        struct InputFramesDefaulter<T>
+        {
+            using type = T::input_frames;
+        };
+
+        template <typename T>
+        struct OutputFramesDefaulter
+        {
+            using type = Outputs<>;
+        };
+
+        template <typename T>
+            requires requires() { typename T::output_frames; }
+        struct OutputFramesDefaulter<T>
+        {
+            using type = T::output_frames;
+        };
+
+        template <typename T>
+        struct ExpectFramesDefaulter
+        {
+            using type = Expects<>;
+        };
+
+        template <typename T>
+            requires requires() { typename T::expect_frames; }
+        struct ExpectFramesDefaulter<T>
+        {
+            using type = T::expect_frames;
+        };
+
+        struct Default
+        {
+        };
+    }
+
+    template <typename Fixture = detail::Default>
+    struct Test final: Fixture
     {
         Test() = default;
         virtual ~Test() noexcept = default;
@@ -92,47 +144,37 @@ namespace nil::xit::gtest
         Test& operator=(Test&&) = delete;
         Test& operator=(const Test&) = delete;
 
-        using base_t = Test<Input<I...>, Output<O...>>;
-        using inputs_t = Data<const typename detail::Frame<I>::type...>;
-        using outputs_t = Data<typename detail::Frame<O>::type...>;
+        using input_frames = detail::InputFramesDefaulter<Fixture>::type;
+        using output_frames = detail::OutputFramesDefaulter<Fixture>::type;
+        using expect_frames = detail::ExpectFramesDefaulter<Fixture>::type;
 
-        virtual void setup() {};
-        virtual void teardown() {};
-        virtual void run(const inputs_t& xit_inputs, outputs_t& xit_outputs) = 0;
+        void setup()
+        {
+            if constexpr (requires() { Fixture::setup(); })
+            {
+                Fixture::setup();
+            }
+        }
 
-        static constexpr auto are_inputs_valid
-            = (true && ... && (detail::Frame<I>::frame_type == detail::EFrameType::Input));
+        void teardown()
+        {
+            if constexpr (requires() { Fixture::teardown(); })
+            {
+                Fixture::teardown();
+            }
+        }
 
-        static constexpr auto are_outputs_valid
-            = (true && ... && (detail::Frame<O>::frame_type == detail::EFrameType::Output));
-    };
-
-    template <xalt::literal... S>
-    using TestInputs = Test<Input<S...>, Output<>>;
-
-    template <xalt::literal... S>
-    using TestOutputs = Test<Input<>, Output<S...>>;
-
-    template <typename T>
-    concept is_valid_test = requires(T& t) {
-        typename T::base_t;
-        typename T::inputs_t;
-        typename T::outputs_t;
-        t.setup();
-        t.teardown();
-        t.run(std::declval<const typename T::inputs_t&>(), std::declval<typename T::outputs_t&>());
+        void run( //
+            const input_frames::type& xit_inputs,
+            output_frames::type& xit_outputs,
+            expect_frames::type& xit_expects
+        );
     };
 
     template <xalt::literal lit>
-    concept is_valid_path               //
-        = xalt::starts_with<lit, "$">() //
-        && (xalt::find_first<lit, "/">() < sizeof(lit));
+    concept is_valid_path = xalt::starts_with<lit, "$">() && (xalt::find<lit, "/">() < sizeof(lit));
 
     struct none
     {
-        bool operator==(const none& /* o */) const
-        {
-            return false;
-        }
     };
 }

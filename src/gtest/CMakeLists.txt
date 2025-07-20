@@ -18,7 +18,7 @@ add_library(
     publish/nil/xit/gtest/utils/from_file.hpp
     publish/nil/xit/gtest/utils/from_data.hpp
     publish/nil/xit/gtest/utils/from_member.hpp
-    publish/nil/xit/gtest/headless/Inputs.hpp
+    publish/nil/xit/gtest/headless/CacheManager.hpp
     publish/nil/xit/gtest/builders/install.hpp
     publish/nil/xit/gtest/builders/FrameBuilder.hpp
     publish/nil/xit/gtest/builders/MainBuilder.hpp

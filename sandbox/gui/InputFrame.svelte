@@ -4,9 +4,10 @@
 
     import { msgpack_codec } from "./codec.js";
 
-    const { values } = xit();
+    const { values, signals } = xit();
 
     const buf_value = values.json('value', /** @type any */ ({}), msgpack_codec);
+    const finalize = signals.none("finalize");
 
     /** @type (target: HTMLDivElement) => { destroy: () => void }*/
     const json_editor = (target) => {
@@ -51,4 +52,10 @@
     };
 </script>
 
+<svelte:window onkeydowncapture={e => {
+    if ((e.ctrlKey || e.metaKey) && e.key == "s") {
+        finalize();
+        alert("saving");
+    }
+}}></svelte:window>
 <div style:display="contents" use:json_editor></div>

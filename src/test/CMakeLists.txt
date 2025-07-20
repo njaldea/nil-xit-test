@@ -7,6 +7,7 @@ set(
     SOURCES
         src/App.cpp
         src/RerunTag.cpp
+        src/SingleFire.cpp
 )
 
 set(
@@ -14,6 +15,7 @@ set(
         publish/nil/xit/test.hpp
         publish/nil/xit/test/App.hpp
         publish/nil/xit/test/RerunTag.hpp
+        publish/nil/xit/test/SingleFire.hpp
         publish/nil/xit/test/utils.hpp
         publish/nil/xit/test/frame/input/Info.hpp
         publish/nil/xit/test/frame/input/Global.hpp

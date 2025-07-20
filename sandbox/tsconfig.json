@@ -17,5 +17,4 @@
         "./gui/*.ts", 
         "./gui/*.svelte"
     ],
-    "exclude": [ "./node_modules" ],
 }

@@ -30,5 +30,6 @@ namespace nil::xit::test::frame::input
     {
         using type = T;
         virtual nil::gate::ports::Compatible<T> get_input(std::string_view tag) = 0;
+        virtual void add_info(std::string_view tag) = 0;
     };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "frame/expect/Info.hpp"
 #include "frame/input/Global.hpp"
 #include "frame/input/Test.hpp"
 #include "frame/output/Info.hpp"
@@ -16,6 +17,7 @@
 #include <nil/xalt/transparent_stl.hpp>
 
 #include <filesystem>
+#include <set>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -45,70 +47,80 @@ namespace nil::xit::test
 
         void set_groups(const xalt::transparent_umap<std::filesystem::path>& paths);
 
-        std::span<const std::string> installed_tags() const;
+        std::span<const std::string_view> installed_tags() const;
         // marked
         std::span<const std::string_view> installed_tag_inputs(std::string_view tag) const;
         // marked
         std::span<const std::string_view> installed_tag_outputs(std::string_view tag) const;
+        // marked
+        std::span<const std::string_view> installed_tag_expects(std::string_view tag) const;
 
-        void add_info(
+        std::string_view add_info(
             std::string tag,
             std::vector<std::string_view> inputs,
-            std::vector<std::string_view> outputs
+            std::vector<std::string_view> outputs,
+            std::vector<std::string_view> expects
         );
 
-        template <typename FromVS>
-            requires std::is_invocable_v<FromVS, std::vector<std::string>>
-        void add_main(std::string path, const FromVS& converter)
+        void add_main(std::string_view path)
         {
-            if constexpr (!std::is_same_v<
-                              decltype(installed_tags()),
-                              decltype(converter(installed_tags()))>)
+            static constexpr auto converter = [](std::span<const std::string_view> ids)
             {
+                std::ostringstream oss;
+                const auto size = ids.size();
+                auto i = 0UL;
+                for (const auto& id : ids)
                 {
-                    auto& frame = add_unique_frame(xit, "index", std::move(path));
-                    add_value(
-                        frame,
-                        "tags",
-                        [converter, this]() { return converter(installed_tags()); }
-                    );
-                    add_signal(
-                        frame,
-                        "finalize",
-                        [this](std::string_view tag) { return finalize_inputs(tag); }
-                    );
+                    oss << id;
+                    i += 1;
+                    if (i < size)
+                    {
+                        oss << ',';
+                    }
                 }
-                {
-                    auto& frame = add_tagged_frame(xit, "frame_info");
-                    add_value(
-                        frame,
-                        "inputs",
-                        [converter, this](std::string_view tag)
-                        { return converter(installed_tag_inputs(tag)); }
-                    );
-                    add_value(
-                        frame,
-                        "outputs",
-                        [converter, this](std::string_view tag)
-                        { return converter(installed_tag_outputs(tag)); }
-                    );
-                }
+                return oss.str();
+            };
+
+            {
+                auto& frame = add_unique_frame(xit, "index", std::string(path));
+                add_value(frame, "tags", [this]() { return converter(installed_tags()); });
+                add_signal(
+                    frame,
+                    "finalize",
+                    [this](std::string_view tag) { return finalize_inputs(tag); }
+                );
             }
-            else
             {
-                add_unique_frame(xit, "index", std::move(path));
+                auto& frame = add_tagged_frame(xit, "frame_info");
+                add_value(
+                    frame,
+                    "inputs",
+                    [this](std::string_view tag) { return converter(installed_tag_inputs(tag)); }
+                );
+                add_value(
+                    frame,
+                    "outputs",
+                    [this](std::string_view tag) { return converter(installed_tag_outputs(tag)); }
+                );
+                add_value(
+                    frame,
+                    "expects",
+                    [this](std::string_view tag) { return converter(installed_tag_expects(tag)); }
+                );
             }
         }
 
         template <typename T>
         frame::input::test::Info<T>* add_test_input(
-            std::string id,
-            std::string path,
-            std::unique_ptr<typename frame::input::test::Info<T>::IDataManager> manager
+            std::unique_ptr<frame::IDataManager<T, std::string_view>> manager,
+            std::string_view id
         )
         {
-            auto* s = make_frame<frame::input::test::Info<T>>(id, input_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
+            auto p = std::make_unique<frame::input::test::Info<T>>();
+            auto* s = p.get();
+            input_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_tagged_frame(xit, std::string(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -116,12 +128,16 @@ namespace nil::xit::test
 
         template <typename T>
         frame::input::test::Info<T>* add_test_input(
-            std::string id,
-            std::unique_ptr<typename frame::input::test::Info<T>::IDataManager> manager
+            std::unique_ptr<frame::IDataManager<T, std::string_view>> manager,
+            std::string_view id,
+            std::string_view path
         )
         {
-            auto* s = make_frame<frame::input::test::Info<T>>(id, input_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id));
+            auto p = std::make_unique<frame::input::test::Info<T>>();
+            auto* s = p.get();
+            input_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_tagged_frame(xit, std::string(id), std::string(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -129,13 +145,15 @@ namespace nil::xit::test
 
         template <typename T>
         frame::input::global::Info<T>* add_global_input(
-            std::string id,
-            std::string path,
-            std::unique_ptr<typename frame::input::global::Info<T>::IDataManager> manager
+            std::unique_ptr<frame::IDataManager<T>> manager,
+            std::string_view id
         )
         {
-            auto* s = make_frame<frame::input::global::Info<T>>(id, input_frames);
-            s->frame = &add_unique_frame(xit, std::move(id), std::move(path));
+            auto p = std::make_unique<frame::input::global::Info<T>>();
+            auto* s = p.get();
+            input_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_unique_frame(xit, std::string(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -143,97 +161,182 @@ namespace nil::xit::test
 
         template <typename T>
         frame::input::global::Info<T>* add_global_input(
-            std::string id,
-            std::unique_ptr<typename frame::input::global::Info<T>::IDataManager> manager
+            std::unique_ptr<frame::IDataManager<T>> manager,
+            std::string_view id,
+            std::string_view path
         )
         {
-            auto* s = make_frame<frame::input::global::Info<T>>(id, input_frames);
-            s->frame = &add_unique_frame(xit, std::move(id));
+            auto p = std::make_unique<frame::input::global::Info<T>>();
+            auto* s = p.get();
+            input_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_unique_frame(xit, std::string(id), std::string(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(std::string id, std::string path)
+        frame::expect::Info<T>* add_expect(
+            std::unique_ptr<frame::IDataManager<T, std::string_view>> manager,
+            std::string_view id,
+            std::string_view path
+        )
         {
-            auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id), std::move(path));
-            add_output_detail(s);
+            auto p = std::make_unique<frame::expect::Info<T>>();
+            auto* s = p.get();
+            expect_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_tagged_frame(xit, std::string(id), std::string(path));
+            s->gate = &gate;
+            s->manager = std::move(manager);
+            add_info_on_sub(s);
             return s;
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(std::string id)
+        frame::expect::Info<T>* add_expect(
+            std::unique_ptr<frame::IDataManager<T, std::string_view>> manager,
+            std::string_view id
+        )
         {
-            auto* s = make_frame<frame::output::Info<T>>(id, output_frames);
-            s->frame = &add_tagged_frame(xit, std::move(id));
-            add_output_detail(s);
+            auto p = std::make_unique<frame::expect::Info<T>>();
+            auto* s = p.get();
+            expect_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_tagged_frame(xit, std::string(id));
+            s->gate = &gate;
+            s->manager = std::move(manager);
+            add_info_on_sub(s);
             return s;
         }
 
-        template <typename Callable, typename... Inputs, typename... Outputs>
+        template <typename T>
+        frame::output::Info<T>* add_output(std::string_view id)
+        {
+            auto p = std::make_unique<frame::output::Info<T>>();
+            auto* s = p.get();
+            output_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_tagged_frame(xit, std::string(id));
+            s->gate = &gate;
+            add_info_on_load(s);
+            add_info_on_sub(s);
+            return s;
+        }
+
+        template <typename T>
+        frame::output::Info<T>* add_output(std::string_view id, std::string_view path)
+        {
+            auto p = std::make_unique<frame::output::Info<T>>();
+            auto* s = p.get();
+            output_frames.emplace(*frames.emplace(id).first, std::move(p));
+
+            s->frame = &add_tagged_frame(xit, std::string(id), std::string(path));
+            s->gate = &gate;
+            add_info_on_load(s);
+            add_info_on_sub(s);
+            return s;
+        }
+
+        template <typename Callable, typename... Inputs, typename... Outputs, typename... Expects>
         void add_node(
             std::string_view tag,
             Callable callable,
             std::tuple<Inputs*...> inputs,
-            std::tuple<Outputs*...> outputs
+            std::tuple<Outputs*...> outputs,
+            std::tuple<Expects*...> expects
         )
         {
             constexpr auto i_size = sizeof...(Inputs);
             constexpr auto o_size = sizeof...(Outputs);
+            constexpr auto e_size = sizeof...(Expects);
             constexpr auto i_seq = std::make_index_sequence<i_size>();
             constexpr auto o_seq = std::make_index_sequence<o_size>();
-            auto* enabler = add_node_enabler(tag, outputs, o_seq);
+            constexpr auto e_seq = std::make_index_sequence<e_size>();
 
-            if constexpr (o_size == 0)
+            std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, inputs);
+            std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, outputs);
+            std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, expects);
+
+            if constexpr ((o_size + e_size) > 0)
             {
-            }
-            else
-            {
-                auto wrapped_cb =                     //
-                    [cb = std::move(callable), o_seq] //
-                    (                                 //
+                auto wrapped_cb =              //
+                    [cb = std::move(callable)] //
+                    (                          //
                         const nil::gate::Core& core,
-                        nil::gate::async_outputs<typename Outputs::type...> asyncs,
+                        nil::gate::async_outputs<
+                            typename Outputs::type...,
+                            typename Expects::type...> asyncs,
                         bool enabled,
-                        const typename Inputs::type&... rest //
+                        const typename Inputs::type&... rest_i, //
+                        const typename Expects::type&... rest_e //
                     )
                 {
                     if (enabled)
                     {
-                        App::for_each(
-                            core.batch(asyncs),
-                            cb(rest...),
-                            o_seq,
-                            [](auto* l, auto& r) { l->set_value(std::move(r)); }
-                        );
-                        core.commit();
+                        [&]<std::size_t... X>(std::index_sequence<X...>)
+                        {
+                            auto batch = core.batch(asyncs);
+                            auto result = cb(rest_i..., rest_e...);
+                            (get<X>(batch)->set_value(std::move(get<X>(result))), ...);
+                            core.commit();
+                        }(std::make_index_sequence<o_size + e_size>());
                     }
                 };
 
-                for_each(
-                    outputs,
-                    add_node_impl(tag, std::move(wrapped_cb), enabler, inputs, i_seq),
-                    o_seq,
-                    [&](auto* output, auto* port)
-                    {
-                        using output_t = std::remove_cvref_t<decltype(*output)>::type;
-                        const auto& [key, rerun]
-                            = *output->rerun.emplace(tag, gate.port(RerunTag())).first;
-                        gate.node(
-                            [output, t = std::string_view(key)] //
-                            (RerunTag, const output_t& output_data)
-                            {
-                                for (const auto& value : output->values)
-                                {
-                                    value(t, output_data);
-                                }
-                            },
-                            {rerun, port}
-                        );
-                    }
+                auto result = add_node_impl(
+                    tag,
+                    std::move(wrapped_cb),
+                    add_node_enabler(tag, outputs, o_seq, expects, e_seq),
+                    inputs,
+                    expects,
+                    i_seq,
+                    e_seq
                 );
+
+                // iterate the output of the test and then map it with rerun tag
+                // and see if it will need to pass the new value to the UI
+                [&]<std::size_t... OI>(std::index_sequence<OI...>)
+                {
+                    (
+                        [&](auto* output, auto port)
+                        {
+                            using output_t = std::remove_cvref_t<decltype(*output)>::type;
+                            gate.node(
+                                [output, tag](RerunTag, const output_t& output_data)
+                                { output->post(tag, output_data); },
+                                {output->info_rerun(tag), port}
+                            );
+                        }(std::get<OI>(outputs), get<OI>(result)),
+                        ...
+                    );
+                }(o_seq);
+
+                // iterate the expected of the test and then map it with rerun tag
+                // and see if it will need to pass the new value to the UI
+                [&]<std::size_t... EI>(std::index_sequence<EI...>)
+                {
+                    (
+                        [&](auto* expected, auto port)
+                        {
+                            using expected_t = std::remove_cvref_t<decltype(*expected)>::type;
+                            gate.node(
+                                [expected, tag] //
+                                (const SingleFire& flag, const expected_t& expected_data)
+                                {
+                                    if (flag.pop())
+                                    {
+                                        expected->finalize(tag, expected_data);
+                                    }
+                                },
+                                {expected->info_single_fire(tag), port}
+                            );
+                        }(std::get<EI + sizeof...(Outputs)>(expects),
+                          get<EI + sizeof...(Outputs)>(result)),
+                        ...
+                    );
+                }(e_seq);
             }
         }
 
@@ -248,6 +351,16 @@ namespace nil::xit::test
         }
 
         template <typename T>
+        frame::expect::Info<T>* get_expect(std::string_view id) const
+        {
+            if (auto it = expect_frames.find(id); it != expect_frames.end())
+            {
+                return static_cast<frame::expect::Info<T>*>(it->second.get());
+            }
+            return nullptr;
+        }
+
+        template <typename T>
         frame::output::Info<T>* get_output(std::string_view id) const
         {
             if (auto it = output_frames.find(id); it != output_frames.end())
@@ -257,96 +370,99 @@ namespace nil::xit::test
             return nullptr;
         }
 
-        void finalize_inputs(std::string_view tag) const;
-
     private:
         xit::C xit;
         nil::gate::Core gate;
 
-        using frame_id_to_i_info = xalt::transparent_umap<std::unique_ptr<frame::input::IInfo>>;
-        using frame_id_to_o_info = xalt::transparent_umap<std::unique_ptr<frame::output::IInfo>>;
-        using tag_to_frame_id = xalt::transparent_umap<std::vector<std::string_view>>;
+        std::set<std::string> frames;
+        // frame id to frame info - sv owned by frames
+        std::unordered_map<std::string_view, std::unique_ptr<frame::input::IInfo>> input_frames;
+        std::unordered_map<std::string_view, std::unique_ptr<frame::output::IInfo>> output_frames;
+        std::unordered_map<std::string_view, std::unique_ptr<frame::expect::IInfo>> expect_frames;
 
-        frame_id_to_i_info input_frames;
-        frame_id_to_o_info output_frames;
-
-        std::vector<std::string> tags;
-        tag_to_frame_id tag_inputs;
-        tag_to_frame_id tag_outputs;
-
-        std::vector<std::string_view> blank;
-
-        template <typename T>
-        T* make_frame(std::string_view id, auto& frames)
+        struct TagInfo
         {
-            auto t = std::make_unique<T>();
-            auto p = t.get();
-            frames.emplace(id, std::move(t));
-            return p;
-        }
+            std::vector<std::string_view> inputs;
+            std::vector<std::string_view> outputs;
+            std::vector<std::string_view> expects;
+        };
 
-        template <typename Outputs, std::size_t... I>
+        std::set<std::string> tags;
+        std::vector<std::string_view> tags_view;
+        // tag id to tag info - sv owned by tags
+        std::unordered_map<std::string_view, TagInfo> tag_info;
+
+        void finalize_inputs(std::string_view tag) const;
+
+        template <typename Outputs, std::size_t... O, typename Expects, std::size_t... E>
         nil::gate::ports::ReadOnly<bool>* add_node_enabler(
             std::string_view tag,
             const Outputs& outputs,
-            std::index_sequence<I...> /* seq */
+            std::index_sequence<O...> /* seq */,
+            const Expects& expects,
+            std::index_sequence<E...> /* seq */
         )
         {
-            if constexpr (sizeof...(I) > 0)
+            if constexpr (sizeof...(O) + sizeof...(E) > 0)
             {
                 return get<0>(gate.node(
-                    [](std::conditional_t<true, bool, decltype(I)>... flags)
-                    { return (false || ... || flags); },
-                    {get<I>(outputs)->requested.emplace(tag, gate.port(false)).first->second...}
+                    [](std::conditional_t<true, bool, decltype(O)>... flags_o,
+                       std::conditional_t<true, bool, decltype(E)>... flags_e)
+                    { return (false || ... || flags_o) || ((false || ... || flags_e)); },
+                    {get<O>(outputs)->info_requested(tag)...,
+                     get<E>(expects)->info_requested(tag)...}
                 ));
             }
             else
             {
                 // will not run tests that does not have any outputs
-                // TODO: include inputs?
                 return get<0>(gate.node([]() { return false; }));
             }
         }
 
-        template <typename T, typename Inputs, std::size_t... I>
+        template <typename T, typename Inputs, typename Expects, std::size_t... I, std::size_t... E>
         auto add_node_impl(
             [[maybe_unused]] std::string_view tag,
             T callable,
             nil::gate::ports::ReadOnly<bool>* is_enabled,
             const Inputs& inputs,
-            std::index_sequence<I...> /* seq */
+            const Expects& expects,
+            std::index_sequence<I...> /* seq */,
+            std::index_sequence<E...> /* seq */
         )
         {
-            return gate.node(std::move(callable), {is_enabled, get<I>(inputs)->get_input(tag)...});
+            return gate.node(
+                std::move(callable),
+                {is_enabled, get<I>(inputs)->get_input(tag)..., get<E>(expects)->get_expect(tag)...}
+            );
         }
 
-        template <typename P, typename L, typename R, std::size_t... I>
-        static void for_each(L&& a, R&& b, std::index_sequence<I...> /* seq */, const P& predicate)
-        {
-            ([&]() { predicate(get<I>(a), get<I>(b)); }(), ...);
-        }
-
-        template <typename T>
-        void add_output_detail(frame::output::Info<T>* s)
+        template <typename T, template <typename> typename Info>
+        void add_info_on_load(Info<T>* s)
         {
             on_load(
                 *s->frame,
-                [s, g = &this->gate](std::string_view tag)
+                [s](std::string_view tag)
                 {
-                    if (const auto it = s->rerun.find(tag); it != s->rerun.end())
+                    if (const auto rerun = s->info_rerun(tag); rerun != nullptr)
                     {
-                        it->second->set_value({});
-                        g->commit();
+                        rerun->set_value({});
+                        s->gate->commit();
                     }
                 }
             );
+        }
+
+        template <typename T, template <typename> typename Info>
+        void add_info_on_sub(Info<T>* s)
+        {
             on_sub(
                 *s->frame,
                 [this, s](std::string_view tag, std::size_t count)
                 {
-                    if (const auto it = s->requested.find(tag); it != s->requested.end())
+                    if (auto* requested = s->info_requested(tag); requested != nullptr)
                     {
-                        it->second->set_value(count > 0);
+                        requested->set_value(count > 0);
                     }
                     if (count == 1)
                     {
@@ -354,6 +470,14 @@ namespace nil::xit::test
                         {
                             if (const auto it = this->input_frames.find(f.substr(0, f.size() - 4));
                                 it != this->input_frames.end())
+                            {
+                                it->second->initialize(tag);
+                            }
+                        }
+                        for (const auto& f : this->installed_tag_expects(tag))
+                        {
+                            if (const auto it = this->expect_frames.find(f.substr(0, f.size() - 4));
+                                it != this->expect_frames.end())
                             {
                                 it->second->initialize(tag);
                             }

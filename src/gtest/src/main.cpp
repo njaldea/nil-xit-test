@@ -21,7 +21,7 @@ namespace nil::xit::gtest
         help(options, std::cout);
 
         std::cout << "EXPECTED GROUPS:\n";
-        for (const auto& g : instance.paths.expected_groups)
+        for (const auto& g : instance.paths.used_groups)
         {
             std::cout << " -  " << g << '\n';
         }
@@ -62,7 +62,7 @@ namespace nil::xit::gtest
 
         if (!flag(options, "ignore-missing-groups"))
         {
-            for (const auto& group : instance.paths.expected_groups)
+            for (const auto& group : instance.paths.used_groups)
             {
                 if (!instance.paths.groups.contains(group))
                 {
@@ -79,7 +79,7 @@ namespace nil::xit::gtest
     {
         auto& instance = get_instance();
         std::cout << "GROUPS:\n";
-        for (const auto& g : instance.paths.expected_groups)
+        for (const auto& g : instance.paths.used_groups)
         {
             auto it = instance.paths.groups.find(g);
             if (it != instance.paths.groups.end())
@@ -167,9 +167,9 @@ namespace nil::xit::gtest
 
         auto& instance = get_instance();
 
-        headless::Inputs inputs;
-        instance.frame_builder.install(inputs);
-        instance.test_builder.install(inputs, instance.paths.groups);
+        headless::CacheManager cache_manager;
+        instance.frame_builder.install(cache_manager);
+        instance.test_builder.install(cache_manager, instance.paths.groups);
         GTEST_FLAG_SET(list_tests, flag(options, "list"));
         ::testing::InitGoogleTest();
         const auto result = RUN_ALL_TESTS();

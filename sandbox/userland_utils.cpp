@@ -45,6 +45,7 @@ void nlohmann::adl_serializer<Ranges>::to_json(nlohmann::json& j, const Ranges& 
 
 void nlohmann::adl_serializer<Ranges>::from_json(const nlohmann::json& j, Ranges& v)
 {
+    // NOLINTNEXTLINE
     v.v1 = (j.size() < 1) ? 0 : j[0].get<std::int64_t>();
     v.v2 = (j.size() < 2) ? 0 : j[1].get<std::int64_t>();
     v.v3 = (j.size() < 3) ? 0 : j[2].get<std::int64_t>();

@@ -1,12 +1,31 @@
+#include "nil/xit/gtest/Test.hpp"
 #include "userland_utils.hpp"
 
 #include "frame_setup.hpp"
 
 #include <nil/xit/gtest.hpp>
 
-using Plotly = nil::xit::gtest::Test<
-    nil::xit::gtest::Input<"slider_frame", "json_input_frame">,
-    nil::xit::gtest::Output<"plotly_frame">>;
+struct Expected
+{
+    XIT_INPUTS("slider_frame");
+    XIT_OUTPUTS();
+    XIT_EXPECTS("flag");
+};
+
+XIT_TEST_F(Expected, _, "$test/expected")
+{
+    auto& [e] = xit_expects;
+    std::cout << __FILE__ << ':' << __LINE__ << ':' << (const char*)(__FUNCTION__) << std::endl;
+    std::cout << e << std::endl;
+    e = !e;
+    std::cout << __FILE__ << ':' << __LINE__ << ':' << (const char*)(__FUNCTION__) << std::endl;
+}
+
+struct Plotly
+{
+    using input_frames = nil::xit::gtest::Inputs<"slider_frame", "json_input_frame">;
+    using output_frames = nil::xit::gtest::Outputs<"plotly_frame">;
+};
 
 XIT_TEST_F(Plotly, demo, "$test/plotly/*")
 {
@@ -27,8 +46,11 @@ XIT_TEST_F(Plotly, demo, "$test/plotly/*")
     view["y"][2] = std::int64_t(input_data["y"][2]) * ranges.v3;
 }
 
-using DrawWithInput = nil::xit::gtest::
-    Test<nil::xit::gtest::Input<"circles_input_frame">, nil::xit::gtest::Output<"draw_frame">>;
+struct DrawWithInput
+{
+    using input_frames = nil::xit::gtest::Inputs<"circles_input_frame">;
+    using output_frames = nil::xit::gtest::Outputs<"draw_frame">;
+};
 
 XIT_TEST_F(DrawWithInput, demo, "$test/draw")
 {
@@ -48,11 +70,14 @@ XIT_TEST_F(DrawWithInput, demo, "$test/draw")
     draw = input_data;
 }
 
-using Draw = nil::xit::gtest::TestOutputs<"draw_frame">;
+struct Draw
+{
+    using output_frames = nil::xit::gtest::Outputs<"draw_frame">;
+};
 
 XIT_TEST_F(Draw, sample, "$test/.")
 {
-    Circles circles;
+    const Circles circles;
 
     // Execute test here
 

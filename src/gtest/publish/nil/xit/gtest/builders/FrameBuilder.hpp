@@ -1,13 +1,14 @@
 #pragma once
 
 #include "frames/IFrame.hpp"
+#include "frames/expect/Frame.hpp"
 #include "frames/input/global.hpp"
 #include "frames/input/test.hpp"
 #include "frames/output/Frame.hpp"
 
-#include "../utils/from_data.hpp"
+#include <nil/xit/test/frame/IDataManager.hpp>
 
-#include <nil/xalt/transparent_stl.hpp>
+#include "../utils/from_data.hpp"
 
 #include <string_view>
 #include <type_traits>
@@ -23,31 +24,17 @@ namespace nil::xit::gtest::builders
     };
 
     template <typename T>
-    concept is_test_loader = requires() {
+    concept is_loader_tagged = requires() {
         { T::initialize(std::declval<std::string_view>()) };
     } || requires(T loader) {
         { loader.initialize(std::declval<std::string_view>()) };
-    };
-
-    template <typename T, typename... Args>
-    concept has_update = requires() {
-        { T::update(std::declval<Args>()...) };
-    } || requires(T loader) {
-        { loader.update(std::declval<Args>()...) };
-    };
-
-    template <typename T, typename... Args>
-    concept has_finalize = requires() {
-        { T::finalize(std::declval<Args>()...) };
-    } || requires(T loader) {
-        { loader.finalize(std::declval<Args>()...) };
     };
 
     class FrameBuilder final
     {
     public:
         template <typename Loader>
-            requires(!is_test_loader<decltype(std::declval<Loader>()())>)
+            requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
         auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)
         {
             return create_test_input(
@@ -58,50 +45,21 @@ namespace nil::xit::gtest::builders
         }
 
         template <typename Loader>
-            requires(is_test_loader<decltype(std::declval<Loader>()())>)
+            requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
         auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
-            using IDataManager = xit::test::frame::input::test::Info<type>::IDataManager;
-
-            struct DataManager: IDataManager
-            {
-                explicit DataManager(loader_t init_loader)
-                    : loader(std::move(init_loader))
-                {
-                }
-
-                type initialize(std::string_view tag) const override
-                {
-                    return loader.initialize(tag);
-                }
-
-                void update(std::string_view tag, const type& value) const override
-                {
-                    if constexpr (has_update<loader_t, std::string_view, type>)
-                    {
-                        loader.update(tag, value);
-                    }
-                }
-
-                void finalize(std::string_view tag, const type& value) const override
-                {
-                    if constexpr (has_finalize<loader_t, std::string_view, type>)
-                    {
-                        loader.finalize(tag, value);
-                    }
-                }
-
-                loader_t loader;
-            };
 
             return static_cast<input::test::Frame<type>&>(
-                *input_frames.emplace_back(std::make_unique<input::test::Frame<type>>(
+                *input_frames.emplace_back(std::make_unique<input::test::InputFrame<type>>(
                     std::move(id),
                     std::move(path),
-                    [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
-                    { return std::make_unique<DataManager>(loader()); }
+                    [loader = std::move(loader)]()
+                    {
+                        using test::frame::make_data_manager;
+                        return make_data_manager<loader_t, type, std::string_view>(loader());
+                    }
                 ))
             );
         }
@@ -123,45 +81,47 @@ namespace nil::xit::gtest::builders
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize())>;
-            using IDataManager = xit::test::frame::input::global::Info<type>::IDataManager;
-
-            struct DataManager: IDataManager
-            {
-                explicit DataManager(loader_t init_loader)
-                    : loader(std::move(init_loader))
-                {
-                }
-
-                type initialize() const override
-                {
-                    return loader.initialize();
-                }
-
-                void update(const type& value) const override
-                {
-                    if constexpr (has_update<loader_t, type>)
-                    {
-                        loader.update(value);
-                    }
-                }
-
-                void finalize(const type& value) const override
-                {
-                    if constexpr (has_finalize<loader_t, type>)
-                    {
-                        loader.finalize(value);
-                    }
-                }
-
-                loader_t loader;
-            };
 
             return static_cast<input::global::Frame<type>&>(
-                *input_frames.emplace_back(std::make_unique<input::global::Frame<type>>(
+                *input_frames.emplace_back(std::make_unique<input::global::InputFrame<type>>(
                     std::move(id),
                     std::move(path),
-                    [loader = std::move(loader)]() -> std::unique_ptr<IDataManager>
-                    { return std::make_unique<DataManager>(loader()); }
+                    [loader = std::move(loader)]()
+                    {
+                        using test::frame::make_data_manager;
+                        return make_data_manager<loader_t, type>(loader());
+                    }
+                ))
+            );
+        }
+
+        template <typename Loader>
+            requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
+        auto& create_expect(std::string id, std::optional<std::string> path, Loader loader)
+        {
+            return create_expect(
+                std::move(id),
+                std::move(path),
+                [loader = std::move(loader)]() { return from_data(loader()); }
+            );
+        }
+
+        template <typename Loader>
+            requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
+        auto& create_expect(std::string id, std::optional<std::string> path, Loader loader)
+        {
+            using loader_t = std::remove_cvref_t<decltype(loader())>;
+            using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
+
+            return static_cast<expect::Frame<type>&>(
+                *expect_frames.emplace_back(std::make_unique<expect::ExpectFrame<type>>(
+                    std::move(id),
+                    std::move(path),
+                    [loader = std::move(loader)]()
+                    {
+                        using test::frame::make_data_manager;
+                        return make_data_manager<loader_t, type, std::string_view>(loader());
+                    }
                 ))
             );
         }
@@ -171,15 +131,16 @@ namespace nil::xit::gtest::builders
         {
             using type = std::remove_cvref_t<T>;
             return static_cast<output::Frame<type>&>(*output_frames.emplace_back(
-                std::make_unique<output::Frame<type>>(std::move(id), std::move(path))
+                std::make_unique<output::OutputFrame<type>>(std::move(id), std::move(path))
             ));
         }
 
         void install(test::App& app) const;
-        void install(headless::Inputs& inputs) const;
+        void install(headless::CacheManager& cache_manager) const;
 
     private:
-        std::vector<std::unique_ptr<input::Frame>> input_frames;
+        std::vector<std::unique_ptr<input::IFrame>> input_frames;
+        std::vector<std::unique_ptr<expect::IFrame>> expect_frames;
         std::vector<std::unique_ptr<IFrame>> output_frames;
     };
 }
