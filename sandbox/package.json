@@ -1,10 +1,11 @@
 {
   "dependencies": {
     "@msgpack/msgpack": "3.1.1",
-    "@nil-/xit": "^0.4.14",
-    "@types/plotly.js": "^2.35.6",
-    "svelte": "^5.34.7",
-    "vanilla-jsoneditor": "^3.6.0"
+    "@nil-/xit": "^0.4.19",
+    "@types/plotly.js": "^2.35.8",
+    "@xyflow/svelte": "^1.2.2",
+    "svelte": "^5.38.0",
+    "vanilla-jsoneditor": "^3.8.0"
   },
   "devDependencies": {
     "@types/msgpack-lite": "^0.1.11"

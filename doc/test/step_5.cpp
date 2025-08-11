@@ -1,7 +1,6 @@
-
+// Step 5: use loader from_file_with_update to persist edits
 #include "Circle.hpp"
 #include "nil/xit/gtest/utils/from_file.hpp"
-
 #include <nil/xit/gtest.hpp>
 
 XIT_FRAME_MAIN("$group/Step_4Main.svelte");
@@ -20,11 +19,6 @@ XIT_FRAME_TEST_INPUT_V(
     .value("y", &Circle::y)
     .value("radius", &Circle::radius);
 
-bool operator==(const Circle& l, const Circle& r)
-{
-    return l.x == r.x && l.y == r.y && l.radius == r.radius;
-}
-
 template <>
 struct nil::xit::gtest::file_codec<Circle>
 {
@@ -42,10 +36,11 @@ struct nil::xit::gtest::file_codec<Circle>
     }
 };
 
-using Sample = nil::xit::gtest::Test<
-    nil::xit::gtest::Input<"input">,
-    nil::xit::gtest::Output<"output"> //
-    >;
+struct Sample
+{
+    XIT_INPUTS("input");
+    XIT_OUTPUTS("output");
+};
 
 XIT_TEST_F(Sample, circle, "$group/.")
 {

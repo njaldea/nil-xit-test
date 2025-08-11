@@ -1,34 +1,22 @@
 #pragma once
 
+#include "../IDataManager.hpp"
 #include "Info.hpp"
 
-#include <nil/xalt/transparent_stl.hpp>
-
-#include <nil/xit/tagged/add_signal.hpp>
 #include <nil/xit/tagged/add_value.hpp>
 #include <nil/xit/tagged/structs.hpp>
 
 #include <nil/gate/Core.hpp>
+
+#include <memory>
+#include <string_view>
+#include <unordered_map>
 
 namespace nil::xit::test::frame::input::test
 {
     template <typename T>
     struct Info final: input::Info<T>
     {
-        struct IDataManager
-        {
-            IDataManager() = default;
-            virtual ~IDataManager() = default;
-            IDataManager(IDataManager&&) = delete;
-            IDataManager(const IDataManager&) = delete;
-            IDataManager& operator=(IDataManager&&) = delete;
-            IDataManager& operator=(const IDataManager&) = delete;
-
-            virtual T initialize(std::string_view tag) const = 0;
-            virtual void update(std::string_view tag, const T& value) const = 0;
-            virtual void finalize(std::string_view tag, const T& value) const = 0;
-        };
-
         struct Entry
         {
             // data and input has duplicate data to ease thread safety
@@ -38,8 +26,8 @@ namespace nil::xit::test::frame::input::test
 
         nil::xit::tagged::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
-        std::unique_ptr<IDataManager> manager;
-        xalt::transparent_umap<Entry> info;
+        std::unique_ptr<IDataManager<T, std::string_view>> manager;
+        std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App
 
         nil::gate::ports::Compatible<T> get_input(std::string_view tag) override
         {
@@ -47,8 +35,7 @@ namespace nil::xit::test::frame::input::test
             {
                 return it->second.input;
             }
-            return info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->port<T>()})
-                .first->second.input;
+            throw std::runtime_error("should be unreachable");
         }
 
         void initialize(std::string_view tag) override
@@ -57,9 +44,9 @@ namespace nil::xit::test::frame::input::test
             {
                 if (auto& entry = it->second; !entry.data.has_value())
                 {
-                    entry.data = manager->initialize(tag);
                     if (entry.input != nullptr)
                     {
+                        entry.data = manager->initialize(tag);
                         entry.input->set_value(entry.data.value());
                     }
                 }
@@ -128,6 +115,11 @@ namespace nil::xit::test::frame::input::test
                 std::move(id),
                 std::make_unique<XitAccessor>(this, std::move(accessor))
             );
+        }
+
+        void add_info(std::string_view tag) override
+        {
+            info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->port<T>()});
         }
     };
 }

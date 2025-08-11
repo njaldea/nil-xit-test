@@ -4,14 +4,14 @@
 
 namespace nil::xit::gtest::headless
 {
-    class Inputs;
+    struct CacheManager;
 }
 
 namespace nil::xit::gtest::builders::input
 {
-    struct Frame: IFrame
+    struct IFrame: builders::IFrame
     {
-        using IFrame::install;
-        virtual void install(headless::Inputs& inputs) = 0;
+        using builders::IFrame::install;
+        virtual void install(headless::CacheManager& cache_manager) = 0;
     };
 }

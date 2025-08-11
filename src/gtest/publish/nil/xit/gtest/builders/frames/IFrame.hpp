@@ -1,7 +1,5 @@
 #pragma once
 
-#include <nil/xalt/transparent_stl.hpp>
-
 namespace nil::xit::test
 {
     class App;

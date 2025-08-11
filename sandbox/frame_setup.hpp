@@ -11,14 +11,13 @@ using nil::xit::gtest::from_file;               // NOLINT(misc-unused-using-decl
 using nil::xit::gtest::from_file_with_finalize; // NOLINT(misc-unused-using-decls)
 using nil::xit::gtest::from_file_with_update;   // NOLINT(misc-unused-using-decls)
 
-XIT_FRAME_MAIN("@nil-/xit/test/Main.svelte", nlohmann::json);
+XIT_FRAME_MAIN("@nil-/xit/test/Main.svelte");
 
 XIT_FRAME_TEST_INPUT_V(
     "json_input_frame",
     "$base/InputFrame.svelte",
     from_file_with_finalize<nlohmann::json, "input_frame.msgpack">()
-)
-    .value("value");
+);
 
 XIT_FRAME_GLOBAL_INPUT_V(
     "slider_frame",
@@ -44,8 +43,12 @@ XIT_FRAME_TEST_INPUT_V(
 
 XIT_FRAME_TEST_INPUT_V("pod", "$base/InputFrame.svelte", 100).value("value");
 
-XIT_FRAME_TEST_V("FF", "$base/InputFrame.svelte");
-
 XIT_FRAME_OUTPUT_V("draw_frame", "$base/DrawFrame.svelte", Circles)
     .value("value-x", &Circles::x)
     .value("value-y", &Circles::y);
+
+XIT_FRAME_EXPECT_V(
+    "flag",
+    "$base/Save.svelte",
+    nil::xit::gtest::from_file_with_finalize<bool, "flag">()
+);

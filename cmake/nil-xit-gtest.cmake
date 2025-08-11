@@ -2,7 +2,7 @@
 
 include(ExternalProject)
 
-set(TARBALL_FILE "xit-0.4.14.tgz")
+set(TARBALL_FILE "xit-0.4.19.tgz")
 set(TARBALL_URL "https://registry.npmjs.org/@nil-/xit/-/${TARBALL_FILE}")
 set(TARBALL_PATH "${CMAKE_BINARY_DIR}/${TARBALL_FILE}")
 set(EXTRACT_DIR "${CMAKE_BINARY_DIR}/assets/xit")
@@ -31,10 +31,14 @@ function(add_xit_test TARGET)
     cmake_parse_arguments(
         XIT
         ""  # No boolean flags
-        ""  # No single value args
+        "PORT"  # No single value args
         "SOURCES;GROUPS"  # Multi-value args
         ${ARGN}
     )
+
+    if(NOT XIT_PORT)
+        set(XIT_PORT "1101")  # <-- your desired default port
+    endif()
     
     # Create the test executable directly
     add_executable(${TARGET} ${XIT_SOURCES})
@@ -55,16 +59,20 @@ function(add_xit_test TARGET)
     
     # Add test with group arguments for CTest
     add_test(NAME ${TARGET} COMMAND ${TARGET} ${group_args})
-    
-    # Always create GUI launch target
-    set(gui_args gui ${group_args} -a "${EXTRACT_DIR}/assets")
-    
-    # Convert list to string for echo display
-    string(REPLACE ";" " " gui_args_str "${gui_args}")
-    
+
+    # Create GUI launch target
+    add_custom_target(${TARGET}_hl
+        COMMAND $<TARGET_FILE:${TARGET}> ${group_args}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Launching ${TARGET} in Headless mode"
+        USES_TERMINAL
+    )
+
+    set(gui_args gui ${group_args} -a "${EXTRACT_DIR}/assets" -p ${XIT_PORT} -c)
+
     # Create GUI launch target
     add_custom_target(${TARGET}_gui
-        COMMAND $<TARGET_FILE:${TARGET}> ${gui_args} -c
+        COMMAND $<TARGET_FILE:${TARGET}> ${gui_args}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Launching ${TARGET} in GUI mode"
         USES_TERMINAL

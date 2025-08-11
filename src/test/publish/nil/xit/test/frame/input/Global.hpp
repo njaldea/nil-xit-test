@@ -1,50 +1,40 @@
 #pragma once
 
+#include "../IDataManager.hpp"
 #include "Info.hpp"
 
-#include <nil/xit/unique/add_signal.hpp>
 #include <nil/xit/unique/add_value.hpp>
 #include <nil/xit/unique/structs.hpp>
 
 #include <nil/gate/Core.hpp>
+
+#include <memory>
+#include <optional>
 
 namespace nil::xit::test::frame::input::global
 {
     template <typename T>
     struct Info final: input::Info<T>
     {
-        struct IDataManager
-        {
-            IDataManager() = default;
-            virtual ~IDataManager() = default;
-            IDataManager(IDataManager&&) = delete;
-            IDataManager(const IDataManager&) = delete;
-            IDataManager& operator=(IDataManager&&) = delete;
-            IDataManager& operator=(const IDataManager&) = delete;
-
-            virtual T initialize() const = 0;
-            virtual void update(const T& value) const = 0;
-            virtual void finalize(const T& value) const = 0;
-        };
-
-        nil::xit::unique::Frame* frame = nullptr;
-        nil::gate::Core* gate = nullptr;
-        std::unique_ptr<IDataManager> manager;
-
-        struct
+        struct Entry
         {
             // data and input has duplicate data to ease thread safety
             std::optional<T> data;
             nil::gate::ports::Mutable<T>* input = nullptr;
-        } info;
+        };
+
+        nil::xit::unique::Frame* frame = nullptr;
+        nil::gate::Core* gate = nullptr;
+        std::unique_ptr<IDataManager<T>> manager;
+        Entry info;
 
         nil::gate::ports::Compatible<T> get_input(std::string_view /* tag */) override
         {
-            if (info.input == nullptr)
+            if (info.input != nullptr)
             {
-                info.input = gate->port<T>();
+                return info.input;
             }
-            return info.input;
+            throw std::runtime_error("should be unreachable");
         }
 
         void initialize(std::string_view /* tag */) override
@@ -108,6 +98,14 @@ namespace nil::xit::test::frame::input::global
                 std::move(id),
                 std::make_unique<XitAccessor>(this, std::move(accessor))
             );
+        }
+
+        void add_info(std::string_view /* tag */) override
+        {
+            if (info.input == nullptr)
+            {
+                info.input = gate->port<T>();
+            }
         }
     };
 }

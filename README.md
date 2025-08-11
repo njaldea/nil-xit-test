@@ -1,74 +1,77 @@
-# nil-xit-test
+# nil-xit gtest Addon
 
-> Interactive visual testing for C++
+Add simple editable data blocks to GoogleTest.
 
-![version](https://img.shields.io/badge/status-early%20development-blue)
+## Why
+- Make inputs / outputs / expects tracked
+- Replace random literals & loose golden files
+- Let you tweak data visually and review diffs
 
-xit-test adds interactive visualization to your existing C++ tests. See your data, adjust parameters in real-time, and share visual test results with your team.
+## Core Idea
+- Register frames once (macros)
+- A suite (struct) lists frame ids it needs
+- In test: use `xit_inputs`, `xit_outputs`, `xit_expects`
+- Optional loader functions: `initialize`, `update`, `finalize` (your code decides what they do)
+- Optional GUI to edit; headless just runs
 
-## Why xit-test?
+## When It Shines
+- Golden / baseline updates
+- Parameter tuning loops
+- Visual / structured output (JSON, shapes, metrics)
+- Data that changes over time
 
-Traditional tests tell you **if** code works. xit-test shows you **how** and **why**:
+## Key Terms
+- Frame: named value (string id)
+- Loader: code that sets start value; optional functions can store or change it
+- Binding: members shown in UI
+- Tag: unique test id part
 
-- **📊 Visualize data** - See complex structures and algorithm behaviors
-- **⚡ Fast iteration** - Change parameters without recompiling  
-- **👥 Better communication** - Share visual results with teammates
-- **📚 Living documentation** - Tests that explain themselves
-
-xit-test works with your existing test framework (currently supports Google Test).
-
-## Quick Start
-
-**1. Define visual frames**
+## Quick Example
 ```cpp
-// Input frame with UI controls
-XIT_FRAME_TEST_INPUT_V("circle", "$group/CircleInput.svelte", Circle())
-    .value("radius", &Circle::radius);
+#include <nil/xit/gtest.hpp>
 
-// Output frame for results  
-XIT_FRAME_OUTPUT_V("result", "$group/ResultOutput.svelte", Circle);
-```
+XIT_FRAME_TEST_INPUT("ranges", Ranges{1,2,3});
+XIT_FRAME_EXPECT("expected", nlohmann::json{{"y", {1,2,3}}});
+XIT_FRAME_OUTPUT("scaled", nlohmann::json);
 
-**2. Write your test**
-```cpp
-using MyTest = nil::xit::gtest::Test<
-    nil::xit::gtest::Input<"circle">,
-    nil::xit::gtest::Output<"result">
->;
+struct Fix {
+  XIT_INPUTS("ranges");
+  XIT_EXPECTS("expected");
+  XIT_OUTPUTS("scaled");
+};
 
-XIT_TEST_F(MyTest, visualize, "$group/test")
-{
-    const auto& [input] = xit_inputs;
-    auto& [output] = xit_outputs;
-    
-    output = processCircle(input);  // Your logic
+XIT_TEST_F(Fix, run, "$demo/example/*") {
+  const auto& [r] = xit_inputs;
+  auto& [expected] = xit_expects;
+  auto& [out] = xit_outputs;
+  out = {{"y", {r.v1, r.v2, r.v3}}};
+  EXPECT_EQ(expected, out);
 }
 ```
 
-**3. Run with GUI**
-```bash
-./test gui -g "group=./ui" -a "./node_modules/@nil-/xit/assets"
+Run headless (default) or with GUI:
+```
+./tests gui --group "$demo=/abs/path"
 ```
 
-## Key Features
+Test id details: [03-TESTS](./doc/03-TESTS.md#test-ids--paths--parameterization--groups)
+Mnemonic:
+- Format: `SUITE.CASE[$group:path]`
+- Add `/*` for each subfolder
 
-- **Live parameter adjustment** through web UI
-- **Interactive result visualization** 
-- **Test input persistence** for regression testing
-- **Works with existing test frameworks**
+## Minimal Workflow
+1. Register frames
+2. Add frame ID aliases to suite
+3. (Optional) Edit in GUI
+4. Run tests (update / finalize loaders as needed)
+5. Commit data + code
 
-## Documentation
+## Docs
+1. [Macros](./doc/01-MACROS.md)
+2. [Frames](./doc/02-FRAMES.md)
+3. [Tests](./doc/03-TESTS.md)
+4. [Binding](./doc/04-BINDING.md)
+5. [Loaders](./doc/05-LOADERS.md)
+6. [Pros & Cons](./doc/06-PROS_CONS.md)
 
-**Getting Started**
-- [Installation Guide](./doc/10-installation.md) - Set up xit-test in your project
-- [Migration Guide](./doc/02-migration.md) - Convert your first test
-- [Core Concepts](./doc/03-concepts.md) - Key ideas and terminology
-
-**Reference** 
-- [Complete Documentation](./doc/01-gtest.md) - All documentation links
-- [MACROS Reference](./doc/05-MACROS.md) - API reference
-- [Best Practices](./doc/09-conclusion.md) - When and how to use xit-test
-
-**Framework Support**
-- Google Test (GTest) - Available now
-- More frameworks coming soon
+Examples: `doc/test/`

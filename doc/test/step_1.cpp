@@ -1,6 +1,5 @@
-
+// Step 1: plain gtest without frames
 #include "Circle.hpp"
-
 #include <gtest/gtest.h>
 
 TEST(Sample, circle)

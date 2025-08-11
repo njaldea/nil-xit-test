@@ -25,6 +25,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
     add_compile_options(-pedantic-errors)
     add_compile_options(-Wconversion)
     add_compile_options(-Wsign-conversion)
+    # add_compile_options(-ftime-report)
+    # add_compile_options(-Bill)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options("/MT")
     add_compile_options("/GR")

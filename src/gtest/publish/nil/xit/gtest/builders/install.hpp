@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Test.hpp"
-#include "../headless/Inputs.hpp"
+#include "../headless/CacheManager.hpp"
 
 #include <nil/xalt/tlist.hpp>
 #include <nil/xit/structs.hpp>
@@ -22,172 +22,182 @@ namespace nil::xit::gtest::builders
         const FileInfo& file_info
     );
 
-    template <typename P, xalt::literal... I, xalt::literal... O>
+    template <typename T, typename I, typename O, typename E>
+    void run_test(I& inputs, O& outputs, E& expects)
+    {
+        try
+        {
+            T p;
+            p.setup();
+            p.run(inputs, outputs, expects);
+            p.teardown();
+        }
+        catch (const std::exception&)
+        {
+            // exception is thrown
+        }
+        catch (...)
+        {
+            // unknown exception is thrown
+        }
+    }
+
+    template <typename T>
     void install(
         test::App& app,
-        xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
         std::string_view suite_id,
         std::string_view test_id,
         const FileInfo& file_info
     )
     {
-        using base_t = Test<Input<I...>, Output<O...>>;
-        using inputs_t = typename base_t::inputs_t;
-        using outputs_t = typename base_t::outputs_t;
-
-        const auto tag = to_tag(suite_id, test_id, file_info);
-        app.add_info(tag, {detail::Frame<I>::marked_value...}, {detail::Frame<O>::marked_value...});
-
-        constexpr auto node = [](const detail::Frame<I>::type&... args)
+        using input_frames = typename T::input_frames;
+        using output_frames = typename T::output_frames;
+        using expect_frames = typename T::expect_frames;
+        [&]<xalt::literal... I, xalt::literal... O, xalt::literal... E>(
+            xalt::tlist<Inputs<I...>> /* inputs */,
+            xalt::tlist<Outputs<O...>> /* outputs */,
+            xalt::tlist<Expects<E...>> /* expects */
+        )
         {
-            std::tuple<typename detail::Frame<O>::type...> result;
-            auto inputs = inputs_t{{&args...}};
-            auto outputs = std::apply([](auto&... o) { return outputs_t{{&o...}}; }, result);
-            try
-            {
-                P p;
-                p.setup();
-                p.run(inputs, outputs);
-                p.teardown();
-            }
-            catch (const std::exception&)
-            {
-            }
-            catch (...)
-            {
-            }
-            return result;
-        };
+            using detail::Frame;
 
-        app.add_node(
-            tag,
-            node,
-            std::make_tuple( //
-                app.get_input<typename detail::Frame<I>::type>(detail::Frame<I>::value)...
-            ),
-            std::make_tuple( //
-                app.get_output<typename detail::Frame<O>::type>(detail::Frame<O>::value)...
-            )
-        );
+            const auto tag = app.add_info(
+                to_tag(suite_id, test_id, file_info),
+                {Frame<I>::marked_value...},
+                {Frame<O>::marked_value...},
+                {Frame<E>::marked_value...}
+            );
+
+            constexpr auto node
+                = [](const Frame<I>::type&... input_args, const Frame<E>::type&... expect_args)
+            {
+                auto inputs = typename input_frames::type{{&input_args...}};
+                auto result = std::make_tuple(typename Frame<O>::type()..., expect_args...);
+
+                auto outputs = [&]<std::size_t... OI>(std::index_sequence<OI...>) //
+                {                                                                 //
+                    return typename output_frames::type{&get<OI>(result)...};
+                }(std::make_index_sequence<sizeof...(O)>());
+
+                auto expects = [&]<std::size_t... OE>(std::index_sequence<OE...>) //
+                {                                                                 //
+                    return typename expect_frames::type{&get<OE + sizeof...(O)>(result)...};
+                }(std::make_index_sequence<sizeof...(E)>());
+
+                run_test<T>(inputs, outputs, expects);
+                return result;
+            };
+
+            app.add_node(
+                tag,
+                node,
+                std::make_tuple(app.get_input<typename Frame<I>::type>(Frame<I>::value)...),
+                std::make_tuple(app.get_output<typename Frame<O>::type>(Frame<O>::value)...),
+                std::make_tuple(app.get_expect<typename Frame<E>::type>(Frame<E>::value)...)
+            );
+        }(xalt::tlist<typename T::input_frames>(),
+          xalt::tlist<typename T::output_frames>(),
+          xalt::tlist<typename T::expect_frames>());
     }
 
-    template <typename P, xalt::literal... I, xalt::literal... O>
+    template <typename T>
     void install(
-        headless::Inputs& inputs,
-        xalt::tlist<Test<Input<I...>, Output<O...>>> /* type */,
-        const std::string& suite_id,
-        const std::string& test_id,
+        headless::CacheManager& cache_manager,
+        std::string_view suite_id,
+        std::string_view test_id,
         const FileInfo& file_info,
         const char* file,
         int line
     )
     {
-        using base_t = Test<Input<I...>, Output<O...>>;
-
-        class XitTest: public ::testing::Test
+        using input_frames = typename T::input_frames;
+        using output_frames = typename T::output_frames;
+        using expect_frames = typename T::expect_frames;
+        [&]<xalt::literal... I,
+            xalt::literal... O,
+            xalt::literal... E>( //
+            xalt::tlist<Inputs<I...>> /* inputs */,
+            xalt::tlist<Outputs<O...>> /* outputs */,
+            xalt::tlist<Expects<E...>> /* expects */
+        )
         {
-        public:
-            XitTest(std::string init_tag, headless::Inputs* init_inputs)
-                : tag(std::move(init_tag))
-                , inputs(init_inputs)
+            class XitTest: public ::testing::Test
             {
-            }
+            public:
+                XitTest(std::string init_tag, headless::CacheManager* init_cache_manager)
+                    : tag(std::move(init_tag))
+                    , cache_manager(init_cache_manager)
+                {
+                }
 
-            ~XitTest() override = default;
-            XitTest(const XitTest&) = delete;
-            XitTest& operator=(const XitTest&) = delete;
-            XitTest(XitTest&&) noexcept = delete;
-            XitTest& operator=(XitTest&&) noexcept = delete;
+                ~XitTest() override = default;
+                XitTest(const XitTest&) = delete;
+                XitTest& operator=(const XitTest&) = delete;
+                XitTest(XitTest&&) noexcept = delete;
+                XitTest& operator=(XitTest&&) noexcept = delete;
 
-        private:
-            void TestBody() override
+            private:
+                void TestBody() override
+                {
+                    using detail::Frame;
+                    auto input_d = std::make_tuple(
+                        cache_manager->get<typename Frame<I>::type>(Frame<I>::value, tag)...
+                    );
+                    auto expect_d = std::make_tuple(
+                        cache_manager->get<typename Frame<E>::type>(Frame<E>::value, tag)...
+                    );
+                    auto output_d = std::make_tuple(typename Frame<O>::type()...);
+                    auto inputs = std::apply(
+                        [](const auto&... ii) { return typename input_frames::type{{&ii...}}; },
+                        input_d
+                    );
+                    auto outputs = std::apply(
+                        [](auto&... oo) { return typename output_frames::type{{&oo...}}; },
+                        output_d
+                    );
+                    auto expects = std::apply(
+                        [](auto&... ee) { return typename expect_frames::type{{&ee...}}; },
+                        expect_d
+                    );
+                    run_test<T>(inputs, outputs, expects);
+                }
+
+                std::string tag;
+                headless::CacheManager* cache_manager;
+            };
+
+            struct Factory: ::testing::internal::TestFactoryBase
             {
-                using inputs_t = typename base_t::inputs_t;
-                using outputs_t = typename base_t::outputs_t;
+                Factory(std::string init_tag, headless::CacheManager* init_cache_manager)
+                    : tag(std::move(init_tag))
+                    , cache_manager(init_cache_manager)
+                {
+                }
 
-                auto input_d = std::make_tuple(
-                    inputs->get<typename detail::Frame<I>::type>(detail::Frame<I>::value, tag)...
-                );
-                auto output_d = std::make_tuple(typename detail::Frame<O>::type()...);
-                auto i = std::apply([](const auto&... ii) { return inputs_t{{&ii...}}; }, input_d);
-                auto o = std::apply([](auto&... oo) { return outputs_t{{&oo...}}; }, output_d);
-                P p;
-                p.setup();
-                p.run(i, o);
-                p.teardown();
-            }
+                ::testing::Test* CreateTest() override
+                {
+                    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+                    return new XitTest(tag, cache_manager);
+                }
 
-            std::string tag;
-            headless::Inputs* inputs;
-        };
+                std::string tag;
+                headless::CacheManager* cache_manager;
+            };
 
-        struct Factory: ::testing::internal::TestFactoryBase
-        {
-            Factory(std::string init_tag, headless::Inputs* init_inputs)
-                : tag(std::move(init_tag))
-                , inputs(init_inputs)
-            {
-            }
-
-            ::testing::Test* CreateTest() override
-            {
+            testing::internal::MakeAndRegisterTestInfo(
+                std::string(suite_id),
+                to_tag_suffix(test_id, file_info).c_str(),
+                nullptr,
+                nullptr,
+                ::testing::internal::CodeLocation(file, line),
+                ::testing::internal::GetTestTypeId(),
+                ::testing::internal::SuiteApiResolver<XitTest>::GetSetUpCaseOrSuite(file, line),
+                ::testing::internal::SuiteApiResolver<XitTest>::GetTearDownCaseOrSuite(file, line),
                 // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-                return new XitTest(tag, inputs);
-            }
-
-            std::string tag;
-            headless::Inputs* inputs;
-        };
-
-        testing::internal::MakeAndRegisterTestInfo(
-            suite_id,
-            to_tag_suffix(test_id, file_info).c_str(),
-            nullptr,
-            nullptr,
-            ::testing::internal::CodeLocation(file, line),
-            ::testing::internal::GetTestTypeId(),
-            ::testing::internal::SuiteApiResolver<XitTest>::GetSetUpCaseOrSuite(file, line),
-            ::testing::internal::SuiteApiResolver<XitTest>::GetTearDownCaseOrSuite(file, line),
-            // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-            new Factory(to_tag(suite_id, test_id, file_info), &inputs)
-        );
-    }
-
-    template <typename T>
-    void install(
-        test::App& app,
-        const std::string& suite_id,
-        const std::string& test_id,
-        const FileInfo& file_info
-    )
-    {
-        install<T>(
-            app,
-            xalt::tlist<typename T::base_t>(),
-            suite_id,
-            test_id,
-            file_info //
-        );
-    }
-
-    template <typename T>
-    void install(
-        headless::Inputs& inputs,
-        const std::string& suite_id,
-        const std::string& test_id,
-        const FileInfo& file_info,
-        const char* file,
-        int line
-    )
-    {
-        install<T>(
-            inputs,
-            xalt::tlist<typename T::base_t>(),
-            suite_id,
-            test_id,
-            file_info,
-            file,
-            line //
-        );
+                new Factory(to_tag(suite_id, test_id, file_info), &cache_manager)
+            );
+        }(xalt::tlist<typename T::input_frames>(),
+          xalt::tlist<typename T::output_frames>(),
+          xalt::tlist<typename T::expect_frames>());
     }
 }

@@ -14,13 +14,14 @@ namespace nil::xit::gtest
 {
     struct Instances final
     {
-        struct
+        struct Paths
         {
             std::vector<std::filesystem::path> assets;
             xalt::transparent_umap<std::filesystem::path> groups;
-            std::set<std::string> expected_groups;
-        } paths;
+            std::set<std::string> used_groups;
+        };
 
+        Paths paths;
         builders::MainBuilder main_builder;
         builders::FrameBuilder frame_builder;
         builders::TestBuilder test_builder;

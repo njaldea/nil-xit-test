@@ -3,8 +3,6 @@
 #include "../../RerunTag.hpp"
 #include "../../utils.hpp"
 
-#include <nil/xalt/transparent_stl.hpp>
-
 #include <nil/xit/tagged/add_value.hpp>
 #include <nil/xit/tagged/post.hpp>
 #include <nil/xit/tagged/structs.hpp>
@@ -14,6 +12,8 @@
 #include <functional>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
+#include <vector>
 
 namespace nil::xit::test::frame::output
 {
@@ -35,10 +35,16 @@ namespace nil::xit::test::frame::output
     template <typename T>
     struct Info: IInfo
     {
+        struct Entry
+        {
+            nil::gate::ports::Mutable<RerunTag>* rerun = nullptr;
+            nil::gate::ports::Mutable<bool>* requested = nullptr;
+        };
+
         using type = T;
         nil::xit::tagged::Frame* frame = nullptr;
-        xalt::transparent_umap<nil::gate::ports::Mutable<RerunTag>*> rerun;
-        xalt::transparent_umap<nil::gate::ports::Mutable<bool>*> requested;
+        nil::gate::Core* gate = nullptr;
+        std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App
         std::vector<std::function<void(std::string_view, const T&)>> values;
 
         template <typename V, is_valid_value_accessor<const T&> Accessor>
@@ -53,6 +59,40 @@ namespace nil::xit::test::frame::output
                 [value, accessor = std::move(accessor)](std::string_view tag, const T& data)
                 { nil::xit::tagged::post(tag, *value, accessor(data)); }
             );
+        }
+
+        void add_info(std::string_view tag)
+        {
+            info.emplace(
+                tag,
+                Entry{.rerun = gate->port(RerunTag()), .requested = gate->port(false)}
+            );
+        }
+
+        void post(std::string_view tag, const T& data)
+        {
+            for (const auto& value : values)
+            {
+                value(tag, data);
+            }
+        }
+
+        gate::ports::Mutable<bool>* info_requested(std::string_view tag) const
+        {
+            if (const auto it = info.find(tag); info.end() != it)
+            {
+                return it->second.requested;
+            }
+            return nullptr;
+        }
+
+        gate::ports::Mutable<RerunTag>* info_rerun(std::string_view tag) const
+        {
+            if (const auto it = info.find(tag); info.end() != it)
+            {
+                return it->second.rerun;
+            }
+            return nullptr;
         }
     };
 }
