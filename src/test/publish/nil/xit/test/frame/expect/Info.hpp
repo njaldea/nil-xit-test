@@ -34,15 +34,10 @@ namespace nil::xit::test::frame::expect
         && !std::is_const_v<std::remove_reference_t<utils::return_t<Accessor, T>>>;
 
     template <typename T>
-    struct TInfo: IInfo
+    struct Info final: IInfo
     {
         using type = T;
-        virtual nil::gate::ports::Compatible<T> get_expect(std::string_view tag) = 0;
-    };
 
-    template <typename T>
-    struct Info final: TInfo<T>
-    {
         struct Entry
         {
             bool is_initialized = false;
@@ -57,7 +52,7 @@ namespace nil::xit::test::frame::expect
         std::unique_ptr<IDataManager<T, std::string_view>> manager;
         std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App
 
-        nil::gate::ports::Compatible<T> get_expect(std::string_view tag) override
+        nil::gate::ports::Mutable<T>* get_port(std::string_view tag)
         {
             if (const auto it = info.find(tag); it != info.end())
             {

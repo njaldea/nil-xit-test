@@ -82,7 +82,7 @@ namespace nil::xit::gtest::builders::input::test
                 : app.add_test_input<T>(loader_creator(), id);
             if (this->values.empty())
             {
-                if constexpr (nil::xit::has_codec<T>)
+                if constexpr (nil::xit::is_built_in_value<T> || nil::xit::has_codec<T>)
                 {
                     frame->template add_value<T>("value", from_self<T>());
                 }

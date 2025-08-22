@@ -4,6 +4,7 @@
 
 #include "../../utils.hpp"
 
+#include <optional>
 #include <type_traits>
 
 namespace nil::xit::test::frame::input
@@ -29,7 +30,15 @@ namespace nil::xit::test::frame::input
     struct Info: IInfo
     {
         using type = T;
-        virtual nil::gate::ports::Compatible<T> get_input(std::string_view tag) = 0;
+
+        struct Entry
+        {
+            // data and input has duplicate data to ease thread safety
+            std::optional<T> data;
+            nil::gate::ports::Mutable<T>* input = nullptr;
+        };
+
+        virtual nil::gate::ports::Mutable<T>* get_port(std::string_view tag) = 0;
         virtual void add_info(std::string_view tag) = 0;
     };
 }

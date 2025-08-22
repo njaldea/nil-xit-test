@@ -1,4 +1,3 @@
-#include "nil/xit/gtest/Test.hpp"
 #include "userland_utils.hpp"
 
 #include "frame_setup.hpp"
@@ -15,10 +14,8 @@ struct Expected
 XIT_TEST_F(Expected, _, "$test/expected")
 {
     auto& [e] = xit_expects;
-    std::cout << __FILE__ << ':' << __LINE__ << ':' << (const char*)(__FUNCTION__) << std::endl;
-    std::cout << e << std::endl;
+    EXPECT_TRUE(e);
     e = !e;
-    std::cout << __FILE__ << ':' << __LINE__ << ':' << (const char*)(__FUNCTION__) << std::endl;
 }
 
 struct Plotly

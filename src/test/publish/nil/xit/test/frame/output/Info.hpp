@@ -35,13 +35,14 @@ namespace nil::xit::test::frame::output
     template <typename T>
     struct Info: IInfo
     {
+        using type = T;
+
         struct Entry
         {
             nil::gate::ports::Mutable<RerunTag>* rerun = nullptr;
             nil::gate::ports::Mutable<bool>* requested = nullptr;
         };
 
-        using type = T;
         nil::xit::tagged::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
         std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App

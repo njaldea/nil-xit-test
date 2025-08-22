@@ -22,25 +22,9 @@ namespace nil::xit::gtest::builders
         const FileInfo& file_info
     );
 
+    // Defined in instances to avoid cyclic include
     template <typename T, typename I, typename O, typename E>
-    void run_test(I& inputs, O& outputs, E& expects)
-    {
-        try
-        {
-            T p;
-            p.setup();
-            p.run(inputs, outputs, expects);
-            p.teardown();
-        }
-        catch (const std::exception&)
-        {
-            // exception is thrown
-        }
-        catch (...)
-        {
-            // unknown exception is thrown
-        }
-    }
+    bool run_test(I& inputs, O& outputs, E& expects);
 
     template <typename T>
     void install(
@@ -68,23 +52,28 @@ namespace nil::xit::gtest::builders
                 {Frame<E>::marked_value...}
             );
 
-            constexpr auto node
-                = [](const Frame<I>::type&... input_args, const Frame<E>::type&... expect_args)
+            static constexpr auto node = //
+                [](const Frame<I>::type&... input_args, const Frame<E>::type&... expect_args)
             {
+                auto result = std::make_tuple(
+                    typename Frame<"tag_info">::type(),
+                    typename Frame<O>::type()...,
+                    expect_args...
+                );
+
                 auto inputs = typename input_frames::type{{&input_args...}};
-                auto result = std::make_tuple(typename Frame<O>::type()..., expect_args...);
 
                 auto outputs = [&]<std::size_t... OI>(std::index_sequence<OI...>) //
                 {                                                                 //
-                    return typename output_frames::type{&get<OI>(result)...};
+                    return typename output_frames::type{&get<1 + OI>(result)...};
                 }(std::make_index_sequence<sizeof...(O)>());
 
-                auto expects = [&]<std::size_t... OE>(std::index_sequence<OE...>) //
+                auto expects = [&]<std::size_t... EI>(std::index_sequence<EI...>) //
                 {                                                                 //
-                    return typename expect_frames::type{&get<OE + sizeof...(O)>(result)...};
+                    return typename expect_frames::type{&get<1 + EI + sizeof...(O)>(result)...};
                 }(std::make_index_sequence<sizeof...(E)>());
 
-                run_test<T>(inputs, outputs, expects);
+                get<0>(result) = run_test<T>(inputs, outputs, expects);
                 return result;
             };
 
@@ -92,7 +81,10 @@ namespace nil::xit::gtest::builders
                 tag,
                 node,
                 std::make_tuple(app.get_input<typename Frame<I>::type>(Frame<I>::value)...),
-                std::make_tuple(app.get_output<typename Frame<O>::type>(Frame<O>::value)...),
+                std::make_tuple(
+                    app.get_output<typename Frame<"tag_info">::type>(Frame<"tag_info">::value),
+                    app.get_output<typename Frame<O>::type>(Frame<O>::value)...
+                ),
                 std::make_tuple(app.get_expect<typename Frame<E>::type>(Frame<E>::value)...)
             );
         }(xalt::tlist<typename T::input_frames>(),

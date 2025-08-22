@@ -19,8 +19,6 @@ add_xit_test(
         "xit=${CMAKE_CURRENT_SOURCE_DIR}/gui"
         "base=${CMAKE_CURRENT_SOURCE_DIR}/gui"
         "test=${CMAKE_CURRENT_SOURCE_DIR}/files"
-    PORT
-        1101
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE xit-gtest)

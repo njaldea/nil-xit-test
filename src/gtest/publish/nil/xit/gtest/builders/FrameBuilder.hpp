@@ -33,6 +33,8 @@ namespace nil::xit::gtest::builders
     class FrameBuilder final
     {
     public:
+        FrameBuilder();
+
         template <typename Loader>
             requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
         auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)

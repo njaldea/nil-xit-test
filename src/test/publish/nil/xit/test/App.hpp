@@ -37,7 +37,7 @@ namespace nil::xit::test
     class App
     {
     public:
-        App(service::P service, std::string_view app_name);
+        App(service::P service, std::string_view app_name, std::uint32_t jobs);
 
         ~App() noexcept = default;
         App(App&&) = delete;
@@ -242,102 +242,116 @@ namespace nil::xit::test
         template <typename Callable, typename... Inputs, typename... Outputs, typename... Expects>
         void add_node(
             std::string_view tag,
-            Callable callable,
-            std::tuple<Inputs*...> inputs,
-            std::tuple<Outputs*...> outputs,
-            std::tuple<Expects*...> expects
+            Callable&& callable, // <outputs..., expects> callable(inputs..., expects...)
+            std::tuple<frame::input::Info<Inputs>*...> inputs,
+            std::tuple<frame::output::Info<Outputs>*...> outputs,
+            std::tuple<frame::expect::Info<Expects>*...> expects
         )
         {
-            constexpr auto i_size = sizeof...(Inputs);
-            constexpr auto o_size = sizeof...(Outputs);
-            constexpr auto e_size = sizeof...(Expects);
-            constexpr auto i_seq = std::make_index_sequence<i_size>();
-            constexpr auto o_seq = std::make_index_sequence<o_size>();
-            constexpr auto e_seq = std::make_index_sequence<e_size>();
-
-            std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, inputs);
-            std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, outputs);
-            std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, expects);
-
-            if constexpr ((o_size + e_size) > 0)
+            [&]<std::size_t... I, std::size_t... O, std::size_t... E>(
+                std::index_sequence<I...> /* input indices */,
+                std::index_sequence<O...> /* output indices*/,
+                std::index_sequence<E...> /* expect indices */
+            )
             {
-                auto wrapped_cb =              //
-                    [cb = std::move(callable)] //
-                    (                          //
-                        const nil::gate::Core& core,
-                        nil::gate::async_outputs<
-                            typename Outputs::type...,
-                            typename Expects::type...> asyncs,
-                        bool enabled,
-                        const typename Inputs::type&... rest_i, //
-                        const typename Expects::type&... rest_e //
-                    )
-                {
-                    if (enabled)
-                    {
-                        [&]<std::size_t... X>(std::index_sequence<X...>)
-                        {
-                            auto batch = core.batch(asyncs);
-                            auto result = cb(rest_i..., rest_e...);
-                            (get<X>(batch)->set_value(std::move(get<X>(result))), ...);
-                            core.commit();
-                        }(std::make_index_sequence<o_size + e_size>());
-                    }
-                };
+                std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, inputs);
+                std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, outputs);
+                std::apply([&](const auto&... frame) { (frame->add_info(tag), ...); }, expects);
 
-                auto result = add_node_impl(
-                    tag,
-                    std::move(wrapped_cb),
-                    add_node_enabler(tag, outputs, o_seq, expects, e_seq),
-                    inputs,
-                    expects,
-                    i_seq,
-                    e_seq
-                );
-
-                // iterate the output of the test and then map it with rerun tag
-                // and see if it will need to pass the new value to the UI
-                [&]<std::size_t... OI>(std::index_sequence<OI...>)
+                if constexpr ((sizeof...(O) + sizeof...(E)) > 0)
                 {
-                    (
-                        [&](auto* output, auto port)
+                    auto result = gate.node(
+                        [cb = std::forward<Callable>(callable)] //
+                        (                                       //
+                            const nil::gate::Core& core,
+                            nil::gate::opt_outputs<Outputs..., Expects...> opt_outputs,
+                            bool enabled,
+                            const Inputs&... rest_i,
+                            const Expects&... rest_e
+                        )
                         {
-                            using output_t = std::remove_cvref_t<decltype(*output)>::type;
-                            gate.node(
-                                [output, tag](RerunTag, const output_t& output_data)
-                                { output->post(tag, output_data); },
-                                {output->info_rerun(tag), port}
-                            );
-                        }(std::get<OI>(outputs), get<OI>(result)),
-                        ...
-                    );
-                }(o_seq);
-
-                // iterate the expected of the test and then map it with rerun tag
-                // and see if it will need to pass the new value to the UI
-                [&]<std::size_t... EI>(std::index_sequence<EI...>)
-                {
-                    (
-                        [&](auto* expected, auto port)
-                        {
-                            using expected_t = std::remove_cvref_t<decltype(*expected)>::type;
-                            gate.node(
-                                [expected, tag] //
-                                (const SingleFire& flag, const expected_t& expected_data)
+                            if (enabled)
+                            {
+                                constexpr auto o_n = sizeof...(O);
                                 {
-                                    if (flag.pop())
+                                    auto b = core.batch(opt_outputs);
+                                    auto r = cb(rest_i..., rest_e...);
+                                    (get<O>(b)->set_value(std::move(get<O>(r))), ...);
+                                    (get<E + o_n>(b)->set_value(std::move(get<E + o_n>(r))), ...);
+                                }
+                                core.commit();
+                            }
+                        },
+                        {
+                            get<0>( // enabler
+                                gate.node(
+                                    [](std::conditional_t<true, bool, decltype(O)>... flags_o,
+                                       std::conditional_t<true, bool, decltype(E)>... flags_e) {
+                                        return (false || ... || flags_o)
+                                            || (false || ... || flags_e);
+                                    },
                                     {
-                                        expected->finalize(tag, expected_data);
+                                        get<O>(outputs)->info_requested(tag)...,
+                                        get<E>(expects)->info_requested(tag)... //
                                     }
-                                },
-                                {expected->info_single_fire(tag), port}
-                            );
-                        }(std::get<EI + sizeof...(Outputs)>(expects),
-                          get<EI + sizeof...(Outputs)>(result)),
-                        ...
+                                )
+                            ),
+                            get<I>(inputs)->get_port(tag)...,
+                            get<E>(expects)->get_port(tag)... //
+                        }
                     );
-                }(e_seq);
-            }
+
+                    if constexpr (sizeof...(O) > 0)
+                    {
+                        // iterate the output of the test and then map it with rerun tag
+                        // and see if it will need to pass the new value to the UI
+                        (
+                            [&]<typename OType>(
+                                frame::output::Info<OType>* output,
+                                nil::gate::ports::ReadOnly<OType>* port
+                            )
+                            {
+                                gate.node(
+                                    [output, tag](const RerunTag& /* r */, const OType& output_data)
+                                    { output->post(tag, output_data); },
+                                    {output->info_rerun(tag), port}
+                                );
+                            }(get<O>(outputs), get<O>(result)),
+                            ...
+                        );
+                    }
+
+                    if constexpr (sizeof...(E) > 0)
+                    {
+                        // iterate the expected of the test and then map it with rerun tag
+                        // and see if it will need to pass the new value to the UI
+                        (
+                            [&]<typename EType>(
+                                frame::expect::Info<EType>* expected,
+                                nil::gate::ports::ReadOnly<EType>* port
+                            )
+                            {
+                                gate.node(
+                                    [expected, tag] //
+                                    (const SingleFire& flag, const EType& expected_data)
+                                    {
+                                        if (flag.pop())
+                                        {
+                                            expected->finalize(tag, expected_data);
+                                        }
+                                    },
+                                    {expected->info_single_fire(tag), port}
+                                );
+                            }(get<E>(expects), get<E + sizeof...(O)>(result)),
+                            ...
+                        );
+                    }
+                }
+            }( //
+                std::index_sequence_for<Inputs...>(),
+                std::index_sequence_for<Outputs...>(),
+                std::index_sequence_for<Expects...>()
+            );
         }
 
         template <typename T>
@@ -394,51 +408,8 @@ namespace nil::xit::test
 
         void finalize_inputs(std::string_view tag) const;
 
-        template <typename Outputs, std::size_t... O, typename Expects, std::size_t... E>
-        nil::gate::ports::ReadOnly<bool>* add_node_enabler(
-            std::string_view tag,
-            const Outputs& outputs,
-            std::index_sequence<O...> /* seq */,
-            const Expects& expects,
-            std::index_sequence<E...> /* seq */
-        )
-        {
-            if constexpr (sizeof...(O) + sizeof...(E) > 0)
-            {
-                return get<0>(gate.node(
-                    [](std::conditional_t<true, bool, decltype(O)>... flags_o,
-                       std::conditional_t<true, bool, decltype(E)>... flags_e)
-                    { return (false || ... || flags_o) || ((false || ... || flags_e)); },
-                    {get<O>(outputs)->info_requested(tag)...,
-                     get<E>(expects)->info_requested(tag)...}
-                ));
-            }
-            else
-            {
-                // will not run tests that does not have any outputs
-                return get<0>(gate.node([]() { return false; }));
-            }
-        }
-
-        template <typename T, typename Inputs, typename Expects, std::size_t... I, std::size_t... E>
-        auto add_node_impl(
-            [[maybe_unused]] std::string_view tag,
-            T callable,
-            nil::gate::ports::ReadOnly<bool>* is_enabled,
-            const Inputs& inputs,
-            const Expects& expects,
-            std::index_sequence<I...> /* seq */,
-            std::index_sequence<E...> /* seq */
-        )
-        {
-            return gate.node(
-                std::move(callable),
-                {is_enabled, get<I>(inputs)->get_input(tag)..., get<E>(expects)->get_expect(tag)...}
-            );
-        }
-
-        template <typename T, template <typename> typename Info>
-        void add_info_on_load(Info<T>* s)
+        template <typename T>
+        void add_info_on_load(frame::output::Info<T>* s)
         {
             on_load(
                 *s->frame,

@@ -65,6 +65,17 @@ namespace nil::xit::gtest
             // of a specific tag (test)
             static constexpr auto frame_type = EFrameType::Utility;
         };
+
+        template <>
+        struct Frame<"tag_info"> final
+        {
+            // this is reserved for getting frame details
+            // of a specific tag (test)
+            static constexpr auto frame_type = EFrameType::Utility;
+            static constexpr auto value = "tag_info";
+            static constexpr auto* marked_value = "tag_info:T:N";
+            using type = bool;
+        };
     }
 
     template <xalt::literal... T>
