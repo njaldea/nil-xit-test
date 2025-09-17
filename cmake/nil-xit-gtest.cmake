@@ -20,26 +20,33 @@ ExternalProject_Add(
     LOG_BUILD ON
 )
 
+# Global configuration (cached)
+# These control the GUI invocation for all xit tests.
+set(NIL_XIT_CLEAR OFF   CACHE BOOL   "Clear on GUI start (-c)")
+set(NIL_XIT_PORT "1101" CACHE STRING "Port for XIT GUI server (-p)")
+set(NIL_XIT_JOBS "1"    CACHE STRING "Parallel jobs for test execution (-jN)")
+
 # Create a test executable for xit-test with CTest integration and GUI target
 # Usage:
-#   add_xit_test(my_test_exe 
-#       SOURCES main.cpp other.cpp
-#       GROUPS "ui=./frontend" "data=./test_data"
+#   add_xit_test(
+#       my_test_exe 
+#       SOURCES
+#           main.cpp
+#           other.cpp
+#       GROUPS
+#           "ui=./frontend"
+#           "data=./test_data"
 #   )
 #   target_link_libraries(my_test_exe PRIVATE nil::xit-gtest)
 function(add_xit_test TARGET)
     cmake_parse_arguments(
         XIT
         ""  # No boolean flags
-        "PORT"  # No single value args
+        ""   # No single value args
         "SOURCES;GROUPS"  # Multi-value args
         ${ARGN}
     )
 
-    if(NOT XIT_PORT)
-        set(XIT_PORT "1101")  # <-- your desired default port
-    endif()
-    
     # Create the test executable directly
     add_executable(${TARGET} ${XIT_SOURCES})
     
@@ -68,7 +75,14 @@ function(add_xit_test TARGET)
         USES_TERMINAL
     )
 
-    set(gui_args gui ${group_args} -a "${EXTRACT_DIR}/assets" -p ${XIT_PORT} -c)
+    set(
+        gui_args gui
+        ${group_args}
+        -a "${EXTRACT_DIR}/assets"
+        "-p${NIL_XIT_PORT}"
+        "-j${NIL_XIT_JOBS}"
+        $<$<BOOL:${NIL_XIT_CLEAR}>:-c>
+    )
 
     # Create GUI launch target
     add_custom_target(${TARGET}_gui

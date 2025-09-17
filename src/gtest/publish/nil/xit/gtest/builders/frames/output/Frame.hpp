@@ -3,6 +3,7 @@
 #include "../../../utils/from_self.hpp"
 #include "../IFrame.hpp"
 
+#include <nil/xit/buffer_type.hpp>
 #include <nil/xit/test/App.hpp>
 #include <nil/xit/test/frame/output/Info.hpp>
 
@@ -62,7 +63,7 @@ namespace nil::xit::gtest::builders::output
                 : app.add_output<T>(id);
             if (this->values.empty())
             {
-                if constexpr (nil::xit::has_codec<T>)
+                if constexpr (nil::xit::is_built_in_value<T> || nil::xit::has_codec<T>)
                 {
                     frame->template add_value<T>("value", from_self<T>());
                 }

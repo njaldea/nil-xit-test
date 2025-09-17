@@ -4,13 +4,21 @@
 
 // TODO: use better runner like asio/parallel
 #include <nil/gate/runners/NonBlocking.hpp>
+#include <nil/gate/runners/Parallel.hpp>
 
 namespace nil::xit::test
 {
-    App::App(nil::service::P service, std::string_view app_name)
+    App::App(nil::service::P service, std::string_view app_name, std::uint32_t jobs)
         : xit(nil::xit::make_core(service))
     {
-        gate.set_runner<nil::gate::runners::NonBlocking>();
+        if (jobs == 1)
+        {
+            gate.set_runner<nil::gate::runners::NonBlocking>();
+        }
+        else
+        {
+            gate.set_runner<nil::gate::runners::Parallel>(jobs);
+        }
         on_ready(service, [this]() { gate.commit(); });
         set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
     }

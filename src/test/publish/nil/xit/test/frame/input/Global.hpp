@@ -9,26 +9,20 @@
 #include <nil/gate/Core.hpp>
 
 #include <memory>
-#include <optional>
 
 namespace nil::xit::test::frame::input::global
 {
     template <typename T>
     struct Info final: input::Info<T>
     {
-        struct Entry
-        {
-            // data and input has duplicate data to ease thread safety
-            std::optional<T> data;
-            nil::gate::ports::Mutable<T>* input = nullptr;
-        };
+        using Entry = input::Info<T>::Entry;
 
         nil::xit::unique::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
         std::unique_ptr<IDataManager<T>> manager;
         Entry info;
 
-        nil::gate::ports::Compatible<T> get_input(std::string_view /* tag */) override
+        nil::gate::ports::Mutable<T>* get_port(std::string_view /* tag */) override
         {
             if (info.input != nullptr)
             {

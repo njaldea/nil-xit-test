@@ -82,6 +82,19 @@ XIT_TEST_F(S, Run, "$g/demo")
 }
 ```
 
+## Reserved frames
+
+Some frame IDs are reserved by the test app/runtime and are created for you. Avoid registering frames with these IDs.
+
+- index (unique): Root UI/index frame. App populates:
+  - tags: comma-separated list of installed tags
+  - finalize(tag): signal to trigger finalize over inputs of a tag
+- frame_info (tagged): Per‑tag info frame exposing:
+  - inputs: comma-separated IDs registered for the tag
+  - outputs: comma-separated IDs registered for the tag
+  - expects: comma-separated IDs registered for the tag
+- tag_info (tagged): Output<bool> indicating a tag’s test status
+
 ## UI path guidance
 
 UI component paths: just identifiers. Keep short.

@@ -47,6 +47,11 @@ namespace nil::xit::gtest
             }
         }
 
+        FrameBuilder::FrameBuilder()
+        {
+            this->create_output<bool>("tag_info", {});
+        }
+
         void FrameBuilder::install(test::App& app) const
         {
             for (const auto& frame : input_frames)

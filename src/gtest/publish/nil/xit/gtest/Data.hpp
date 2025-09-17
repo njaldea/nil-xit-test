@@ -15,7 +15,7 @@ namespace nil::xit::gtest
         requires(I < sizeof...(T))
     auto& get(const Data<T...>& o)
     {
-        return *std::get<I>(o.data);
+        return *get<I>(o.data);
     }
 }
 
@@ -26,9 +26,7 @@ struct std::tuple_size<nil::xit::gtest::Data<T...>>
 };
 
 template <std::size_t I, typename... T>
-    requires(I < sizeof...(T))
 struct std::tuple_element<I, nil::xit::gtest::Data<T...>>
 {
-    using type = std::remove_cvref_t< //
-        decltype(*std::get<I>(std::declval<nil::xit::gtest::Data<T...>>().data))>;
+    using type = std::remove_cvref_t<std::tuple_element_t<I, std::tuple<T...>>>;
 };

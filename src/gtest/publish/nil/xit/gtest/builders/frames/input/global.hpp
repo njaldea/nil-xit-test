@@ -13,8 +13,6 @@
 
 namespace nil::xit::gtest::builders::input::global
 {
-    using nil::xit::test::frame::input::global::Info;
-
     template <typename T>
     class Frame: public IFrame
     {
@@ -28,7 +26,8 @@ namespace nil::xit::gtest::builders::input::global
             using accessor_return_t = std::remove_cvref_t<decltype(accessor(std::declval<T&>()))>;
             values.emplace_back(                                     //
                 [id = std::move(id), accessor = std::move(accessor)] //
-                (Info<T> & info) { info.template add_value<accessor_return_t>(id, accessor); }
+                (nil::xit::test::frame::input::global::Info<T> & info)
+                { info.template add_value<accessor_return_t>(id, accessor); }
             );
             return *this;
         }
@@ -54,7 +53,7 @@ namespace nil::xit::gtest::builders::input::global
 
     protected:
         // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
-        std::vector<std::function<void(Info<T>&)>> values;
+        std::vector<std::function<void(nil::xit::test::frame::input::global::Info<T>&)>> values;
     };
 
     template <typename T>
@@ -82,7 +81,7 @@ namespace nil::xit::gtest::builders::input::global
                 : app.add_global_input<T>(loader_creator(), id);
             if (this->values.empty())
             {
-                if constexpr (nil::xit::has_codec<T>)
+                if constexpr (nil::xit::is_built_in_value<T> || nil::xit::has_codec<T>)
                 {
                     frame->template add_value<T>("value", from_self<T>());
                 }

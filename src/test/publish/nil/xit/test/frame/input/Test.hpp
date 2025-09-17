@@ -17,19 +17,14 @@ namespace nil::xit::test::frame::input::test
     template <typename T>
     struct Info final: input::Info<T>
     {
-        struct Entry
-        {
-            // data and input has duplicate data to ease thread safety
-            std::optional<T> data;
-            nil::gate::ports::Mutable<T>* input = nullptr;
-        };
+        using Entry = input::Info<T>::Entry;
 
         nil::xit::tagged::Frame* frame = nullptr;
         nil::gate::Core* gate = nullptr;
         std::unique_ptr<IDataManager<T, std::string_view>> manager;
         std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App
 
-        nil::gate::ports::Compatible<T> get_input(std::string_view tag) override
+        nil::gate::ports::Mutable<T>* get_port(std::string_view tag) override
         {
             if (const auto it = info.find(tag); it != info.end())
             {
@@ -119,7 +114,7 @@ namespace nil::xit::test::frame::input::test
 
         void add_info(std::string_view tag) override
         {
-            info.emplace(tag, typename Info<T>::Entry{std::nullopt, gate->port<T>()});
+            info.emplace(tag, Entry{std::nullopt, gate->port<T>()});
         }
     };
 }

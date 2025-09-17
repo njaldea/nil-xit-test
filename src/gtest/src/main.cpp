@@ -143,7 +143,11 @@ namespace nil::xit::gtest
             [](const nil::service::ID& id) { std::cout << "http://" << id.text << std::endl; }
         );
 
-        test::App app(use_ws(http_server, "/ws"), "nil-xit-gtest");
+        test::App app(
+            use_ws(http_server, "/ws"),
+            "nil-xit-gtest",
+            std::uint32_t(number(options, "jobs"))
+        );
         app.set_groups(instance.paths.groups);
         instance.frame_builder.install(app);
         instance.test_builder.install(app, instance.paths.groups);
@@ -190,6 +194,7 @@ namespace nil::xit::gtest
         flag(node, "ignore-missing-groups", {.skey = 'i', .msg = "ignore missing groups"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
+        number(node, "jobs", {.skey = 'j', .msg = "number of jobs", .fallback = 1, .implicit = 0});
         params(node, "path-group", {.skey = 'g', .msg = "add group path"});
         params(node, "path-assets", {.skey = 'a', .msg = "use for assets"});
         use(node, run_gui);
@@ -206,7 +211,7 @@ namespace nil::xit::gtest
         use(node, run_headless);
     }
 
-    int main(int argc, const char** argv)
+    int main(int argc, const char* const* argv)
     {
         auto node = nil::clix::create_node();
         node_headless(node);

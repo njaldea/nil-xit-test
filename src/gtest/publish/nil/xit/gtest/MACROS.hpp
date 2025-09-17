@@ -35,10 +35,10 @@
 
 // clang-format off
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-#define XIT_TEST_F(SUITE, CASE, PATH) XIT_TEST_DETAIL(SUITE, SUITE, CASE, PATH)
+#define XIT_TEST(SUITE, CASE, PATH) XIT_TEST_DETAIL(nil::xit::gtest::detail::Default, SUITE, CASE, PATH)
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-#define XIT_TEST(SUITE, CASE, PATH) XIT_TEST_DETAIL(nil::xit::gtest::detail::Default, SUITE, CASE, PATH)
+#define XIT_TEST_F(SUITE, CASE, PATH) XIT_TEST_DETAIL(SUITE, SUITE, CASE, PATH)
 // clang-format on
 
 #define XIT_FRAME_MAIN(PATH, ...)                                                                  \
@@ -53,12 +53,11 @@
     template <>                                                                                    \
     struct nil::xit::gtest::detail::Frame<ID>                                                      \
     {                                                                                              \
-        using r_type = decltype(XIT_INSTANCE.frame_builder.__VA_ARGS__);                           \
-        using type = std::remove_cvref_t<r_type>::type;                                            \
+        using type = std::remove_cvref_t<decltype(XIT_INSTANCE.frame_builder.__VA_ARGS__)>::type;  \
         static constexpr auto* value = ID;                                                         \
         static constexpr auto* marked_value = ID SUFFIX;                                           \
-        static const void* const holder;                                                           \
         static constexpr auto frame_type = nil::xit::gtest::detail::EFrameType::ETYPE;             \
+        static const void* const holder;                                                           \
     };                                                                                             \
     inline const void* const nil::xit::gtest::detail::Frame<ID>::holder                            \
         = &XIT_INSTANCE.frame_builder.__VA_ARGS__
@@ -94,3 +93,12 @@
 #define XIT_FRAME_OUTPUT_V(ID, PATH, ...)                                                                       \
     XIT_FRAME_DETAIL(ID, ":T:V", Output, create_output<__VA_ARGS__>(ID, PATH))
 // clang-format on
+
+// Assumption is that GTEST only calls this on failure.
+#undef GTEST_MESSAGE_AT_
+#define GTEST_MESSAGE_AT_(file, line, message, result_type)                                        \
+    ::testing::internal::AssertHelper(result_type, file, line, message) = []()                     \
+    {                                                                                              \
+        XIT_INSTANCE.tracker.set_result(false);                                                    \
+        return ::testing::Message();                                                               \
+    }()
