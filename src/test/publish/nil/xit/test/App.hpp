@@ -5,7 +5,7 @@
 #include "frame/input/Test.hpp"
 #include "frame/output/Info.hpp"
 
-#include <nil/gate/traits/compare.hpp>
+#include <nil/gate/traits/port_override.hpp>
 #include <nil/service/structs.hpp>
 #include <nil/xit/add_frame.hpp>
 #include <nil/xit/buffer_type.hpp>
@@ -22,15 +22,28 @@
 #include <type_traits>
 #include <utility>
 
-template <typename T>
-    requires(!requires() { std::declval<T>() == std::declval<T>(); })
-struct nil::gate::traits::compare<T>
+namespace nil::gate::traits
 {
-    static bool match(const T& /* l */, const T& /* r */)
+    template <typename T>
+        requires(!requires() { std::declval<T>() == std::declval<T>(); })
+    struct Port<T>
     {
-        return true;
-    }
-};
+        static bool has_value(const T& value)
+        {
+            return port::has_value(value);
+        }
+
+        static bool is_eq(const T& /* current_value */, const T& /* new_value */)
+        {
+            return true;
+        }
+
+        static void unset(std::optional<T>& value)
+        {
+            port::unset(value);
+        }
+    };
+}
 
 namespace nil::xit::test
 {

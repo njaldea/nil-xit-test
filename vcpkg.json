@@ -1,6 +1,13 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "dependencies": ["nil-xit", "nil-gate", "nil-service"],
+    "dependencies": [
+        "nil-xit",
+        {
+            "name" : "nil-gate",
+            "features": ["c-api"]
+        },
+        "nil-service"
+    ],
     "features": {
         "gtest": {
             "description": "GTest adapter",
