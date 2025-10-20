@@ -28,19 +28,9 @@ namespace nil::gate::traits
         requires(!requires() { std::declval<T>() == std::declval<T>(); })
     struct Port<T>
     {
-        static bool has_value(const T& value)
-        {
-            return port::has_value(value);
-        }
-
         static bool is_eq(const T& /* current_value */, const T& /* new_value */)
         {
-            return true;
-        }
-
-        static void unset(std::optional<T>& value)
-        {
-            port::unset(value);
+            return false;
         }
     };
 }
