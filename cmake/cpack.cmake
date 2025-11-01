@@ -1,6 +1,6 @@
 set(CPACK_PACKAGE_NAME "nil-xit-test-dev")
 set(CPACK_PACKAGE_CONTACT "njaldea@gmail.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Neil Aldea <njaldea@gmail.com>")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "nil-xit-dev (>= 0.3.3), nil-gate-dev (>= 1.5.3), libgtest-dev (>=1.11.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "nil-clix-dev (>= 1.0.1), nil-xit-dev (>= 0.3.3), nil-gate-dev (>= 1.5.3), libgtest-dev (>=1.11.0)")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Test layer to nil-xit")
 include(CPack)
