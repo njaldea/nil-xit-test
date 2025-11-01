@@ -174,7 +174,7 @@ namespace nil::xit::gtest
         headless::CacheManager cache_manager;
         instance.frame_builder.install(cache_manager);
         instance.test_builder.install(cache_manager, instance.paths.groups);
-        GTEST_FLAG_SET(list_tests, flag(options, "list"));
+        ::testing::GTEST_FLAG(list_tests) = flag(options, "list");
         ::testing::InitGoogleTest();
         const auto result = RUN_ALL_TESTS();
 

@@ -177,7 +177,7 @@ namespace nil::xit::gtest::builders
             };
 
             testing::internal::MakeAndRegisterTestInfo(
-                std::string(suite_id),
+                suite_id.data(),
                 to_tag_suffix(test_id, file_info).c_str(),
                 nullptr,
                 nullptr,
