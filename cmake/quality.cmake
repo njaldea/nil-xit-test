@@ -5,10 +5,6 @@ file(
     ${CMAKE_SOURCE_DIR}/src/**/*.cpp
     ${CMAKE_SOURCE_DIR}/src/**/*.h
     ${CMAKE_SOURCE_DIR}/src/**/*.hpp
-    ${CMAKE_SOURCE_DIR}/sandbox/**/*.c
-    ${CMAKE_SOURCE_DIR}/sandbox/**/*.cpp
-    ${CMAKE_SOURCE_DIR}/sandbox/**/*.h
-    ${CMAKE_SOURCE_DIR}/sandbox/**/*.hpp
 )
 
 add_custom_target(

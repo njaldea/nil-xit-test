@@ -31,15 +31,8 @@ add_library(
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC xit-test)
-target_link_libraries(${PROJECT_NAME} PRIVATE GTest::gtest)
+target_link_libraries(${PROJECT_NAME} PUBLIC GTest::gtest)
 target_link_libraries(${PROJECT_NAME} PRIVATE nil::clix)
 
-target_include_directories(
-    ${PROJECT_NAME}
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/publish>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-
-nil_install_headers()
+nil_install_headers(${PROJECT_NAME} PUBLIC)
 nil_install_targets(${PROJECT_NAME})
