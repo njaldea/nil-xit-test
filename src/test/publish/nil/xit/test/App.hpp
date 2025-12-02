@@ -40,9 +40,9 @@ namespace nil::xit::test
     class App
     {
     public:
-        App(service::P service, std::string_view app_name, std::uint32_t jobs);
+        App(service::IService& service, std::string_view app_name, std::uint32_t jobs);
 
-        ~App() noexcept = default;
+        ~App() noexcept;
         App(App&&) = delete;
         App(const App&) = delete;
         App& operator=(App&&) = delete;
@@ -85,7 +85,7 @@ namespace nil::xit::test
             };
 
             {
-                auto& frame = add_unique_frame(xit, "index", std::string(path));
+                auto& frame = add_unique_frame(*xit, "index", std::string(path));
                 add_value(frame, "tags", [this]() { return converter(installed_tags()); });
                 add_signal(
                     frame,
@@ -94,7 +94,7 @@ namespace nil::xit::test
                 );
             }
             {
-                auto& frame = add_tagged_frame(xit, "frame_info");
+                auto& frame = add_tagged_frame(*xit, "frame_info");
                 add_value(
                     frame,
                     "inputs",
@@ -123,7 +123,7 @@ namespace nil::xit::test
             auto* s = p.get();
             input_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(xit, std::string(id));
+            s->frame = &add_tagged_frame(*xit, std::string(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -140,7 +140,7 @@ namespace nil::xit::test
             auto* s = p.get();
             input_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(xit, std::string(id), std::string(path));
+            s->frame = &add_tagged_frame(*xit, std::string(id), std::string(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -156,7 +156,7 @@ namespace nil::xit::test
             auto* s = p.get();
             input_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_unique_frame(xit, std::string(id));
+            s->frame = &add_unique_frame(*xit, std::string(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -173,7 +173,7 @@ namespace nil::xit::test
             auto* s = p.get();
             input_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_unique_frame(xit, std::string(id), std::string(path));
+            s->frame = &add_unique_frame(*xit, std::string(id), std::string(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -190,7 +190,7 @@ namespace nil::xit::test
             auto* s = p.get();
             expect_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(xit, std::string(id), std::string(path));
+            s->frame = &add_tagged_frame(*xit, std::string(id), std::string(path));
             s->gate = &gate;
             s->manager = std::move(manager);
             add_info_on_sub(s);
@@ -207,7 +207,7 @@ namespace nil::xit::test
             auto* s = p.get();
             expect_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(xit, std::string(id));
+            s->frame = &add_tagged_frame(*xit, std::string(id));
             s->gate = &gate;
             s->manager = std::move(manager);
             add_info_on_sub(s);
@@ -221,7 +221,7 @@ namespace nil::xit::test
             auto* s = p.get();
             output_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(xit, std::string(id));
+            s->frame = &add_tagged_frame(*xit, std::string(id));
             s->gate = &gate;
             add_info_on_load(s);
             add_info_on_sub(s);
@@ -235,7 +235,7 @@ namespace nil::xit::test
             auto* s = p.get();
             output_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(xit, std::string(id), std::string(path));
+            s->frame = &add_tagged_frame(*xit, std::string(id), std::string(path));
             s->gate = &gate;
             add_info_on_load(s);
             add_info_on_sub(s);
@@ -388,7 +388,7 @@ namespace nil::xit::test
         }
 
     private:
-        xit::C xit;
+        xit::Core* xit;
         nil::gate::Core gate;
 
         std::set<std::string> frames;

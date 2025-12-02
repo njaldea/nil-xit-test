@@ -8,8 +8,8 @@
 
 namespace nil::xit::test
 {
-    App::App(nil::service::P service, std::string_view app_name, std::uint32_t jobs)
-        : xit(nil::xit::make_core(service))
+    App::App(nil::service::IService& service, std::string_view app_name, std::uint32_t jobs)
+        : xit(nil::xit::create_core(service))
     {
         if (jobs == 1)
         {
@@ -19,13 +19,18 @@ namespace nil::xit::test
         {
             gate.set_runner<nil::gate::runners::Parallel>(jobs);
         }
-        on_ready(service, [this]() { gate.commit(); });
-        set_cache_directory(xit, std::filesystem::temp_directory_path() / app_name);
+        service.on_ready([this]() { gate.commit(); });
+        set_cache_directory(*xit, std::filesystem::temp_directory_path() / app_name);
+    }
+
+    App::~App() noexcept
+    {
+        destroy_core(xit);
     }
 
     void App::set_groups(const xalt::transparent_umap<std::filesystem::path>& paths)
     {
-        nil::xit::set_groups(xit, paths);
+        nil::xit::set_groups(*xit, paths);
     }
 
     std::span<const std::string_view> App::installed_tags() const

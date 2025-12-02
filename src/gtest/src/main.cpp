@@ -136,15 +136,13 @@ namespace nil::xit::gtest
             .buffer = 1024ul * 1024ul * 100ul //
         });
 
-        nil::xit::setup_server(http_server, instance.paths.assets);
+        nil::xit::setup_server(*http_server, instance.paths.assets);
 
-        on_ready(
-            http_server,
-            [](const nil::service::ID& id) { std::cout << "http://" << id.text << std::endl; }
-        );
+        http_server->on_ready([](const nil::service::ID& id)
+                              { std::cout << "http://" << id.text << std::endl; });
 
         test::App app(
-            use_ws(http_server, "/ws"),
+            *http_server->use_ws("/ws"),
             "nil-xit-gtest",
             std::uint32_t(number(options, "jobs"))
         );
@@ -153,7 +151,7 @@ namespace nil::xit::gtest
         instance.test_builder.install(app, instance.paths.groups);
         instance.main_builder.install(app);
 
-        start(http_server);
+        http_server->start();
         return 0;
     }
 
