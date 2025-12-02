@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.27.1)
 
-project(nil-xit-test VERSION 0.0.13 LANGUAGES CXX)
+project(nil-xit-test VERSION 0.0.14 LANGUAGES CXX)
 
 include(cmake/package.cmake)
 include(cmake/toolchain.cmake)

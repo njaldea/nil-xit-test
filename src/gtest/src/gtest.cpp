@@ -129,12 +129,12 @@ namespace nil::xit::gtest
             };
         }
 
-        xit::FileInfo path_to_file_info(std::string_view tag)
+        xit::FileInfo path_to_file_info(std::string_view path)
         {
-            const auto i1 = tag.find_first_of('/');
+            const auto i1 = path.find_first_of('/');
             return FileInfo{
-                .group = std::string(tag.substr(1, i1 - 1)),
-                .path = std::string(tag.substr(i1))
+                .group = std::string(path.substr(1, i1 - 1)),
+                .path = std::string(path.substr(i1 + 1))
             };
         }
     }
@@ -152,10 +152,10 @@ namespace nil::xit::gtest
         throw std::runtime_error("unknown group");
     }
 
-    std::filesystem::path resolve_from_path(std::string_view tag)
+    std::filesystem::path resolve_from_path(std::string_view path)
     {
         const auto& groups = get_instance().paths.groups;
-        const auto file_info = detail::path_to_file_info(tag);
+        const auto file_info = detail::path_to_file_info(path);
         auto it = groups.find(file_info.group);
         if (it != groups.end())
         {

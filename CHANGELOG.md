@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [v0.0.14] - 2025-12-02
+### Fixed
+- unique frame file path
+
+## [v0.0.13] - 2025-12-02
+### Changed
+- BREAKING!!!
+- updated nil-xit dependency (v0.3.5)
+
+
+## [v0.0.12] - 2025-11-22
+### Changed
+- updated vcpkg baseline dependency
+
+### Fix
+- fix cpack dependencies
+
+## [v0.0.11] - 2025-11-1
+### Added
+- added cpack
+
+## [v0.0.10] - 2025-10-20
+### Fixed
+- default frame type eq check set to false. if not provided, change will not cause rerun
+
+### Changed
+- updated vcpkg baseline dependency
+
+## [v0.0.9] - 2025-10-19
+### Changed
+- updated dependencies nil-gate(v1.5.1)
+
 ## [v0.0.8] - 2025-08-23
 ### Added
 - `-j` support for parallel test execution.
