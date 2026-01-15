@@ -39,8 +39,8 @@ namespace nil::xit::test::frame::output
 
         struct Entry
         {
-            nil::gate::ports::Mutable<RerunTag>* rerun = nullptr;
-            nil::gate::ports::Mutable<bool>* requested = nullptr;
+            nil::gate::ports::External<RerunTag>* rerun = nullptr;
+            nil::gate::ports::External<bool>* requested = nullptr;
         };
 
         nil::xit::tagged::Frame* frame = nullptr;
@@ -64,9 +64,13 @@ namespace nil::xit::test::frame::output
 
         void add_info(std::string_view tag)
         {
-            info.emplace(
-                tag,
-                Entry{.rerun = gate->port(RerunTag()), .requested = gate->port(false)}
+            gate->post(
+                [tag, this](gate::Graph& graph) {
+                    info.emplace(
+                        tag,
+                        Entry{.rerun = graph.port(RerunTag()), .requested = graph.port(false)}
+                    );
+                }
             );
         }
 
@@ -78,7 +82,7 @@ namespace nil::xit::test::frame::output
             }
         }
 
-        gate::ports::Mutable<bool>* info_requested(std::string_view tag) const
+        gate::ports::External<bool>* info_requested(std::string_view tag) const
         {
             if (const auto it = info.find(tag); info.end() != it)
             {
@@ -87,7 +91,7 @@ namespace nil::xit::test::frame::output
             return nullptr;
         }
 
-        gate::ports::Mutable<RerunTag>* info_rerun(std::string_view tag) const
+        gate::ports::External<RerunTag>* info_rerun(std::string_view tag) const
         {
             if (const auto it = info.find(tag); info.end() != it)
             {

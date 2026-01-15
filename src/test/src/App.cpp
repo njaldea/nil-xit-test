@@ -11,14 +11,10 @@ namespace nil::xit::test
     App::App(nil::service::IService& service, std::string_view app_name, std::uint32_t jobs)
         : xit(nil::xit::create_core(service))
     {
-        if (jobs == 1)
-        {
-            gate.set_runner<nil::gate::runners::NonBlocking>();
-        }
-        else
-        {
-            gate.set_runner<nil::gate::runners::Parallel>(jobs);
-        }
+        using runner_ptr = std::unique_ptr<nil::gate::IRunner>;
+        runner = jobs == 1 ? runner_ptr(std::make_unique<nil::gate::runners::NonBlocking>())
+                           : runner_ptr(std::make_unique<nil::gate::runners::Parallel>(jobs));
+        gate.set_runner(runner.get());
         service.on_ready([this]() { gate.commit(); });
         set_cache_directory(*xit, std::filesystem::temp_directory_path() / app_name);
     }

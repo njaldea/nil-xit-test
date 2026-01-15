@@ -22,7 +22,7 @@ namespace nil::xit::test::frame::input::global
         std::unique_ptr<IDataManager<T>> manager;
         Entry info;
 
-        nil::gate::ports::Mutable<T>* get_port(std::string_view /* tag */) override
+        nil::gate::ports::External<T>* get_port(std::string_view /* tag */) override
         {
             if (info.input != nullptr)
             {
@@ -94,12 +94,17 @@ namespace nil::xit::test::frame::input::global
             );
         }
 
-        void add_info(std::string_view /* tag */) override
+        void add_info(std::string_view tag) override
         {
-            if (info.input == nullptr)
-            {
-                info.input = gate->port<T>();
-            }
+            gate->post(
+                [tag, this](gate::Graph& graph)
+                {
+                    if (info.input == nullptr)
+                    {
+                        info.input = graph.port<T>();
+                    }
+                }
+            );
         }
     };
 }

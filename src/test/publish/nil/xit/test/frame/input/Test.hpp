@@ -24,7 +24,7 @@ namespace nil::xit::test::frame::input::test
         std::unique_ptr<IDataManager<T, std::string_view>> manager;
         std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App
 
-        nil::gate::ports::Mutable<T>* get_port(std::string_view tag) override
+        nil::gate::ports::External<T>* get_port(std::string_view tag) override
         {
             if (const auto it = info.find(tag); it != info.end())
             {
@@ -114,7 +114,8 @@ namespace nil::xit::test::frame::input::test
 
         void add_info(std::string_view tag) override
         {
-            info.emplace(tag, Entry{std::nullopt, gate->port<T>()});
+            gate->post([tag, this](gate::Graph& graph)
+                       { info.emplace(tag, Entry{std::nullopt, graph.port<T>()}); });
         }
     };
 }

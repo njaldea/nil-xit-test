@@ -5,6 +5,7 @@
 #include "frame/input/Test.hpp"
 #include "frame/output/Info.hpp"
 
+#include <nil/gate/IRunner.hpp>
 #include <nil/gate/traits/port_override.hpp>
 #include <nil/service/structs.hpp>
 #include <nil/xit/add_frame.hpp>
@@ -263,92 +264,100 @@ namespace nil::xit::test
 
                 if constexpr ((sizeof...(O) + sizeof...(E)) > 0)
                 {
-                    auto result = gate.node(
-                        [cb = std::forward<Callable>(callable)] //
-                        (                                       //
-                            const nil::gate::Core& core,
-                            nil::gate::opt_outputs<Outputs..., Expects...> opt_outputs,
-                            bool enabled,
-                            const Inputs&... rest_i,
-                            const Expects&... rest_e
-                        )
+                    gate.post(
+                        [this,
+                         tag,
+                         callable = std::forward<Callable>(callable),
+                         inputs,
+                         outputs,
+                         expects](gate::Graph& graph) mutable
                         {
-                            if (enabled)
-                            {
-                                constexpr auto o_n = sizeof...(O);
+                            auto* enabling_node = graph.node(
+                                [](std::conditional_t<true, bool, decltype(O)>... flags_o,
+                                   std::conditional_t<true, bool, decltype(E)>... flags_e)
+                                { return (false || ... || flags_o) || (false || ... || flags_e); },
                                 {
-                                    auto b = core.batch(opt_outputs);
+                                    get<O>(outputs)->info_requested(tag)...,
+                                    get<E>(expects)->info_requested(tag)... //
+                                }
+                            );
+
+                            auto* test_node = graph.node(
+                                [cb = std::forward<Callable>(callable)] //
+                                (                                       //
+                                    nil::gate::opt_outputs<Outputs..., Expects...> opt_outputs,
+                                    bool enabled,
+                                    const Inputs&... rest_i,
+                                    const Expects&... rest_e
+                                )
+                                {
+                                    if (!enabled)
+                                    {
+                                        return;
+                                    }
+                                    constexpr auto o_n = sizeof...(O);
+                                    auto b = opt_outputs;
                                     auto r = cb(rest_i..., rest_e...);
                                     (get<O>(b)->set_value(std::move(get<O>(r))), ...);
                                     (get<E + o_n>(b)->set_value(std::move(get<E + o_n>(r))), ...);
+                                },
+                                {
+                                    get<0>(enabling_node->outputs()),
+                                    get<I>(inputs)->get_port(tag)...,
+                                    get<E>(expects)->get_port(tag)... //
                                 }
-                                core.commit();
-                            }
-                        },
-                        {
-                            get<0>( // enabler
-                                gate.node(
-                                    [](std::conditional_t<true, bool, decltype(O)>... flags_o,
-                                       std::conditional_t<true, bool, decltype(E)>... flags_e) {
-                                        return (false || ... || flags_o)
-                                            || (false || ... || flags_e);
-                                    },
+                            );
+
+                            auto result = test_node->outputs();
+
+                            if constexpr (sizeof...(O) > 0)
+                            {
+                                // iterate the output of the test and then map it with rerun tag
+                                // and see if it will need to pass the new value to the UI
+                                (
+                                    [&]<typename OType>(
+                                        frame::output::Info<OType>* output,
+                                        nil::gate::ports::ReadOnly<OType>* port
+                                    )
                                     {
-                                        get<O>(outputs)->info_requested(tag)...,
-                                        get<E>(expects)->info_requested(tag)... //
-                                    }
-                                )
-                            ),
-                            get<I>(inputs)->get_port(tag)...,
-                            get<E>(expects)->get_port(tag)... //
+                                        graph.node(
+                                            [output,
+                                             tag](const RerunTag& /* r */, const OType& output_data)
+                                            { output->post(tag, output_data); },
+                                            {output->info_rerun(tag), port}
+                                        );
+                                    }(get<O>(outputs), get<O>(result)),
+                                    ...
+                                );
+                            }
+
+                            if constexpr (sizeof...(E) > 0)
+                            {
+                                // iterate the expected of the test and then map it with rerun tag
+                                // and see if it will need to pass the new value to the UI
+                                (
+                                    [&]<typename EType>(
+                                        frame::expect::Info<EType>* expected,
+                                        nil::gate::ports::ReadOnly<EType>* port
+                                    )
+                                    {
+                                        graph.node(
+                                            [expected, tag] //
+                                            (const SingleFire& flag, const EType& expected_data)
+                                            {
+                                                if (flag.pop())
+                                                {
+                                                    expected->finalize(tag, expected_data);
+                                                }
+                                            },
+                                            {expected->info_single_fire(tag), port}
+                                        );
+                                    }(get<E>(expects), get<E + sizeof...(O)>(result)),
+                                    ...
+                                );
+                            }
                         }
                     );
-
-                    if constexpr (sizeof...(O) > 0)
-                    {
-                        // iterate the output of the test and then map it with rerun tag
-                        // and see if it will need to pass the new value to the UI
-                        (
-                            [&]<typename OType>(
-                                frame::output::Info<OType>* output,
-                                nil::gate::ports::ReadOnly<OType>* port
-                            )
-                            {
-                                gate.node(
-                                    [output, tag](const RerunTag& /* r */, const OType& output_data)
-                                    { output->post(tag, output_data); },
-                                    {output->info_rerun(tag), port}
-                                );
-                            }(get<O>(outputs), get<O>(result)),
-                            ...
-                        );
-                    }
-
-                    if constexpr (sizeof...(E) > 0)
-                    {
-                        // iterate the expected of the test and then map it with rerun tag
-                        // and see if it will need to pass the new value to the UI
-                        (
-                            [&]<typename EType>(
-                                frame::expect::Info<EType>* expected,
-                                nil::gate::ports::ReadOnly<EType>* port
-                            )
-                            {
-                                gate.node(
-                                    [expected, tag] //
-                                    (const SingleFire& flag, const EType& expected_data)
-                                    {
-                                        if (flag.pop())
-                                        {
-                                            expected->finalize(tag, expected_data);
-                                        }
-                                    },
-                                    {expected->info_single_fire(tag), port}
-                                );
-                            }(get<E>(expects), get<E + sizeof...(O)>(result)),
-                            ...
-                        );
-                    }
                 }
             }( //
                 std::index_sequence_for<Inputs...>(),
@@ -387,9 +396,15 @@ namespace nil::xit::test
             return nullptr;
         }
 
+        void start()
+        {
+            gate.commit();
+        }
+
     private:
         xit::Core* xit;
         nil::gate::Core gate;
+        std::unique_ptr<nil::gate::IRunner> runner;
 
         std::set<std::string> frames;
         // frame id to frame info - sv owned by frames

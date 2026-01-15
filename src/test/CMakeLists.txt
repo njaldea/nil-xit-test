@@ -1,8 +1,5 @@
 project(xit-test)
 
-find_package(nil-xit CONFIG REQUIRED)
-find_package(nil-gate CONFIG REQUIRED)
-
 set(
     SOURCES
         src/App.cpp

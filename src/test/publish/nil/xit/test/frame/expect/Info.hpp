@@ -41,10 +41,10 @@ namespace nil::xit::test::frame::expect
         struct Entry
         {
             bool is_initialized = false;
-            nil::gate::ports::Mutable<T>* input = nullptr;
-            nil::gate::ports::Mutable<bool>* enabler = nullptr;
-            nil::gate::ports::Mutable<SingleFire>* single_fire = nullptr;
-            nil::gate::ports::Mutable<bool>* requested = nullptr;
+            nil::gate::ports::External<T>* input = nullptr;
+            nil::gate::ports::External<bool>* enabler = nullptr;
+            nil::gate::ports::External<SingleFire>* single_fire = nullptr;
+            nil::gate::ports::External<bool>* requested = nullptr;
         };
 
         nil::xit::tagged::Frame* frame = nullptr;
@@ -52,7 +52,7 @@ namespace nil::xit::test::frame::expect
         std::unique_ptr<IDataManager<T, std::string_view>> manager;
         std::unordered_map<std::string_view, Entry> info; // sv owned by tags from App
 
-        nil::gate::ports::Mutable<T>* get_port(std::string_view tag)
+        nil::gate::ports::External<T>* get_port(std::string_view tag)
         {
             if (const auto it = info.find(tag); it != info.end())
             {
@@ -99,19 +99,24 @@ namespace nil::xit::test::frame::expect
 
         void add_info(std::string_view tag)
         {
-            info.emplace(
-                tag,
-                Entry{
-                    .is_initialized = false,
-                    .input = gate->port<T>(),
-                    .enabler = gate->port<bool>(),
-                    .single_fire = gate->port(SingleFire{.value = false}),
-                    .requested = gate->port(false)
+            gate->post(
+                [tag, this](gate::Graph& graph)
+                {
+                    info.emplace(
+                        tag,
+                        Entry{
+                            .is_initialized = false,
+                            .input = graph.port<T>(),
+                            .enabler = graph.port<bool>(),
+                            .single_fire = graph.port(SingleFire{.value = false}),
+                            .requested = graph.port(false)
+                        }
+                    );
                 }
             );
         }
 
-        gate::ports::Mutable<bool>* info_requested(std::string_view tag) const
+        gate::ports::External<bool>* info_requested(std::string_view tag) const
         {
             if (const auto it = info.find(tag); info.end() != it)
             {
@@ -120,7 +125,7 @@ namespace nil::xit::test::frame::expect
             return nullptr;
         }
 
-        gate::ports::Mutable<SingleFire>* info_single_fire(std::string_view tag) const
+        gate::ports::External<SingleFire>* info_single_fire(std::string_view tag) const
         {
             if (const auto it = info.find(tag); info.end() != it)
             {

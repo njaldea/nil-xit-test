@@ -150,6 +150,7 @@ namespace nil::xit::gtest
         instance.frame_builder.install(app);
         instance.test_builder.install(app, instance.paths.groups);
         instance.main_builder.install(app);
+        app.start();
 
         http_server->start();
         return 0;

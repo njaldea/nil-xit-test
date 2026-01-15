@@ -35,10 +35,10 @@ namespace nil::xit::test::frame::input
         {
             // data and input has duplicate data to ease thread safety
             std::optional<T> data;
-            nil::gate::ports::Mutable<T>* input = nullptr;
+            nil::gate::ports::External<T>* input = nullptr;
         };
 
-        virtual nil::gate::ports::Mutable<T>* get_port(std::string_view tag) = 0;
+        virtual nil::gate::ports::External<T>* get_port(std::string_view tag) = 0;
         virtual void add_info(std::string_view tag) = 0;
     };
 }

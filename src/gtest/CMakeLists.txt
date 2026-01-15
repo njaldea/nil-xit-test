@@ -1,8 +1,5 @@
 project(xit-gtest)
 
-find_package(nil-clix CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
-
 add_library(
     ${PROJECT_NAME}
     src/main.cpp
