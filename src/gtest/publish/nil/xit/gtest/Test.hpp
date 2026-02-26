@@ -155,10 +155,6 @@ namespace nil::xit::gtest
         Test& operator=(Test&&) = delete;
         Test& operator=(const Test&) = delete;
 
-        using input_frames = detail::InputFramesDefaulter<Fixture>::type;
-        using output_frames = detail::OutputFramesDefaulter<Fixture>::type;
-        using expect_frames = detail::ExpectFramesDefaulter<Fixture>::type;
-
         void setup()
         {
             if constexpr (requires() { Fixture::setup(); })
@@ -175,11 +171,7 @@ namespace nil::xit::gtest
             }
         }
 
-        void run( //
-            const input_frames::type& xit_inputs,
-            output_frames::type& xit_outputs,
-            expect_frames::type& xit_expects
-        );
+        using Fixture::run;
     };
 
     template <xalt::literal lit>

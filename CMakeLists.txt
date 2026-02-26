@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27.1)
 
 project(
     nil-xit-test
-    VERSION 0.0.15
+    VERSION 0.0.16
     LANGUAGES CXX
     DESCRIPTION "Test layer to nil-xit"
 )

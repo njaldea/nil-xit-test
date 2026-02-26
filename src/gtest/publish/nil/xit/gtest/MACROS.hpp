@@ -16,14 +16,21 @@
     static_assert(nil::xit::gtest::is_valid_path<PATH>);                                           \
     struct xit_test_##SUITE##_##CASE: XIT_WRAP(BASE)                                               \
     {                                                                                              \
+        using input_frames = nil::xit::gtest::detail::InputFramesDefaulter<XIT_WRAP(BASE)>::type;  \
+        using output_frames = nil::xit::gtest::detail::OutputFramesDefaulter<XIT_WRAP(BASE)>::type;\
+        using expect_frames = nil::xit::gtest::detail::ExpectFramesDefaulter<XIT_WRAP(BASE)>::type;\
+        void run(                                                                                  \
+            const input_frames::type& xit_inputs,                                                  \
+            output_frames::type& xit_outputs,                                                      \
+            expect_frames::type& xit_expects                                                       \
+        );                                                                                         \
     };                                                                                             \
     const auto v_xit_test_##SUITE##_##CASE = XIT_IIFE(                                             \
         XIT_INSTANCE.paths.used_groups.emplace(XIT_FG(PATH).group);                                \
         XIT_INSTANCE.test_builder                                                                  \
             .add_test<xit_test_##SUITE##_##CASE>(#SUITE, #CASE, XIT_FG(PATH), __FILE__, __LINE__)  \
     );                                                                                             \
-    template <>                                                                                    \
-    void nil::xit::gtest::Test<xit_test_##SUITE##_##CASE>::run(                                    \
+    void xit_test_##SUITE##_##CASE::run(                                                           \
         [[maybe_unused]] const input_frames::type& xit_inputs,                                     \
         [[maybe_unused]] output_frames::type& xit_outputs,                                         \
         [[maybe_unused]] expect_frames::type& xit_expects                                          \

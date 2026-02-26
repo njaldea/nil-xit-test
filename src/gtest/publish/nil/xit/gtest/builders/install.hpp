@@ -65,12 +65,12 @@ namespace nil::xit::gtest::builders
 
                 auto outputs = [&]<std::size_t... OI>(std::index_sequence<OI...>) //
                 {                                                                 //
-                    return typename output_frames::type{&get<1 + OI>(result)...};
+                    return typename output_frames::type{{&get<1 + OI>(result)...}};
                 }(std::make_index_sequence<sizeof...(O)>());
 
                 auto expects = [&]<std::size_t... EI>(std::index_sequence<EI...>) //
                 {                                                                 //
-                    return typename expect_frames::type{&get<1 + EI + sizeof...(O)>(result)...};
+                    return typename expect_frames::type{{&get<1 + EI + sizeof...(O)>(result)...}};
                 }(std::make_index_sequence<sizeof...(E)>());
 
                 get<0>(result) = run_test<T>(inputs, outputs, expects);
