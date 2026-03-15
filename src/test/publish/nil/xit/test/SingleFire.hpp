@@ -9,5 +9,4 @@ namespace nil::xit::test
         bool operator==(const SingleFire& /* o */) const;
         bool pop() const;
     };
-
 }

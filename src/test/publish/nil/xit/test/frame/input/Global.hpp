@@ -38,7 +38,9 @@ namespace nil::xit::test::frame::input::global
                 info.data = manager->initialize();
                 if (info.input != nullptr)
                 {
-                    info.input->set_value(info.data.value());
+                    const auto r = info.input->to_direct();
+                    gate->post([r, data = info.data.value()]() mutable
+                               { r->set_value(std::move(data)); });
                 }
             }
         }
@@ -77,7 +79,9 @@ namespace nil::xit::test::frame::input::global
                     accessor(parent->info.data.value()) = std::move(new_data);
                     if (parent->info.input != nullptr)
                     {
-                        parent->info.input->set_value(parent->info.data.value());
+                        const auto r = parent->info.input->to_direct();
+                        parent->gate->post([r, data = parent->info.data.value()]() mutable
+                                           { r->set_value(std::move(data)); });
                     }
                     parent->manager->update(parent->info.data.value());
                     parent->gate->commit();

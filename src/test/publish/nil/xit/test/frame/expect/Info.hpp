@@ -68,7 +68,9 @@ namespace nil::xit::test::frame::expect
                 if (auto& entry = it->second; !entry.is_initialized && entry.input != nullptr)
                 {
                     entry.is_initialized = true;
-                    entry.input->set_value(manager->initialize(tag));
+                    const auto r = entry.input->to_direct();
+                    gate->post([r, v = manager->initialize(tag)]() mutable
+                               { r->set_value(std::move(v)); });
                     gate->commit();
                 }
             }
@@ -78,7 +80,9 @@ namespace nil::xit::test::frame::expect
         {
             if (auto it = info.find(tag); it != info.end())
             {
-                it->second.single_fire->set_value(SingleFire{.value = true});
+                const auto r = it->second.single_fire->to_direct();
+                gate->post([r, v = manager->initialize(tag)]()
+                           { r->set_value(SingleFire{.value = true}); });
                 gate->commit();
             }
         }
@@ -88,11 +92,8 @@ namespace nil::xit::test::frame::expect
             if (auto it = info.find(tag); it != info.end())
             {
                 manager->finalize(tag, data);
-                it->second.input->set_value(data);
-                // TODO: figure out how to do auto loop back when updated
-                // if (should_refire?) {
-                //     it->second.single_fire->set_value(SingleFire{.value = true});
-                // }
+                const auto r = it->second.input->to_direct();
+                gate->post([r, data]() mutable { r->set_value(std::move(data)); });
                 gate->commit();
             }
         }

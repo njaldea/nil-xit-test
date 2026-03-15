@@ -142,6 +142,7 @@ namespace nil::xit::gtest
                               { std::cout << "http://" << id.text << std::endl; });
 
         test::App app(
+            *http_server,
             *http_server->use_ws("/ws"),
             "nil-xit-gtest",
             std::uint32_t(number(options, "jobs"))

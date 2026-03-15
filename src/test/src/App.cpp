@@ -2,18 +2,19 @@
 #include <nil/xit/structs.hpp>
 #include <nil/xit/test.hpp>
 
-// TODO: use better runner like asio/parallel
-#include <nil/gate/runners/NonBlocking.hpp>
-#include <nil/gate/runners/Parallel.hpp>
+#include <nil/gate/runners/Async.hpp>
 
 namespace nil::xit::test
 {
-    App::App(nil::service::IService& service, std::string_view app_name, std::uint32_t jobs)
-        : xit(nil::xit::create_core(service))
+    App::App(
+        nil::service::IRunnableService& run_service,
+        nil::service::IService& service,
+        std::string_view app_name,
+        std::uint32_t jobs
+    )
+        : xit(nil::xit::create_core(run_service, service))
     {
-        using runner_ptr = std::unique_ptr<nil::gate::IRunner>;
-        runner = jobs == 1 ? runner_ptr(std::make_unique<nil::gate::runners::NonBlocking>())
-                           : runner_ptr(std::make_unique<nil::gate::runners::Parallel>(jobs));
+        runner = std::make_unique<nil::gate::runners::Async>(jobs == 0 ? 10 : jobs);
         gate.set_runner(runner.get());
         service.on_ready([this]() { gate.commit(); });
         set_cache_directory(*xit, std::filesystem::temp_directory_path() / app_name);

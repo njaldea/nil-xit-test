@@ -42,7 +42,9 @@ namespace nil::xit::test::frame::input::test
                     if (entry.input != nullptr)
                     {
                         entry.data = manager->initialize(tag);
-                        entry.input->set_value(entry.data.value());
+                        const auto r = entry.input->to_direct();
+                        gate->post([r, data = entry.data.value()]() mutable
+                                   { r->set_value(std::move(data)); });
                     }
                 }
             }
@@ -94,7 +96,9 @@ namespace nil::xit::test::frame::input::test
                         accessor(entry.data.value()) = std::move(new_data);
                         if (entry.input != nullptr)
                         {
-                            entry.input->set_value(entry.data.value());
+                            const auto r = entry.input->to_direct();
+                            parent->gate->post([r, data = entry.data.value()]() mutable
+                                               { r->set_value(std::move(data)); });
                         }
                         parent->manager->update(tag, entry.data.value());
                         parent->gate->commit();

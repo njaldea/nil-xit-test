@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <set>
 #include <string_view>
-#include <type_traits>
 #include <utility>
 
 namespace nil::gate::traits
@@ -41,7 +40,10 @@ namespace nil::xit::test
     class App
     {
     public:
-        App(service::IService& service, std::string_view app_name, std::uint32_t jobs);
+        App(service::IRunnableService& run_service,
+            service::IService& service,
+            std::string_view app_name,
+            std::uint32_t jobs);
 
         ~App() noexcept;
         App(App&&) = delete;
@@ -435,8 +437,7 @@ namespace nil::xit::test
                 {
                     if (const auto rerun = s->info_rerun(tag); rerun != nullptr)
                     {
-                        rerun->set_value({});
-                        s->gate->commit();
+                        s->gate->apply([r = rerun->to_direct()]() { r->set_value({}); });
                     }
                 }
             );
@@ -451,7 +452,8 @@ namespace nil::xit::test
                 {
                     if (auto* requested = s->info_requested(tag); requested != nullptr)
                     {
-                        requested->set_value(count > 0);
+                        s->gate->post([r = requested->to_direct(), v = count > 0]()
+                                      { r->set_value(v); });
                     }
                     if (count == 1)
                     {
@@ -472,6 +474,7 @@ namespace nil::xit::test
                             }
                         }
                     }
+                    s->gate->commit();
                 }
             );
         }
