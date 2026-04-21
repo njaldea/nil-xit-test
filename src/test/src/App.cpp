@@ -8,15 +8,15 @@ namespace nil::xit::test
 {
     App::App(
         nil::service::IRunnableService& run_service,
-        nil::service::IService& service,
+        nil::service::IEventService& event_service,
         std::string_view app_name,
         std::uint32_t jobs
     )
-        : xit(nil::xit::create_core(run_service, service))
+        : xit(nil::xit::create_core(run_service, event_service))
     {
         runner = std::make_unique<nil::gate::runners::Async>(jobs == 0 ? 10 : jobs);
         gate.set_runner(runner.get());
-        service.on_ready([this]() { gate.commit(); });
+        event_service.on_ready([this]() { gate.commit(); });
         set_cache_directory(*xit, std::filesystem::temp_directory_path() / app_name);
     }
 

@@ -63,7 +63,8 @@ namespace nil::xit::gtest::builders::output
                 : app.add_output<T>(id);
             if (this->values.empty())
             {
-                if constexpr (nil::xit::is_built_in_value<T> || nil::xit::has_codec<T>)
+                if constexpr (nil::xit::detail::has_deserialize<T>
+                              && nil::xit::detail::has_serialize<T>)
                 {
                     frame->template add_value<T>("value", from_self<T>());
                 }

@@ -58,7 +58,7 @@ namespace nil::xit::test::frame::output
             );
             values.push_back( //
                 [value, accessor = std::move(accessor)](std::string_view tag, const T& data)
-                { nil::xit::tagged::post(std::string(tag), *value, accessor(data)); }
+                { nil::xit::tagged::post(*value, std::string(tag), accessor(data)); }
             );
         }
 

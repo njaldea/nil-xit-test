@@ -6,6 +6,7 @@
 #include "../../../utils/from_self.hpp"
 #include "Frame.hpp"
 
+#include <nil/xit/buffer_type.hpp>
 #include <nil/xit/test/App.hpp>
 #include <nil/xit/test/frame/input/Global.hpp>
 
@@ -81,7 +82,8 @@ namespace nil::xit::gtest::builders::input::global
                 : app.add_global_input<T>(loader_creator(), id);
             if (this->values.empty())
             {
-                if constexpr (nil::xit::is_built_in_value<T> || nil::xit::has_codec<T>)
+                if constexpr (nil::xit::detail::has_deserialize<T>
+                              && nil::xit::detail::has_serialize<T>)
                 {
                     frame->template add_value<T>("value", from_self<T>());
                 }

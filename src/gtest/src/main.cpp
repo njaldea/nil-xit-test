@@ -139,7 +139,7 @@ namespace nil::xit::gtest
         nil::xit::setup_server(*http_server, instance.paths.assets);
 
         http_server->on_ready([](const nil::service::ID& id)
-                              { std::cout << "http://" << id.text << std::endl; });
+                              { std::cout << "http://" << to_string(id) << std::endl; });
 
         test::App app(
             *http_server,
@@ -213,9 +213,11 @@ namespace nil::xit::gtest
 
     int main(int argc, const char* const* argv)
     {
-        auto node = nil::clix::create_node();
-        node_headless(node);
-        return nil::clix::run(node, argc, argv);
+        auto* node = nil::clix::create_node();
+        node_headless(*node);
+        auto v = nil::clix::run(*node, argc, argv);
+        clix::destroy_node(node);
+        return v;
     }
 }
 

@@ -41,7 +41,7 @@ namespace nil::xit::test
     {
     public:
         App(service::IRunnableService& run_service,
-            service::IService& service,
+            service::IEventService& event_service,
             std::string_view app_name,
             std::uint32_t jobs);
 
