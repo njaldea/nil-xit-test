@@ -14,21 +14,22 @@
 
 namespace nil::xit::gtest
 {
-    int run_help(const nil::clix::Options& options)
+    int run_help(const nil::clix::Options& options, const auto& groups)
     {
-        auto& instance = get_instance();
-
         help(options, std::cout);
 
-        std::cout << "EXPECTED GROUPS:\n";
-        for (const auto& g : instance.paths.used_groups)
+        if (!groups.empty())
         {
-            std::cout << " -  " << g << '\n';
+            std::cout << "\nEXPECTED GROUPS:\n";
+            for (const auto& group : groups)
+            {
+                std::cout << " -  " << group << '\n';
+            }
         }
         return 0;
     }
 
-    bool parse_groups(const nil::clix::Options& options)
+    bool parse_groups(const nil::clix::Options& options, const auto& groups)
     {
         bool status = true;
         auto& instance = get_instance();
@@ -60,9 +61,20 @@ namespace nil::xit::gtest
             }
         }
 
+        if (flag(options, "verbose"))
+        {
+            for (const auto& group : instance.paths.groups)
+            {
+                if (!groups.contains(group.first))
+                {
+                    std::cerr << "unknown group: " << group.first << '\n';
+                }
+            }
+        }
+
         if (!flag(options, "ignore-missing-groups"))
         {
-            for (const auto& group : instance.paths.used_groups)
+            for (const auto& group : groups)
             {
                 if (!instance.paths.groups.contains(group))
                 {
@@ -75,37 +87,44 @@ namespace nil::xit::gtest
         return status;
     }
 
-    void print_groups()
+    void print_groups(const auto& groups)
     {
         auto& instance = get_instance();
         std::cout << "GROUPS:\n";
-        for (const auto& g : instance.paths.used_groups)
+        for (const auto& group : groups)
         {
-            auto it = instance.paths.groups.find(g);
+            auto it = instance.paths.groups.find(group);
             if (it != instance.paths.groups.end())
             {
-                std::cout << " -  " << g << '=' << it->second.c_str() << '\n';
+                std::cout << " -  " << group << '=' << it->second.c_str() << '\n';
             }
             else
             {
-                std::cout << " -  " << g << "=??\n";
+                std::cout << " -  " << group << "=??\n";
             }
         }
     }
 
     int run_gui(const nil::clix::Options& options)
     {
+        auto& instance = get_instance();
+
+        std::set<std::string_view> groups;
+        groups.insert(
+            instance.paths.used_test_groups.begin(),
+            instance.paths.used_test_groups.end()
+        );
+        groups.insert(instance.paths.used_ui_groups.begin(), instance.paths.used_ui_groups.end());
+
         if (flag(options, "help"))
         {
-            return run_help(options);
+            return run_help(options, groups);
         }
 
-        if (!parse_groups(options))
+        if (!parse_groups(options, groups))
         {
             return 1;
         }
-
-        auto& instance = get_instance();
 
         if (has_value(options, "path-assets"))
         {
@@ -125,7 +144,7 @@ namespace nil::xit::gtest
             instance.test_builder.install(std::cout, instance.paths.groups);
             if (flag(options, "verbose"))
             {
-                print_groups();
+                print_groups(groups);
             }
             return 0;
         }
@@ -153,7 +172,7 @@ namespace nil::xit::gtest
         instance.main_builder.install(app);
         app.start();
 
-        http_server->start();
+        http_server->run();
         return 0;
     }
 
@@ -161,10 +180,10 @@ namespace nil::xit::gtest
     {
         if (flag(options, "help"))
         {
-            return run_help(options);
+            return run_help(options, get_instance().paths.used_test_groups);
         }
 
-        if (!parse_groups(options))
+        if (!parse_groups(options, get_instance().paths.used_test_groups))
         {
             return 1;
         }
@@ -180,7 +199,7 @@ namespace nil::xit::gtest
 
         if (flag(options, "list") && flag(options, "verbose"))
         {
-            print_groups();
+            print_groups(instance.paths.used_test_groups);
         }
         return result;
     }
@@ -189,7 +208,7 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
-        flag(node, "verbose", {.skey = 'v', .msg = "list additiona information like groups"});
+        flag(node, "verbose", {.skey = 'v', .msg = "list additional information like groups"});
         flag(node, "clear", {.skey = 'c', .msg = "clear cache on boot"});
         flag(node, "ignore-missing-groups", {.skey = 'i', .msg = "ignore missing groups"});
         param(node, "host", {.skey = {}, .msg = "use host", .fallback = "127.0.0.1"});
@@ -204,7 +223,7 @@ namespace nil::xit::gtest
     {
         flag(node, "help", {.skey = 'h', .msg = "show this help"});
         flag(node, "list", {.skey = 'l', .msg = "list available tests"});
-        flag(node, "verbose", {.skey = 'v', .msg = "list additiona information like groups"});
+        flag(node, "verbose", {.skey = 'v', .msg = "list additional information like groups"});
         flag(node, "ignore-missing-groups", {.skey = 'i', .msg = "ignore missing groups"});
         params(node, "path-group", {.skey = 'g', .msg = "add group path"});
         sub(node, "gui", "run in gui mode", node_gui);
@@ -215,7 +234,7 @@ namespace nil::xit::gtest
     {
         auto* node = nil::clix::create_node();
         node_headless(*node);
-        auto v = nil::clix::run(*node, argc, argv);
+        auto v = nil::clix::run(*node, argc - 1, argv + 1);
         clix::destroy_node(node);
         return v;
     }

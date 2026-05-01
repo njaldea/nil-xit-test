@@ -20,7 +20,8 @@ namespace nil::xit::gtest
         {
             std::vector<std::filesystem::path> assets;
             xalt::transparent_umap<std::filesystem::path> groups;
-            std::set<std::string> used_groups;
+            std::set<std::string> used_test_groups;
+            std::set<std::string> used_ui_groups;
         };
 
         Paths paths;
