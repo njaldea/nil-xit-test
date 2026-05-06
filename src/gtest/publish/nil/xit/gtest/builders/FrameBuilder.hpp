@@ -16,6 +16,10 @@
 
 namespace nil::xit::gtest::builders
 {
+    struct none
+    {
+    };
+
     template <typename T>
     concept is_loader_unique = requires() {
         { T::initialize() };
@@ -37,104 +41,123 @@ namespace nil::xit::gtest::builders
 
         template <typename Loader>
             requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
-        auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)
+        auto& create_test_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_test_input(
                 std::move(id),
-                std::move(path),
+                std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <typename Loader>
             requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
-        auto& create_test_input(std::string id, std::optional<std::string> path, Loader loader)
+        auto& create_test_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
 
-            return static_cast<input::test::Frame<type>&>(
-                *input_frames.emplace_back(std::make_unique<input::test::InputFrame<type>>(
-                    std::move(id),
-                    std::move(path),
-                    [loader = std::move(loader)]()
-                    {
-                        using test::frame::make_data_manager;
-                        return make_data_manager<loader_t, type, std::string_view>(loader());
-                    }
-                ))
+            auto frame = std::make_unique<input::test::InputFrame<type>>(
+                std::move(id),
+                std::move(file_info),
+                [loader = std::move(loader)]()
+                {
+                    using test::frame::make_data_manager;
+                    return make_data_manager<loader_t, type, std::string_view>(loader());
+                }
             );
+            input::test::Frame<type>* ptr = frame.get();
+            input_frames.emplace_back(std::move(frame));
+            return *ptr;
+        }
+
+        auto& create_test_input(std::string id, std::optional<FileInfo> file_info)
+        {
+            return create_test_input(std::move(id), std::move(file_info), []() { return none(); });
         }
 
         template <typename Loader>
             requires(!is_loader_unique<decltype(std::declval<Loader>()())>)
-        auto& create_global_input(std::string id, std::optional<std::string> path, Loader loader)
+        auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_global_input(
                 std::move(id),
-                std::move(path),
+                std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <typename Loader>
             requires(is_loader_unique<decltype(std::declval<Loader>()())>)
-        auto& create_global_input(std::string id, std::optional<std::string> path, Loader loader)
+        auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize())>;
 
-            return static_cast<input::global::Frame<type>&>(
-                *input_frames.emplace_back(std::make_unique<input::global::InputFrame<type>>(
-                    std::move(id),
-                    std::move(path),
-                    [loader = std::move(loader)]()
-                    {
-                        using test::frame::make_data_manager;
-                        return make_data_manager<loader_t, type>(loader());
-                    }
-                ))
+            auto frame = std::make_unique<input::global::InputFrame<type>>(
+                std::move(id),
+                std::move(file_info),
+                [loader = std::move(loader)]()
+                {
+                    using test::frame::make_data_manager;
+                    return make_data_manager<loader_t, type>(loader());
+                }
+            );
+            input::global::Frame<type>* ptr = frame.get();
+            input_frames.emplace_back(std::move(frame));
+            return *ptr;
+        }
+
+        auto& create_global_input(std::string id, std::optional<FileInfo> file_info)
+        {
+            return create_global_input(
+                std::move(id),
+                std::move(file_info),
+                []() { return none(); }
             );
         }
 
         template <typename Loader>
             requires(!is_loader_tagged<decltype(std::declval<Loader>()())>)
-        auto& create_expect(std::string id, std::optional<std::string> path, Loader loader)
+        auto& create_expect(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             return create_expect(
                 std::move(id),
-                std::move(path),
+                std::move(file_info),
                 [loader = std::move(loader)]() { return from_data(loader()); }
             );
         }
 
         template <typename Loader>
             requires(is_loader_tagged<decltype(std::declval<Loader>()())>)
-        auto& create_expect(std::string id, std::optional<std::string> path, Loader loader)
+        auto& create_expect(std::string id, std::optional<FileInfo> file_info, Loader loader)
         {
             using loader_t = std::remove_cvref_t<decltype(loader())>;
             using type = std::remove_cvref_t<decltype(loader().initialize(std::string_view()))>;
 
-            return static_cast<expect::Frame<type>&>(
-                *expect_frames.emplace_back(std::make_unique<expect::ExpectFrame<type>>(
-                    std::move(id),
-                    std::move(path),
-                    [loader = std::move(loader)]()
-                    {
-                        using test::frame::make_data_manager;
-                        return make_data_manager<loader_t, type, std::string_view>(loader());
-                    }
-                ))
+            auto frame = std::make_unique<expect::ExpectFrame<type>>(
+                std::move(id),
+                std::move(file_info),
+                [loader = std::move(loader)]()
+                {
+                    using test::frame::make_data_manager;
+                    return make_data_manager<loader_t, type, std::string_view>(loader());
+                }
             );
+            expect::Frame<type>* ptr = frame.get();
+            expect_frames.emplace_back(std::move(frame));
+            return *ptr;
         }
 
         template <typename T>
-        auto& create_output(std::string id, std::optional<std::string> path)
+        auto& create_output(std::string id, std::optional<FileInfo> file_info)
         {
             using type = std::remove_cvref_t<T>;
-            return static_cast<output::Frame<type>&>(*output_frames.emplace_back(
-                std::make_unique<output::OutputFrame<type>>(std::move(id), std::move(path))
-            ));
+            auto frame
+                = std::make_unique<output::OutputFrame<type>>(std::move(id), std::move(file_info));
+            output::Frame<type>* ptr = frame.get();
+            output_frames.emplace_back(std::move(frame));
+            return *ptr;
         }
 
         void install(test::App& app) const;
@@ -144,5 +167,32 @@ namespace nil::xit::gtest::builders
         std::vector<std::unique_ptr<input::IFrame>> input_frames;
         std::vector<std::unique_ptr<expect::IFrame>> expect_frames;
         std::vector<std::unique_ptr<IFrame>> output_frames;
+    };
+}
+
+namespace nil::service
+{
+    template <>
+    struct codec<xit::gtest::builders::none>
+    {
+        static std::size_t size(const xit::gtest::builders::none& message)
+        {
+            (void)message;
+            return 0;
+        }
+
+        static std::size_t serialize(void* output, const xit::gtest::builders::none& data)
+        {
+            (void)output;
+            (void)data;
+            return 0;
+        }
+
+        static xit::gtest::builders::none deserialize(const void* input, std::uint64_t size)
+        {
+            (void)input;
+            (void)size;
+            return {};
+        }
     };
 }

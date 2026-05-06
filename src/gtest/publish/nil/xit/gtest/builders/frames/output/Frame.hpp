@@ -10,7 +10,7 @@
 namespace nil::xit::gtest::builders::output
 {
     template <typename T>
-    class Frame: public builders::IFrame
+    class Frame
     {
     public:
         using type = T;
@@ -41,25 +41,34 @@ namespace nil::xit::gtest::builders::output
             return value(std::move(id), from_self<T>());
         }
 
+        Frame<T>& option(std::string key, std::string value)
+        {
+            options.emplace_back(std::move(key), std::move(value));
+        }
+
     protected:
         // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
         std::vector<std::function<void(nil::xit::test::frame::output::Info<T>&)>> values;
+        // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
+        std::vector<std::tuple<std::string, std::string>> options;
     };
 
     template <typename T>
-    class OutputFrame final: public Frame<T>
+    class OutputFrame final
+        : public Frame<T>
+        , public builders::IFrame
     {
     public:
-        OutputFrame(std::string init_id, std::optional<std::string> init_path)
+        OutputFrame(std::string init_id, std::optional<FileInfo> init_file_info)
             : id(std::move(init_id))
-            , path(std::move(init_path))
+            , file_info(std::move(init_file_info))
         {
         }
 
         void install(test::App& app) override
         {
-            auto* frame = path.has_value() //
-                ? app.add_output<T>(id, path.value())
+            auto* frame = file_info.has_value() //
+                ? app.add_output<T>(id, file_info.value())
                 : app.add_output<T>(id);
             if (this->values.empty())
             {
@@ -76,10 +85,15 @@ namespace nil::xit::gtest::builders::output
                     value_installer(*frame);
                 }
             }
+
+            for (const auto& [key, value] : this->options)
+            {
+                add_option(*frame->frame, key, value);
+            }
         }
 
     private:
         std::string id;
-        std::optional<std::string> path;
+        std::optional<FileInfo> file_info;
     };
 }

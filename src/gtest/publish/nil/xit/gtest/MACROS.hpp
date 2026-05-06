@@ -8,6 +8,10 @@
 #define XIT_IIFE(X) []() { X; return nullptr; }()
 #define XIT_WRAP_R(...) []() { return __VA_ARGS__; }
 #define XIT_FG(P) nil::xit::gtest::detail::get_file_info<P>()
+#define XIT_REGISTER_UI_GROUP(P)                                                      \
+    if constexpr (nil::xalt::starts_with<P, "$">()) {                               \
+        XIT_INSTANCE.paths.used_ui_groups.emplace(nil::xit::gtest::detail::get_fg_name<P>()); \
+    }
 // clang-format on
 
 #define XIT_INSTANCE nil::xit::gtest::get_instance()
@@ -49,13 +53,15 @@
 // clang-format on
 
 #define XIT_FRAME_MAIN(PATH, ...)                                                                  \
+    inline const void* const xit_test_main_frame_group_reg                                         \
+        = XIT_IIFE(XIT_INSTANCE.main_builder.create_main(XIT_FG(PATH)););                          \
     inline const void* const xit_test_main_frame                                                   \
-        = XIT_IIFE(XIT_INSTANCE.main_builder.create_main(PATH);                                    \
-                   if constexpr (nil::xalt::starts_with<PATH, "$">()) {                            \
-                       XIT_INSTANCE.paths.used_ui_groups.emplace(                                  \
-                           nil::xit::gtest::detail::get_fg_name<PATH>()                            \
-                       );                                                                          \
-                   })
+        = &XIT_INSTANCE.main_builder.create_main(XIT_FG(PATH))
+
+#define XIT_ASSERT_NOT_UNIQUE(...)                                                                 \
+    static_assert(!nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);
+#define XIT_ASSERT_NOT_TAGGED(...)                                                                 \
+    static_assert(!nil::xit::gtest::builders::is_loader_tagged<decltype(__VA_ARGS__)>);
 
 #define XIT_FRAME_DETAIL(ID, SUFFIX, ETYPE, PATH, ...)                                             \
     template <>                                                                                    \
@@ -69,44 +75,40 @@
         static const void* const frame;                                                            \
     };                                                                                             \
     inline const void* const nil::xit::gtest::detail::Frame<ID>::frame                             \
-        = XIT_IIFE(if constexpr (nil::xalt::starts_with<PATH, "$">()) {                            \
-              XIT_INSTANCE.paths.used_ui_groups.emplace(                                           \
-                  nil::xit::gtest::detail::get_fg_name<PATH>()                                     \
-              );                                                                                   \
-          });                                                                                      \
+        = XIT_IIFE(XIT_REGISTER_UI_GROUP(PATH););                                                  \
     inline const void* const nil::xit::gtest::detail::Frame<ID>::holder                            \
         = &XIT_INSTANCE.frame_builder.__VA_ARGS__
 
 // clang-format off
 #define XIT_FRAME_TEST_INPUT(ID, ...)                                                                           \
-    static_assert(!nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);                         \
+    XIT_ASSERT_NOT_UNIQUE(__VA_ARGS__)                                                                          \
     XIT_FRAME_DETAIL(ID, ":T:N", Input, "", create_test_input(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_TEST_INPUT_V(ID, PATH, ...)                                                                   \
-    static_assert(!nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);                         \
-    XIT_FRAME_DETAIL(ID, ":T:V", Input, PATH, create_test_input(ID, PATH, XIT_WRAP_R(__VA_ARGS__)))
+    XIT_ASSERT_NOT_UNIQUE(__VA_ARGS__)                                                                          \
+    XIT_FRAME_DETAIL(ID, ":T:V", Input, PATH, create_test_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_TEST_V(ID, PATH)                                                                              \
-    XIT_FRAME_DETAIL(ID, ":T:V", Utility, PATH, create_test_input(ID, PATH, XIT_WRAP_R(nil::xit::gtest::none())))
+    XIT_FRAME_DETAIL(ID, ":T:V", Utility, PATH, create_test_input(ID, XIT_FG(PATH)))
 
 #define XIT_FRAME_GLOBAL_INPUT(ID, ...)                                                                         \
-    static_assert(!nil::xit::gtest::builders::is_loader_tagged<decltype(__VA_ARGS__)>);                         \
+    XIT_ASSERT_NOT_TAGGED(__VA_ARGS__)                                                                          \
     XIT_FRAME_DETAIL(ID, ":U:N", Input, "", create_global_input(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_GLOBAL_INPUT_V(ID, PATH, ...)                                                                 \
-    static_assert(!nil::xit::gtest::builders::is_loader_tagged<decltype(__VA_ARGS__)>);                         \
-    XIT_FRAME_DETAIL(ID, ":U:V", Input, PATH, create_global_input(ID, PATH, XIT_WRAP_R(__VA_ARGS__)))
+    XIT_ASSERT_NOT_TAGGED(__VA_ARGS__)                                                                          \
+    XIT_FRAME_DETAIL(ID, ":U:V", Input, PATH, create_global_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_GLOBAL_V(ID, PATH)                                                                            \
-    XIT_FRAME_DETAIL(ID, ":U:V", Utility, PATH, create_global_input(ID, PATH, XIT_WRAP_R(nil::xit::gtest::none())))
+    XIT_FRAME_DETAIL(ID, ":U:V", Utility, PATH, create_global_input(ID, XIT_FG(PATH)))
 
 #define XIT_FRAME_EXPECT(ID, ...)                                                                               \
-    static_assert(!nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);                         \
+    XIT_ASSERT_NOT_UNIQUE(__VA_ARGS__)                                                                          \
     XIT_FRAME_DETAIL(ID, ":T:N", Expect, "", create_expect(ID, {}, XIT_WRAP_R(__VA_ARGS__)))
 #define XIT_FRAME_EXPECT_V(ID, PATH, ...)                                                                       \
-    static_assert(!nil::xit::gtest::builders::is_loader_unique<decltype(__VA_ARGS__)>);                         \
-    XIT_FRAME_DETAIL(ID, ":T:V", Expect, PATH, create_expect(ID, PATH, XIT_WRAP_R(__VA_ARGS__)))
+    XIT_ASSERT_NOT_UNIQUE(__VA_ARGS__)                                                                          \
+    XIT_FRAME_DETAIL(ID, ":T:V", Expect, PATH, create_expect(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
 
 #define XIT_FRAME_OUTPUT(ID, ...)                                                                               \
     XIT_FRAME_DETAIL(ID, ":T:N", Output, "", create_output<__VA_ARGS__>(ID, {}))
 #define XIT_FRAME_OUTPUT_V(ID, PATH, ...)                                                                       \
-    XIT_FRAME_DETAIL(ID, ":T:V", Output, PATH, create_output<__VA_ARGS__>(ID, PATH))
+    XIT_FRAME_DETAIL(ID, ":T:V", Output, PATH, create_output<__VA_ARGS__>(ID, XIT_FG(PATH)))
 // clang-format on
 
 // Assumption is that GTEST only calls this on failure.

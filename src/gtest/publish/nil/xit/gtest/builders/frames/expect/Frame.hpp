@@ -3,6 +3,7 @@
 #include "../../../headless/CacheManager.hpp"
 #include "../IFrame.hpp"
 
+#include <nil/xit/tagged/add_option.hpp>
 #include <nil/xit/tagged/add_signal.hpp>
 #include <nil/xit/test/App.hpp>
 #include <nil/xit/test/frame/expect/Info.hpp>
@@ -16,13 +17,24 @@ namespace nil::xit::gtest::builders::expect
     };
 
     template <typename T>
-    struct Frame: IFrame
+    struct Frame
     {
         using type = T;
+
+        Frame<T>& option(std::string key, std::string value)
+        {
+            options.emplace_back(std::move(key), std::move(value));
+        }
+
+    protected:
+        // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
+        std::vector<std::tuple<std::string, std::string>> options;
     };
 
     template <typename T>
-    class ExpectFrame final: public Frame<T>
+    class ExpectFrame final
+        : public Frame<T>
+        , public IFrame
     {
     public:
         using loader_creator_t
@@ -30,26 +42,31 @@ namespace nil::xit::gtest::builders::expect
 
         ExpectFrame(
             std::string init_id,
-            std::optional<std::string> init_path,
+            std::optional<FileInfo> init_file_info,
             loader_creator_t init_loader_creator
         )
             : id(std::move(init_id))
-            , path(std::move(init_path))
+            , file_info(std::move(init_file_info))
             , loader_creator(std::move(init_loader_creator))
         {
         }
 
         void install(test::App& app) override
         {
-            auto* frame = path.has_value() //
-                ? app.add_expect<T>(loader_creator(), id, path.value())
+            auto* frame = file_info.has_value() //
+                ? app.add_expect<T>(loader_creator(), id, file_info.value())
                 : app.add_expect<T>(loader_creator(), id);
 
-            xit::tagged::add_signal(
+            add_signal(
                 *frame->frame,
                 "finalize",
                 [frame](std::string_view tag) { frame->finalize(tag); }
             );
+
+            for (const auto& [key, value] : this->options)
+            {
+                add_option(*frame->frame, key, value);
+            }
         }
 
         void install(headless::CacheManager& cache_manager) override
@@ -75,7 +92,7 @@ namespace nil::xit::gtest::builders::expect
 
     private:
         std::string id;
-        std::optional<std::string> path;
+        std::optional<FileInfo> file_info;
         loader_creator_t loader_creator;
     };
 }

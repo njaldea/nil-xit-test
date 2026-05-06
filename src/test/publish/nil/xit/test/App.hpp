@@ -68,7 +68,7 @@ namespace nil::xit::test
             std::vector<std::string_view> expects
         );
 
-        void add_main(std::string_view path)
+        unique::Frame& add_main(const FileInfo& file_info)
         {
             static constexpr auto converter = [](std::span<const std::string_view> ids)
             {
@@ -88,15 +88,6 @@ namespace nil::xit::test
             };
 
             {
-                auto& frame = add_unique_frame(*xit, "index", std::string(path));
-                add_value(frame, "tags", [this]() { return converter(installed_tags()); });
-                add_signal(
-                    frame,
-                    "finalize",
-                    [this](std::string_view tag) { return finalize_inputs(tag); }
-                );
-            }
-            {
                 auto& frame = add_tagged_frame(*xit, "frame_info");
                 add_value(
                     frame,
@@ -114,6 +105,14 @@ namespace nil::xit::test
                     [this](std::string_view tag) { return converter(installed_tag_expects(tag)); }
                 );
             }
+            auto& frame = add_unique_frame(*xit, "index", file_info);
+            add_value(frame, "tags", [this]() { return converter(installed_tags()); });
+            add_signal(
+                frame,
+                "finalize",
+                [this](std::string_view tag) { return finalize_inputs(tag); }
+            );
+            return frame;
         }
 
         template <typename T>
@@ -136,14 +135,14 @@ namespace nil::xit::test
         frame::input::test::Info<T>* add_test_input(
             std::unique_ptr<frame::IDataManager<T, std::string_view>> manager,
             std::string_view id,
-            std::string_view path
+            FileInfo file_info
         )
         {
             auto p = std::make_unique<frame::input::test::Info<T>>();
             auto* s = p.get();
             input_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(*xit, std::string(id), std::string(path));
+            s->frame = &add_tagged_frame(*xit, std::string(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -169,14 +168,14 @@ namespace nil::xit::test
         frame::input::global::Info<T>* add_global_input(
             std::unique_ptr<frame::IDataManager<T>> manager,
             std::string_view id,
-            std::string_view path
+            FileInfo file_info
         )
         {
             auto p = std::make_unique<frame::input::global::Info<T>>();
             auto* s = p.get();
             input_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_unique_frame(*xit, std::string(id), std::string(path));
+            s->frame = &add_unique_frame(*xit, std::string(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
             return s;
@@ -186,14 +185,14 @@ namespace nil::xit::test
         frame::expect::Info<T>* add_expect(
             std::unique_ptr<frame::IDataManager<T, std::string_view>> manager,
             std::string_view id,
-            std::string_view path
+            FileInfo file_info
         )
         {
             auto p = std::make_unique<frame::expect::Info<T>>();
             auto* s = p.get();
             expect_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(*xit, std::string(id), std::string(path));
+            s->frame = &add_tagged_frame(*xit, std::string(id), std::move(file_info));
             s->gate = &gate;
             s->manager = std::move(manager);
             add_info_on_sub(s);
@@ -232,13 +231,13 @@ namespace nil::xit::test
         }
 
         template <typename T>
-        frame::output::Info<T>* add_output(std::string_view id, std::string_view path)
+        frame::output::Info<T>* add_output(std::string_view id, const FileInfo& file_info)
         {
             auto p = std::make_unique<frame::output::Info<T>>();
             auto* s = p.get();
             output_frames.emplace(*frames.emplace(id).first, std::move(p));
 
-            s->frame = &add_tagged_frame(*xit, std::string(id), std::string(path));
+            s->frame = &add_tagged_frame(*xit, std::string(id), file_info);
             s->gate = &gate;
             add_info_on_load(s);
             add_info_on_sub(s);

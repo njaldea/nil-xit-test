@@ -176,8 +176,4 @@ namespace nil::xit::gtest
 
     template <xalt::literal lit>
     concept is_valid_path = xalt::starts_with<lit, "$">() && (xalt::find<lit, "/">() < sizeof(lit));
-
-    struct none
-    {
-    };
 }

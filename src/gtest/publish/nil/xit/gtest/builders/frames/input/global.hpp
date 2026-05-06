@@ -9,13 +9,14 @@
 #include <nil/xit/buffer_type.hpp>
 #include <nil/xit/test/App.hpp>
 #include <nil/xit/test/frame/input/Global.hpp>
+#include <nil/xit/unique/add_option.hpp>
 
 #include <type_traits>
 
 namespace nil::xit::gtest::builders::input::global
 {
     template <typename T>
-    class Frame: public IFrame
+    class Frame
     {
     public:
         using type = T;
@@ -52,13 +53,22 @@ namespace nil::xit::gtest::builders::input::global
             return value(std::move(id), from_data<Z>(std::move(unrelated_value)));
         }
 
+        Frame<T>& option(std::string key, std::string value)
+        {
+            options.emplace_back(std::move(key), std::move(value));
+        }
+
     protected:
         // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
         std::vector<std::function<void(nil::xit::test::frame::input::global::Info<T>&)>> values;
+        // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
+        std::vector<std::tuple<std::string, std::string>> options;
     };
 
     template <typename T>
-    class InputFrame final: public Frame<T>
+    class InputFrame final
+        : public Frame<T>
+        , public IFrame
     {
     public:
         using loader_creator_t
@@ -66,19 +76,19 @@ namespace nil::xit::gtest::builders::input::global
 
         InputFrame(
             std::string init_id,
-            std::optional<std::string> init_path,
+            std::optional<FileInfo> init_file_info,
             loader_creator_t init_loader_creator
         )
             : id(std::move(init_id))
-            , path(std::move(init_path))
+            , file_info(std::move(init_file_info))
             , loader_creator(std::move(init_loader_creator))
         {
         }
 
         void install(test::App& app) override
         {
-            auto* frame = path.has_value() //
-                ? app.add_global_input<T>(loader_creator(), id, path.value())
+            auto* frame = file_info.has_value() //
+                ? app.add_global_input<T>(loader_creator(), id, file_info.value())
                 : app.add_global_input<T>(loader_creator(), id);
             if (this->values.empty())
             {
@@ -95,7 +105,13 @@ namespace nil::xit::gtest::builders::input::global
                     installer(*frame);
                 }
             }
-            xit::unique::add_signal(*frame->frame, "finalize", [frame]() { frame->finalize({}); });
+
+            add_signal(*frame->frame, "finalize", [frame]() { frame->finalize({}); });
+
+            for (const auto& [key, value] : this->options)
+            {
+                add_option(*frame->frame, key, value);
+            }
         }
 
         void install(headless::CacheManager& cache_manager) override
@@ -120,7 +136,7 @@ namespace nil::xit::gtest::builders::input::global
 
     private:
         std::string id;
-        std::optional<std::string> path;
+        std::optional<FileInfo> file_info;
         loader_creator_t loader_creator;
     };
 }

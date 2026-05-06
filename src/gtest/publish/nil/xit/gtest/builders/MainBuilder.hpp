@@ -4,7 +4,6 @@
 
 #include <nil/xit/test/App.hpp>
 
-#include <string>
 #include <utility>
 
 namespace nil::xit::gtest::builders
@@ -12,9 +11,12 @@ namespace nil::xit::gtest::builders
     class MainBuilder final
     {
     public:
-        void create_main(std::string path)
+        main::Frame& create_main(FileInfo file_info)
         {
-            frame = std::make_unique<main::Frame>(std::move(path));
+            auto f = std::make_unique<main::MainFrame>(std::move(file_info));
+            auto* ptr = f.get();
+            frame = std::move(f);
+            return *ptr;
         }
 
         void install(test::App& app) const;
