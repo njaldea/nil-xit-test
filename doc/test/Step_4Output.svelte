@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { xit } from "@nil-/xit";
+    import { xit, codec_double } from "@nil-/xit";
 
     const { values } = xit();
 
-    const x = values.double("x", 0);
-    const y = values.double("y", 0);
-    const r = values.double("radius", 0);
+    const x = values("x", 0, codec_double);
+    const y = values("y", 0, codec_double);
+    const r = values("radius", 0, codec_double);
 </script>
 
 <div>x - {$x}</div>
