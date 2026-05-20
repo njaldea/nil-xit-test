@@ -21,6 +21,7 @@ set(
 )
 
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "nil-${PROJECT_NAME}")
 target_link_libraries(${PROJECT_NAME} PUBLIC nil::xit)
 target_link_libraries(${PROJECT_NAME} PUBLIC nil::gate)
 

@@ -27,6 +27,7 @@ add_library(
     publish/nil/xit/gtest/builders/frames/input/test.hpp
 )
 
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "nil-${PROJECT_NAME}")
 target_link_libraries(${PROJECT_NAME} PUBLIC xit-test)
 target_link_libraries(${PROJECT_NAME} PUBLIC GTest::gtest)
 target_link_libraries(${PROJECT_NAME} PRIVATE nil::clix)
