@@ -27,12 +27,20 @@ namespace nil::xit::gtest
         template <xalt::literal lit>
         auto get_file_info()
         {
-            static_assert(xalt::starts_with<lit, "$">());
-            static_assert(xalt::find<lit, "/">() != sizeof(lit));
-            return FileInfo{
-                get_fg_name<lit>(),
-                get_fg_path<lit>(),
-            };
+            if constexpr (xalt::starts_with<lit, "$">())
+            {
+                return FileInfo{
+                    get_fg_name<lit>(),
+                    get_fg_path<lit>(),
+                };
+            }
+            else
+            {
+                return FileInfo{
+                    "-",
+                    xalt::literal_sv<lit>,
+                };
+            }
         }
 
         template <xalt::literal S>

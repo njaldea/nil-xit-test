@@ -18,7 +18,8 @@
 
 // clang-format off
 #define XIT_TEST_DETAIL(BASE, SUITE, CASE, PATH)                                                   \
-    static_assert(nil::xit::gtest::is_valid_path<PATH>);                                           \
+    static_assert(nil::xalt::starts_with<PATH, "$">());                                           \
+    static_assert(nil::xalt::find<PATH, "/">() < sizeof(PATH));                                   \
     struct xit_test_##SUITE##_##CASE: XIT_WRAP(BASE)                                               \
     {                                                                                              \
         using input_frames = nil::xit::gtest::detail::InputFramesDefaulter<XIT_WRAP(BASE)>::type;  \
