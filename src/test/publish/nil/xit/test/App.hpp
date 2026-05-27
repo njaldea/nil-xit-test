@@ -449,11 +449,6 @@ namespace nil::xit::test
                 *s->frame,
                 [this, s](std::string_view tag, std::size_t count)
                 {
-                    if (auto* requested = s->info_requested(tag); requested != nullptr)
-                    {
-                        s->gate->post([r = requested->to_direct(), v = count > 0]()
-                                      { r->set_value(v); });
-                    }
                     if (count == 1)
                     {
                         for (const auto& f : this->installed_tag_inputs(tag))
@@ -473,7 +468,12 @@ namespace nil::xit::test
                             }
                         }
                     }
-                    s->gate->commit();
+                    if (auto* requested = s->info_requested(tag); requested != nullptr)
+                    {
+                        s->gate->post([r = requested->to_direct(), v = count > 0]()
+                                      { r->set_value(v); });
+                        s->gate->commit();
+                    }
                 }
             );
         }

@@ -93,7 +93,14 @@ namespace nil::xit::test::frame::input::test
                     if (auto it = parent->info.find(tag); it != parent->info.end())
                     {
                         auto& entry = it->second;
-                        accessor(entry.data.value()) = std::move(new_data);
+                        auto& v = accessor(entry.data.value());
+
+                        if (nil::gate::traits::port::is_eq(v, new_data))
+                        {
+                            return;
+                        }
+
+                        v = std::move(new_data);
                         if (entry.input != nullptr)
                         {
                             const auto r = entry.input->to_direct();

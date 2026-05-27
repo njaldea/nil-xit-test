@@ -76,7 +76,14 @@ namespace nil::xit::test::frame::input::global
 
                 void set(V new_data) override
                 {
-                    accessor(parent->info.data.value()) = std::move(new_data);
+                    auto& v = accessor(parent->info.data.value());
+
+                    if (nil::gate::traits::port::is_eq(v, new_data))
+                    {
+                        return;
+                    }
+
+                    v = std::move(new_data);
                     if (parent->info.input != nullptr)
                     {
                         const auto r = parent->info.input->to_direct();
