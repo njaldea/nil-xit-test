@@ -1,26 +1,5 @@
 # CMake helpers for nil-xit-test integration
 
-include(ExternalProject)
-
-set(TARBALL_FILE "xit-0.4.32.tgz")
-set(TARBALL_URL "https://registry.npmjs.org/@nil-/xit/-/${TARBALL_FILE}")
-set(TARBALL_PATH "${CMAKE_BINARY_DIR}/${TARBALL_FILE}")
-set(EXTRACT_DIR "${CMAKE_BINARY_DIR}/assets/xit")
-# set(EXTRACT_DEBUG_DIR "${CMAKE_BINARY_DIR}")
-
-ExternalProject_Add(
-    xit_assets_download
-    PREFIX ${CMAKE_BINARY_DIR}/xit_dl
-    URL ${TARBALL_URL}
-    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/assets/xit
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-    LOG_DOWNLOAD ON
-    LOG_BUILD ON
-)
-
 # Global configuration (cached)
 # These control the GUI invocation for all xit tests.
 set(NIL_XIT_CLEAR OFF   CACHE BOOL   "Clear on GUI start (-c)")
@@ -51,9 +30,6 @@ function(add_xit_test TARGET)
     # Create the test executable directly
     add_executable(${TARGET} ${XIT_SOURCES})
     
-    # Ensure assets are downloaded before building
-    add_dependencies(${TARGET} xit_assets_download)
-    
     # Apply clang-tidy settings if enabled
     if(ENABLE_CLANG_TIDY AND CMAKE_CXX_CLANG_TIDY)
         set_target_properties(${TARGET} PROPERTIES CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};-checks=-readability-function-cognitive-complexity")
@@ -79,8 +55,6 @@ function(add_xit_test TARGET)
     set(
         gui_args gui
         ${group_args}
-        -a "${EXTRACT_DIR}/assets"
-        # -a "${EXTRACT_DEBUG_DIR}/assets"
         "-p${NIL_XIT_PORT}"
         "-j${NIL_XIT_JOBS}"
         $<$<BOOL:${NIL_XIT_CLEAR}>:-c>
@@ -93,8 +67,4 @@ function(add_xit_test TARGET)
         COMMENT "Launching ${TARGET} in GUI mode"
         USES_TERMINAL
     )
-    
-    # Ensure GUI target depends on both the test executable and downloaded assets
-    add_dependencies(${TARGET}_gui ${TARGET} xit_assets_download)
-    
 endfunction()

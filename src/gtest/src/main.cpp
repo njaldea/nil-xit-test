@@ -126,14 +126,6 @@ namespace nil::xit::gtest
             return 1;
         }
 
-        if (has_value(options, "path-assets"))
-        {
-            for (const auto& asset_path : params(options, "path-assets"))
-            {
-                instance.paths.assets.emplace_back(asset_path);
-            }
-        }
-
         if (flag(options, "clear"))
         {
             std::filesystem::remove_all(std::filesystem::temp_directory_path() / "nil-xit-gtest");
@@ -155,7 +147,7 @@ namespace nil::xit::gtest
             .buffer = 1024ul * 1024ul * 100ul //
         });
 
-        nil::xit::setup_server(*http_server, instance.paths.assets);
+        nil::xit::setup_svelte_server(*http_server);
 
         http_server->on_ready([](const nil::service::ID& id)
                               { std::cout << "http://" << to_string(id) << std::endl; });
@@ -215,7 +207,6 @@ namespace nil::xit::gtest
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
         number(node, "jobs", {.skey = 'j', .msg = "number of jobs", .fallback = 1, .implicit = 0});
         params(node, "path-group", {.skey = 'g', .msg = "add group path"});
-        params(node, "path-assets", {.skey = 'a', .msg = "use for assets"});
         use(node, run_gui);
     }
 

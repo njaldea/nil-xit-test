@@ -40,7 +40,6 @@ namespace nil::xit::gtest
      *   -p, --port <value> (=0)            Port to use.
      *   -j` [ --jobs ] [=value(=0)] (=1)   Number of jobs
      *   -g, --path-group <text>            Add group path.
-     *   -a, --path-assets <text>           Asset path.
      */
     int main(int argc, const char* const* argv);
 }
