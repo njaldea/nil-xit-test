@@ -18,16 +18,17 @@ TRIPLET=""
 
 HELP()
 {
-    echo "[-h|d|t|s]"
+    echo "[-h|d|t|s|n|p path]"
     echo "options:"
     echo "h         Print this help"
     echo "d         Configure Debug Build (default: Release)"
     echo "t         Enable Tests"
     echo "s         Enable Sandboxes"
     echo "n         Use libc++ (triplet)"
+    echo "p path    Path to local assets"
 }
 
-while getopts ":hdtsn" option; do
+while getopts ":hdtsn p:" option; do
     case $option in
         h)
             HELP
@@ -45,6 +46,8 @@ while getopts ":hdtsn" option; do
             ENABLE_FEATURE_GTEST="ON";;
         n)
             TRIPLET="-DVCPKG_TARGET_TRIPLET=nil-libcxx -DVCPKG_HOST_TRIPLET=nil-libcxx";;
+        p)
+            ASSETS_PATH="-DNIL_XIT_ASSETS_PATH=${OPTARG}";;
         \?)
             echo "unknown option is provided: ${option}"
             HELP
@@ -66,4 +69,5 @@ cmake                                                                       \
     -DENABLE_SANDBOX=${ENABLE_SANDBOX}                                      \
     -DENABLE_TEST=${ENABLE_TEST}                                            \
     -DENABLE_FEATURE_GTEST=${ENABLE_FEATURE_GTEST}                          \
-    ${TRIPLET}
+    ${TRIPLET}                                                              \
+    ${ASSETS_PATH}

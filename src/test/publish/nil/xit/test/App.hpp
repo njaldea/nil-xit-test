@@ -447,10 +447,11 @@ namespace nil::xit::test
         {
             on_sub(
                 *s->frame,
-                [this, s](std::string_view tag, std::size_t count)
+                [this, s, initialized = false](std::string_view tag, std::size_t count) mutable
                 {
-                    if (count == 1)
+                    if (!initialized && count > 1)
                     {
+                        initialized = false;
                         for (const auto& f : this->installed_tag_inputs(tag))
                         {
                             if (const auto it = this->input_frames.find(f.substr(0, f.size() - 4));

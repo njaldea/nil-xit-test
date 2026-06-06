@@ -11,6 +11,9 @@ importers:
       '@msgpack/msgpack':
         specifier: 3.1.1
         version: 3.1.1
+      '@nil-/doc':
+        specifier: ^2.0.4
+        version: 2.0.4(svelte@5.55.9)
       '@nil-/xit':
         specifier: ^0.4.32
         version: 0.4.32(svelte@5.55.9)
@@ -119,6 +122,11 @@ packages:
   '@msgpack/msgpack@3.1.1':
     resolution: {integrity: sha512-DnBpqkMOUGayNVKyTLlkM6ILmU/m/+VUxGkuQlPQVAcvreLz5jn1OlQnWd8uHKL/ZSiljpM12rjRhr51VtvJUQ==}
     engines: {node: '>= 18'}
+
+  '@nil-/doc@2.0.4':
+    resolution: {integrity: sha512-C2G3RXZtUwhaijHXbi7NgE++EzeiIsOPciOvqS7M2y6BQDiobaPeHCa4rlgGhqXFEwP2Or87R8l0iD6sl9TkPA==}
+    peerDependencies:
+      svelte: ^5.7.1
 
   '@nil-/xit@0.4.32':
     resolution: {integrity: sha512-XGDb6FsUR8IbTN71sTk86/tOGDc5Out0roMJTvlbEVWwbpnmdVbUtaw9AI+N7EfsEDZ0IqrPwSGrvLG2XWcTcw==}
@@ -459,6 +467,11 @@ snapshots:
   '@marijn/find-cluster-break@1.0.2': {}
 
   '@msgpack/msgpack@3.1.1': {}
+
+  '@nil-/doc@2.0.4(svelte@5.55.9)':
+    dependencies:
+      svelte: 5.55.9
+      vanilla-picker: 2.12.3
 
   '@nil-/xit@0.4.32(svelte@5.55.9)':
     dependencies:

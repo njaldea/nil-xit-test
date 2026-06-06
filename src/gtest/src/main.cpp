@@ -147,6 +147,9 @@ namespace nil::xit::gtest
             .buffer = 1024ul * 1024ul * 100ul //
         });
 
+#ifdef NIL_XIT_ASSETS_PATH
+        nil::xit::setup_server(*http_server, NIL_XIT_ASSETS_PATH);
+#endif
         nil::xit::setup_svelte_server(*http_server);
 
         http_server->on_ready([](const nil::service::ID& id)
