@@ -4,7 +4,7 @@
     import Split from "@nil-/doc/layout/Split.svelte";
 
     import { xit, codec_string, type Action } from "@nil-/xit";
-    import { tick } from "svelte";
+    import { tick, untrack } from "svelte";
 
     type ActionItem = {
         name: string;
@@ -17,12 +17,13 @@
     const finalize = signals("finalize", codec_string.encode);
 
     const last_tag = localStorage.getItem("nil_xit_last_tag");
-    let current = $state(last_tag ? JSON.parse(last_tag) : null) as [string, string] | null;
+    let current = $state(last_tag ? JSON.parse(last_tag) : null) as string | null;
 
     const tags_str = values("tags", "", codec_string);
     const tags = derived(tags_str, v => v.split(','));
-    const regex = /^(.*?)\[(.*?)\]$/;
-    const data = derived(tags, v => v.map(u => [`/${u.match(regex)?.slice(1).join('/')}`, u]));
+
+    const regex = /^([^.\[]+)\.([^\[\]]+)\[[^:\]]+:([^\]]+)\]$/;
+    const layout_parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
 
     const frame_info = async (tag: string) => {
         const { values } = await load_frame_data("frame_info", tag);
@@ -61,35 +62,36 @@
     const empty_frames: Frames = [[], [], []];
     let frames = $state([...empty_frames]);
 
-    let onnavigate = async (e: { detail?: string }) => {
-        if (e.detail == null) {
+    let onnavigate = async ({ detail }: { detail?: string }) => {
+        console.log('navigating', detail)
+        if (detail == null) {
             return;
         }
 
-        current = null;
-        current_frame = null;
-        frames = [...empty_frames];
+        if (current !== detail) {
+            current = null;
+            current_frame = null;
+            await tick();
 
-        const d = $data.find(v => v[0] === e.detail) as [string, string] | null;
-        if (d == null)
-        {
-            return;
+            frames = [...empty_frames];
+            current = detail;
         }
-
-        current = d;
     };
 
     $effect(() => {
-        localStorage.setItem("nil_xit_last_tag", JSON.stringify(current));
-        
-        if(current != null) {
-            const d = current;
-            frame_info(current[1]).then(f => {
-                if (current != null && current[0] === d[0] && current[1] == d[1]) {
-                    frames = f;
-                }
-            });
-        }
+        current;
+        untrack(() => {
+            localStorage.setItem("nil_xit_last_tag", JSON.stringify(current));
+            
+            if(current != null) {
+                const d = current;
+                frame_info(current).then(f => {
+                    if (current != null && current === d) {
+                        frames = f;
+                    }
+                });
+            }
+        });
     });
     let current_frame = $state(null) as ActionItem | null;
 
@@ -99,7 +101,7 @@
         }
 
         if (e.ctrlKey) {
-            window.open(info.url(current[1]), "_blank");
+            window.open(info.url(current), "_blank");
             return;
         }
 
@@ -110,14 +112,15 @@
 </script>
 
 <Layout
-    data={$data.map(v => v[0])}
-    current={current?.[0]}
+    data={$tags}
+    current={current}
     theme={"dark"}
     offset={200}
+    parser={layout_parser}
     {onnavigate}
 >
     {#snippet title()}
-        <span>nil-xit-gtest</span>
+        <span>nil-xit-gtest <b hidden={current == null}> - {current}</b> <b hidden={current_frame == null}> - {current_frame?.name}</b></span>
     {/snippet}
     <Split vertical offset={200}>
         {#snippet side_a()}
@@ -152,7 +155,7 @@
     onkeydowncapture={(event) => {
         if ((event.ctrlKey || event.metaKey) && event.key === "s") {
             if (current != null) {
-                finalize(current[1]);
+                finalize(current);
                 event.preventDefault();
             }
         }
