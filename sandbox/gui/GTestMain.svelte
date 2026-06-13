@@ -16,14 +16,16 @@
 
     const finalize = signals("finalize", codec_string.encode);
 
-    const last_tag = localStorage.getItem("nil_xit_last_tag");
-    let current = $state(last_tag ? JSON.parse(last_tag) : null) as string | null;
+    let current = $state(localStorage.getItem("nil_xit_last_tag"));
+    let current_frame = $state(null) as ActionItem | null;
 
-    const tags_str = values("tags", "", codec_string);
-    const tags = derived(tags_str, v => v.split(','));
-
+    const tags = derived(values("tags", "", codec_string), v => v.split(','));
     const regex = /^([^.\[]+)\.([^\[\]]+)\[[^:\]]+:([^\]]+)\]$/;
     const layout_parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
+
+    type Frames = [inputs: ActionItem[], expects: ActionItem[], outputs: ActionItem[]];
+    const empty_frames: Frames = [[], [], []];
+    let frames = $state([...empty_frames]);
 
     const frame_info = async (tag: string) => {
         const { values } = await load_frame_data("frame_info", tag);
@@ -58,12 +60,7 @@
         return await Promise.all([load("inputs"), load("expects"), load("outputs")]);
     };
 
-    type Frames = [inputs: ActionItem[], expects: ActionItem[], outputs: ActionItem[]];
-    const empty_frames: Frames = [[], [], []];
-    let frames = $state([...empty_frames]);
-
     let onnavigate = async ({ detail }: { detail?: string }) => {
-        console.log('navigating', detail)
         if (detail == null) {
             return;
         }
@@ -78,23 +75,6 @@
         }
     };
 
-    $effect(() => {
-        current;
-        untrack(() => {
-            localStorage.setItem("nil_xit_last_tag", JSON.stringify(current));
-            
-            if(current != null) {
-                const d = current;
-                frame_info(current).then(f => {
-                    if (current != null && current === d) {
-                        frames = f;
-                    }
-                });
-            }
-        });
-    });
-    let current_frame = $state(null) as ActionItem | null;
-
     const on_frame_click = async (e: MouseEvent, info: ActionItem) => {
         if (current == null) {
             return;
@@ -107,8 +87,29 @@
 
         current_frame = null;
         await tick();
-        current_frame = info;
+
+        if (current_frame == null) {
+            current_frame = info;
+        }
     };
+
+    $effect(() => {
+        current;
+        untrack(async () => {
+            if(current != null) {
+                localStorage.setItem("nil_xit_last_tag", current);
+                const d = current;
+                const f = await frame_info(current);
+                if (current != null && current === d) {
+                    frames = f;
+
+                    if (frames[2].length > 0) {
+                        current_frame = frames[2][0];
+                    }
+                }
+            }
+        });
+    });
 </script>
 
 <Layout

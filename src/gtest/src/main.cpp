@@ -147,10 +147,14 @@ namespace nil::xit::gtest
             .buffer = 1024ul * 1024ul * 100ul //
         });
 
-#ifdef NIL_XIT_ASSETS_PATH
-        nil::xit::setup_server(*http_server, NIL_XIT_ASSETS_PATH);
-#endif
-        nil::xit::setup_svelte_server(*http_server);
+        if (has_value(options, "assets-path"))
+        {
+            nil::xit::setup_server(*http_server, param(options, "assets-path"));
+        }
+        else
+        {
+            nil::xit::setup_svelte_server(*http_server);
+        }
 
         http_server->on_ready([](const nil::service::ID& id)
                               { std::cout << "http://" << to_string(id) << std::endl; });
@@ -210,6 +214,7 @@ namespace nil::xit::gtest
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
         number(node, "jobs", {.skey = 'j', .msg = "number of jobs", .fallback = 1, .implicit = 0});
         params(node, "path-group", {.skey = 'g', .msg = "add group path"});
+        param(node, "path-assets", {.skey = 'a', .msg = "path to local assets"});
         use(node, run_gui);
     }
 

@@ -12,6 +12,7 @@ using nil::xit::gtest::from_file_with_finalize; // NOLINT(misc-unused-using-decl
 using nil::xit::gtest::from_file_with_update;   // NOLINT(misc-unused-using-decls)
 
 // XIT_FRAME_MAIN("@nil-/xit/test/GTestMain.svelte");
+// XIT_FRAME_MAIN("@nil-/xit/test/Main.svelte");
 XIT_FRAME_MAIN("$base/GTestMain.svelte");
 
 XIT_FRAME_TEST_INPUT_V(

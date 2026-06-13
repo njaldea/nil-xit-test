@@ -5,6 +5,7 @@
 set(NIL_XIT_CLEAR OFF   CACHE BOOL   "Clear on GUI start (-c)")
 set(NIL_XIT_PORT "1101" CACHE STRING "Port for XIT GUI server (-p)")
 set(NIL_XIT_JOBS "1"    CACHE STRING "Parallel jobs for test execution (-jN)")
+set(NIL_XIT_ASSETS ""    CACHE PATH   "Path to GUI assets directory (-a)")
 
 # Create a test executable for xit-test with CTest integration and GUI target
 # Usage:
@@ -57,6 +58,7 @@ function(add_xit_test TARGET)
         ${group_args}
         "-p${NIL_XIT_PORT}"
         "-j${NIL_XIT_JOBS}"
+        $<$<BOOL:${NIL_XIT_ASSETS}>:-a${NIL_XIT_ASSETS}>
         $<$<BOOL:${NIL_XIT_CLEAR}>:-c>
     )
 

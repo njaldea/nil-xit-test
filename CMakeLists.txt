@@ -7,7 +7,6 @@ project(
     DESCRIPTION "Test layer to nil-xit"
 )
 
-
 install(
     FILES cmake/nil-xit-gtest.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}
