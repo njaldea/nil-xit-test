@@ -4,21 +4,12 @@
 
 #include <nil/xit/test/App.hpp>
 
-#include <utility>
-
 namespace nil::xit::gtest::builders
 {
     class MainBuilder final
     {
     public:
-        main::Frame& create_main(FileInfo file_info)
-        {
-            auto f = std::make_unique<main::MainFrame>(std::move(file_info));
-            auto* ptr = f.get();
-            frame = std::move(f);
-            return *ptr;
-        }
-
+        main::Frame& create_main(FileInfo file_info);
         void install(test::App& app) const;
 
     private:

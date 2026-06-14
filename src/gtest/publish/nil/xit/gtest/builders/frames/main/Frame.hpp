@@ -10,36 +10,27 @@ namespace nil::xit::gtest::builders::main
 {
     struct Frame
     {
-        Frame& option(std::string key, std::string value)
-        {
-            options.emplace_back(std::move(key), std::move(value));
-            return *this;
-        }
+        Frame() = default;
+        Frame(Frame&&) = delete;
+        Frame(const Frame&) = delete;
+        Frame& operator=(Frame&&) = delete;
+        Frame& operator=(const Frame&) = delete;
+        virtual ~Frame() noexcept = default;
 
-    protected:
-        // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
-        std::vector<std::tuple<std::string, std::string>> options;
+        virtual Frame& option(std::string key, std::string value) = 0;
     };
 
     struct MainFrame final
         : Frame
         , IFrame
     {
-        explicit MainFrame(FileInfo init_file_info)
-            : file_info(std::move(init_file_info))
-        {
-        }
+        explicit MainFrame(FileInfo init_file_info);
 
-        void install(test::App& app) override
-        {
-            auto& frame = app.add_main(file_info);
+        void install(test::App& app) override;
+        Frame& option(std::string key, std::string value) override;
 
-            for (const auto& [key, value] : this->options)
-            {
-                add_option(frame, key, value);
-            }
-        }
-
+    private:
         nil::xit::FileInfo file_info;
+        std::vector<std::tuple<std::string, std::string>> options;
     };
 }
