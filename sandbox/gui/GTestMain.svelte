@@ -1,7 +1,11 @@
 <script lang="ts">
     import { derived, get } from "svelte/store";
-    import Layout from "@nil-/doc/layout/Layout.svelte";
-    import Split from "@nil-/doc/layout/Split.svelte";
+    import BareLayout from "@nil-/doc/layout/BareLayout.svelte";
+    import Header from "@nil-/doc/layout/Header.svelte";
+    import Nav from "@nil-/doc/navigation/Nav.svelte";
+    import Split3 from "@nil-/doc/layout/Split3.svelte";
+    import ThemeToggle from "@nil-/doc/layout/ThemeToggle.svelte";
+    import Scrollable from "@nil-/doc/layout/Scrollable.svelte";
 
     import { xit, codec_string, type Action } from "@nil-/xit";
     import { tick, untrack } from "svelte";
@@ -21,7 +25,7 @@
 
     const tags = derived(values("tags", "", codec_string), v => v.split(','));
     const regex = /^([^.\[]+)\.([^\[\]]+)\[[^:\]]+:([^\]]+)\]$/;
-    const layout_parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
+    const parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
 
     type Frames = [inputs: ActionItem[], expects: ActionItem[], outputs: ActionItem[]];
     const empty_frames: Frames = [[], [], []];
@@ -110,47 +114,60 @@
             }
         });
     });
+
+    let theme = $state("dark") as "dark" | "light";
 </script>
 
-<Layout
-    data={$tags}
-    current={current}
-    theme={"dark"}
-    offset={200}
-    parser={layout_parser}
-    {onnavigate}
->
-    {#snippet title()}
-        <span>nil-xit-gtest <b hidden={current == null}> - {current}</b> <b hidden={current_frame == null}> - {current_frame?.name}</b></span>
+<BareLayout dark={theme === "dark"}>
+    {#snippet header()}
+        <Header>
+            {#snippet title()} 
+                <span>nil-xit-gtest <b hidden={current == null}> - {current}</b> <b hidden={current_frame == null}> - {current_frame?.name}</b></span>
+            {/snippet}
+            {#snippet title_misc()}
+                <ThemeToggle bind:theme />
+            {/snippet}
+        </Header>
     {/snippet}
-    <Split vertical offset={200}>
-        {#snippet side_a()}
-            {#key current_frame}
-                {#if current_frame != null}
-                    <div style:display="contents" use:current_frame.action></div>
+
+    {#snippet body()}
+        <Split3 side_a_width={250} side_c_width={250} side_b_min_width={400}>
+            {#snippet side_a()}
+                <Scrollable>
+                    <Nav info={$tags} selected={current ?? ""} {parser} sorter={(l, r) => l.localeCompare(r) as -1 | 0 | 1} renamer={s => s} {onnavigate}>
+                    </Nav>
+                </Scrollable>
+            {/snippet}
+
+            {#snippet side_b()}
+                {#key current_frame}
+                    {#if current_frame != null}
+                        <div style:display="contents" use:current_frame.action></div>
+                    {/if}
+                {/key}
+            {/snippet}
+
+            {#snippet side_c()}
+                {#if current != null}
+                    <div class="frame_panel">
+                        <div hidden={frames[0].length === 0}>input frames</div>
+                        {#each frames[0] as a_i}
+                            <button onclick={(e) => on_frame_click(e, a_i)}>{a_i.name}</button>
+                        {/each}
+                        <div hidden={frames[1].length === 0}>expect frames</div>
+                        {#each frames[1] as a_e}
+                            <button onclick={(e) => on_frame_click(e, a_e)}>{a_e.name}</button>
+                        {/each}
+                        <div hidden={frames[2].length === 0}>output frames</div>
+                        {#each frames[2] as a_o}
+                            <button onclick={(e) => on_frame_click(e, a_o)}>{a_o.name}</button>
+                        {/each}
+                    </div>
                 {/if}
-            {/key}
-        {/snippet}
-        {#snippet side_b()}
-            {#if current != null}
-                <div class="frame_panel">
-                    <div hidden={frames[0].length === 0}>input frames</div>
-                    {#each frames[0] as a_i}
-                        <button onclick={(e) => on_frame_click(e, a_i)}>{a_i.name}</button>
-                    {/each}
-                    <div hidden={frames[1].length === 0}>expect frames</div>
-                    {#each frames[1] as a_e}
-                        <button onclick={(e) => on_frame_click(e, a_e)}>{a_e.name}</button>
-                    {/each}
-                    <div hidden={frames[2].length === 0}>output frames</div>
-                    {#each frames[2] as a_o}
-                        <button onclick={(e) => on_frame_click(e, a_o)}>{a_o.name}</button>
-                    {/each}
-                </div>
-            {/if}
-        {/snippet}
-    </Split>
-</Layout>
+            {/snippet}
+        </Split3>
+    {/snippet}
+</BareLayout>
 
 <svelte:window
     onkeydowncapture={(event) => {
