@@ -106,6 +106,66 @@ namespace nil::xit::gtest::builders::main
     }
 }
 
+namespace nil::xit::gtest::builders::view::test
+{
+    Frame& Frame::option(std::string key, std::string value)
+    {
+        options.emplace_back(std::move(key), std::move(value));
+        return *this;
+    }
+
+    ViewFrame::ViewFrame(std::string init_id, FileInfo init_file_info)
+        : id(std::move(init_id))
+        , file_info(std::move(init_file_info))
+    {
+    }
+
+    void ViewFrame::install(nil::xit::test::App& app)
+    {
+        auto* frame = app.add_test_view(id, file_info);
+
+        for (const auto& value_installer : values)
+        {
+            value_installer(*frame);
+        }
+
+        for (const auto& [key, value] : options)
+        {
+            add_option(*frame->frame, key, value);
+        }
+    }
+}
+
+namespace nil::xit::gtest::builders::view::global
+{
+    Frame& Frame::option(std::string key, std::string value)
+    {
+        options.emplace_back(std::move(key), std::move(value));
+        return *this;
+    }
+
+    ViewFrame::ViewFrame(std::string init_id, FileInfo init_file_info)
+        : id(std::move(init_id))
+        , file_info(std::move(init_file_info))
+    {
+    }
+
+    void ViewFrame::install(nil::xit::test::App& app)
+    {
+        auto* frame = app.add_global_view(id, file_info);
+
+        for (const auto& value_installer : values)
+        {
+            value_installer(*frame);
+        }
+
+        for (const auto& [key, value] : options)
+        {
+            add_option(*frame->frame, key, value);
+        }
+    }
+}
+
 namespace nil::xit::gtest::builders
 {
     std::string to_tag_suffix(std::string_view test_id, const FileInfo& file_info)
@@ -154,6 +214,10 @@ namespace nil::xit::gtest::builders
 
     void FrameBuilder::install(test::App& app) const
     {
+        for (const auto& frame : view_frames)
+        {
+            frame->install(app);
+        }
         for (const auto& frame : input_frames)
         {
             frame->install(app);

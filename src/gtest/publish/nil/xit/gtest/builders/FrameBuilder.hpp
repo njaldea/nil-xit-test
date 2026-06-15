@@ -5,6 +5,8 @@
 #include "frames/input/global.hpp"
 #include "frames/input/test.hpp"
 #include "frames/output/Frame.hpp"
+#include "frames/view/global.hpp"
+#include "frames/view/test.hpp"
 
 #include <nil/xit/test/frame/IDataManager.hpp>
 
@@ -16,10 +18,6 @@
 
 namespace nil::xit::gtest::builders
 {
-    struct none
-    {
-    };
-
     template <typename T>
     concept is_loader_unique = requires() {
         { T::initialize() };
@@ -71,11 +69,6 @@ namespace nil::xit::gtest::builders
             return *ptr;
         }
 
-        auto& create_test_input(std::string id, std::optional<FileInfo> file_info)
-        {
-            return create_test_input(std::move(id), std::move(file_info), []() { return none(); });
-        }
-
         template <typename Loader>
             requires(!is_loader_unique<decltype(std::declval<Loader>()())>)
         auto& create_global_input(std::string id, std::optional<FileInfo> file_info, Loader loader)
@@ -108,13 +101,22 @@ namespace nil::xit::gtest::builders
             return *ptr;
         }
 
-        auto& create_global_input(std::string id, std::optional<FileInfo> file_info)
+        auto& create_test_view(std::string id, FileInfo file_info)
         {
-            return create_global_input(
-                std::move(id),
-                std::move(file_info),
-                []() { return none(); }
-            );
+            auto frame
+                = std::make_unique<view::test::ViewFrame>(std::move(id), std::move(file_info));
+            view::test::Frame* ptr = frame.get();
+            view_frames.emplace_back(std::move(frame));
+            return *ptr;
+        }
+
+        auto& create_global_view(std::string id, FileInfo file_info)
+        {
+            auto frame
+                = std::make_unique<view::global::ViewFrame>(std::move(id), std::move(file_info));
+            view::global::Frame* ptr = frame.get();
+            view_frames.emplace_back(std::move(frame));
+            return *ptr;
         }
 
         template <typename Loader>
@@ -164,35 +166,9 @@ namespace nil::xit::gtest::builders
         void install(headless::CacheManager& cache_manager) const;
 
     private:
+        std::vector<std::unique_ptr<IFrame>> view_frames;
         std::vector<std::unique_ptr<input::IFrame>> input_frames;
         std::vector<std::unique_ptr<expect::IFrame>> expect_frames;
         std::vector<std::unique_ptr<IFrame>> output_frames;
-    };
-}
-
-namespace nil::service
-{
-    template <>
-    struct codec<xit::gtest::builders::none>
-    {
-        static std::size_t size(const xit::gtest::builders::none& message)
-        {
-            (void)message;
-            return 0;
-        }
-
-        static std::size_t serialize(void* output, const xit::gtest::builders::none& data)
-        {
-            (void)output;
-            (void)data;
-            return 0;
-        }
-
-        static xit::gtest::builders::none deserialize(const void* input, std::uint64_t size)
-        {
-            (void)input;
-            (void)size;
-            return {};
-        }
     };
 }

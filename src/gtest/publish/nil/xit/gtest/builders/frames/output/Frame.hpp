@@ -44,6 +44,7 @@ namespace nil::xit::gtest::builders::output
         Frame<T>& option(std::string key, std::string value)
         {
             options.emplace_back(std::move(key), std::move(value));
+            return *this;
         }
 
     protected:

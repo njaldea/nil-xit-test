@@ -4,6 +4,8 @@
 #include "frame/input/Global.hpp"
 #include "frame/input/Test.hpp"
 #include "frame/output/Info.hpp"
+#include "frame/view/Global.hpp"
+#include "frame/view/Test.hpp"
 
 #include <nil/gate/IRunner.hpp>
 #include <nil/gate/traits/port_override.hpp>
@@ -55,6 +57,8 @@ namespace nil::xit::test
 
         std::span<const std::string_view> installed_tags() const;
         // marked
+        std::span<const std::string_view> installed_tag_views(std::string_view tag) const;
+        // marked
         std::span<const std::string_view> installed_tag_inputs(std::string_view tag) const;
         // marked
         std::span<const std::string_view> installed_tag_outputs(std::string_view tag) const;
@@ -63,57 +67,13 @@ namespace nil::xit::test
 
         std::string_view add_info(
             std::string tag,
+            std::vector<std::string_view> views,
             std::vector<std::string_view> inputs,
             std::vector<std::string_view> outputs,
             std::vector<std::string_view> expects
         );
 
-        unique::Frame& add_main(const FileInfo& file_info)
-        {
-            static constexpr auto converter = [](std::span<const std::string_view> ids)
-            {
-                std::ostringstream oss;
-                const auto size = ids.size();
-                auto i = 0UL;
-                for (const auto& id : ids)
-                {
-                    oss << id;
-                    i += 1;
-                    if (i < size)
-                    {
-                        oss << ',';
-                    }
-                }
-                return oss.str();
-            };
-
-            {
-                auto& frame = add_tagged_frame(*xit, "frame_info");
-                add_value(
-                    frame,
-                    "inputs",
-                    [this](std::string_view tag) { return converter(installed_tag_inputs(tag)); }
-                );
-                add_value(
-                    frame,
-                    "outputs",
-                    [this](std::string_view tag) { return converter(installed_tag_outputs(tag)); }
-                );
-                add_value(
-                    frame,
-                    "expects",
-                    [this](std::string_view tag) { return converter(installed_tag_expects(tag)); }
-                );
-            }
-            auto& frame = add_unique_frame(*xit, "index", file_info);
-            add_value(frame, "tags", [this]() { return converter(installed_tags()); });
-            add_signal(
-                frame,
-                "finalize",
-                [this](std::string_view tag) { return finalize_inputs(tag); }
-            );
-            return frame;
-        }
+        unique::Frame& add_main(const FileInfo& file_info);
 
         template <typename T>
         frame::input::test::Info<T>* add_test_input(
@@ -180,6 +140,10 @@ namespace nil::xit::test
             s->manager = std::move(manager);
             return s;
         }
+
+        frame::view::test::Info* add_test_view(std::string_view id, FileInfo file_info);
+
+        frame::view::global::Info* add_global_view(std::string_view id, FileInfo file_info);
 
         template <typename T>
         frame::expect::Info<T>* add_expect(
@@ -397,10 +361,7 @@ namespace nil::xit::test
             return nullptr;
         }
 
-        void start()
-        {
-            gate.commit();
-        }
+        void start();
 
     private:
         xit::Core* xit;
@@ -410,11 +371,13 @@ namespace nil::xit::test
         std::set<std::string> frames;
         // frame id to frame info - sv owned by frames
         std::unordered_map<std::string_view, std::unique_ptr<frame::input::IInfo>> input_frames;
+        std::unordered_map<std::string_view, std::unique_ptr<frame::view::IInfo>> view_frames;
         std::unordered_map<std::string_view, std::unique_ptr<frame::output::IInfo>> output_frames;
         std::unordered_map<std::string_view, std::unique_ptr<frame::expect::IInfo>> expect_frames;
 
         struct TagInfo
         {
+            std::vector<std::string_view> views;
             std::vector<std::string_view> inputs;
             std::vector<std::string_view> outputs;
             std::vector<std::string_view> expects;
@@ -451,7 +414,7 @@ namespace nil::xit::test
                 {
                     if (!initialized && count > 1)
                     {
-                        initialized = false;
+                        initialized = true;
                         for (const auto& f : this->installed_tag_inputs(tag))
                         {
                             if (const auto it = this->input_frames.find(f.substr(0, f.size() - 4));

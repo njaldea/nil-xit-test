@@ -34,10 +34,12 @@ namespace nil::xit::gtest::builders
         const FileInfo& file_info
     )
     {
+        using view_frames = typename T::view_frames;
         using input_frames = typename T::input_frames;
         using output_frames = typename T::output_frames;
         using expect_frames = typename T::expect_frames;
-        [&]<xalt::literal... I, xalt::literal... O, xalt::literal... E>(
+        [&]<xalt::literal... V, xalt::literal... I, xalt::literal... O, xalt::literal... E>(
+            xalt::tlist<Views<V...>> /* inputs */,
             xalt::tlist<Inputs<I...>> /* inputs */,
             xalt::tlist<Outputs<O...>> /* outputs */,
             xalt::tlist<Expects<E...>> /* expects */
@@ -47,6 +49,7 @@ namespace nil::xit::gtest::builders
 
             const auto tag = app.add_info(
                 to_tag(suite_id, test_id, file_info),
+                {Frame<V>::marked_value...},
                 {Frame<I>::marked_value...},
                 {Frame<O>::marked_value...},
                 {Frame<E>::marked_value...}
@@ -87,9 +90,10 @@ namespace nil::xit::gtest::builders
                 ),
                 std::make_tuple(app.get_expect<typename Frame<E>::type>(Frame<E>::value)...)
             );
-        }(xalt::tlist<typename T::input_frames>(),
-          xalt::tlist<typename T::output_frames>(),
-          xalt::tlist<typename T::expect_frames>());
+        }(xalt::tlist<view_frames>(),
+          xalt::tlist<input_frames>(),
+          xalt::tlist<output_frames>(),
+          xalt::tlist<expect_frames>());
     }
 
     template <typename T>

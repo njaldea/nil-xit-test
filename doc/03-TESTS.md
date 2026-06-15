@@ -4,6 +4,7 @@
 
 ```cpp
 // Each template argument is a STRING LITERAL frame id (same literal as in XIT_FRAME_* macro)
+XIT_VIEWS("label");                     // optional
 XIT_INPUTS("config", "other_input");    // optional
 XIT_OUTPUTS("circle");                  // optional
 XIT_EXPECTS("expected_circle");         // optional
@@ -15,6 +16,7 @@ Skip any list you do not need (they default empty). `setup` / `teardown` are opt
 
 ```cpp
 struct Suite {
+  XIT_VIEWS();    // empty
   XIT_INPUTS();   // empty (no registered input frames referenced)
   XIT_OUTPUTS();  // empty
   XIT_EXPECTS();  // empty
@@ -49,7 +51,25 @@ auto& first_output = get<0>(xit_outputs);   // ADL finds nil::xit::gtest::get (n
 ```
 
 If a category is unused it is an empty wrapper.
-Main / utility frames are separate.
+Main and view frames are separate from these tuples.
+
+## View Frames
+Use `XIT_VIEWS(...)` in the suite when a test should expose one or more view frame IDs in UI navigation.
+These IDs must come from `XIT_FRAME_TEST_V(...)` or `XIT_FRAME_GLOBAL_V(...)` registrations.
+View frames are UI-only and are not part of `xit_inputs`, `xit_outputs`, or `xit_expects`.
+
+Example:
+
+```cpp
+XIT_FRAME_TEST_V("label", "$base/Label.svelte");
+
+struct SuiteWithView {
+  XIT_VIEWS("label");
+  XIT_INPUTS("config");
+  XIT_OUTPUTS("circle");
+};
+```
+
 ## Test Ids / Paths / Parameterization / Groups
 Format: `SUITE.CASE[$group:relative_path]` (from 3rd macro arg)
 

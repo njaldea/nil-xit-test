@@ -17,7 +17,12 @@ set(
         publish/nil/xit/test/frame/input/Info.hpp
         publish/nil/xit/test/frame/input/Global.hpp
         publish/nil/xit/test/frame/input/Test.hpp
+        publish/nil/xit/test/frame/expect/Info.hpp
+        publish/nil/xit/test/frame/IDataManager.hpp
         publish/nil/xit/test/frame/output/Info.hpp
+        publish/nil/xit/test/frame/view/Info.hpp
+        publish/nil/xit/test/frame/view/Global.hpp
+        publish/nil/xit/test/frame/view/Test.hpp
 )
 
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})

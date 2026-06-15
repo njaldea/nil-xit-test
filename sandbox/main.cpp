@@ -1,11 +1,14 @@
 #include "userland_utils.hpp"
 
-#include "frame_setup.hpp"
+#include "frame_setup.hpp" // IWYU pragma: keep
 
 #include <nil/xit/gtest.hpp>
 
+XIT_FRAME_MAIN("$base/GTestMain.svelte");
+
 struct Expected
 {
+    XIT_VIEWS("label");
     XIT_INPUTS("slider_frame");
     XIT_OUTPUTS();
     XIT_EXPECTS("flag");
@@ -20,6 +23,7 @@ XIT_TEST_F(Expected, _, "$test/expected")
 
 struct Plotly
 {
+    XIT_VIEWS("label");
     using input_frames = nil::xit::gtest::Inputs<"slider_frame", "json_input_frame">;
     using output_frames = nil::xit::gtest::Outputs<"plotly_frame">;
 };

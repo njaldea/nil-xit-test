@@ -34,7 +34,7 @@ XIT_FRAME_OUTPUT_V("plotly_frame", "$base/PlotlyFrame.svelte", nlohmann::json)
     .value("value-x", from_json_ptr("/x"))
     .value("value-y", from_json_ptr("/y"));
 
-XIT_FRAME_TEST_V("circles_inputs_frame", "$base/InputFrame.svelte");
+XIT_FRAME_TEST_V("label", "$base/Label.svelte");
 
 XIT_FRAME_TEST_INPUT_V(
     "circles_input_frame",

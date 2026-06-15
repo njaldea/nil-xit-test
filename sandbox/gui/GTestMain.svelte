@@ -27,8 +27,8 @@
     const regex = /^([^.\[]+)\.([^\[\]]+)\[[^:\]]+:([^\]]+)\]$/;
     const parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
 
-    type Frames = [inputs: ActionItem[], expects: ActionItem[], outputs: ActionItem[]];
-    const empty_frames: Frames = [[], [], []];
+    type Frames = [views: ActionItem[], inputs: ActionItem[], expects: ActionItem[], outputs: ActionItem[]];
+    const empty_frames: Frames = [[], [], [], []];
     let frames = $state([...empty_frames]);
 
     const frame_info = async (tag: string) => {
@@ -61,7 +61,7 @@
             );
         };
 
-        return await Promise.all([load("inputs"), load("expects"), load("outputs")]);
+        return await Promise.all([load("views"), load("inputs"), load("expects"), load("outputs")]);
     };
 
     let onnavigate = async ({ detail }: { detail?: string }) => {
@@ -107,8 +107,8 @@
                 if (current != null && current === d) {
                     frames = f;
 
-                    if (frames[2].length > 0) {
-                        current_frame = frames[2][0];
+                    if (frames[3].length > 0) {
+                        current_frame = frames[3][0];
                     }
                 }
             }
@@ -150,16 +150,20 @@
             {#snippet side_c()}
                 {#if current != null}
                     <div class="frame_panel">
-                        <div hidden={frames[0].length === 0}>input frames</div>
-                        {#each frames[0] as a_i}
+                        <div hidden={frames[0].length === 0}>view frames</div>
+                        {#each frames[0] as a_v}
+                            <button onclick={(e) => on_frame_click(e, a_v)}>{a_v.name}</button>
+                        {/each}
+                        <div hidden={frames[1].length === 0}>input frames</div>
+                        {#each frames[1] as a_i}
                             <button onclick={(e) => on_frame_click(e, a_i)}>{a_i.name}</button>
                         {/each}
-                        <div hidden={frames[1].length === 0}>expect frames</div>
-                        {#each frames[1] as a_e}
+                        <div hidden={frames[2].length === 0}>expect frames</div>
+                        {#each frames[2] as a_e}
                             <button onclick={(e) => on_frame_click(e, a_e)}>{a_e.name}</button>
                         {/each}
-                        <div hidden={frames[2].length === 0}>output frames</div>
-                        {#each frames[2] as a_o}
+                        <div hidden={frames[3].length === 0}>output frames</div>
+                        {#each frames[3] as a_o}
                             <button onclick={(e) => on_frame_click(e, a_o)}>{a_o.name}</button>
                         {/each}
                     </div>

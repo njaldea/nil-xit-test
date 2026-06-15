@@ -6,7 +6,8 @@ Loaders (optional) can set and react to changes (may save, log, transform, etc.)
 
 Rules:
 - First argument: unique string literal id
-- Input / Expect / Utility: last arg = seed value or loader
+- Input / Expect: last arg = seed value or loader
+- View: no loader; values are declared with `.value(...)` in builder chaining
 - Output: list of types (no loader)
 
 ## Frame registration
@@ -30,7 +31,7 @@ Output (produced by test code):
 - `XIT_FRAME_OUTPUT("result", ResultType);`
 - `XIT_FRAME_OUTPUT_V("result", "$demo/Result.svelte", ResultType);`
 
-Utility (UI only, holds no data logic):
+View (UI only, no loader lifecycle):
 - `XIT_FRAME_TEST_V("marker", "$demo/Marker.svelte");`
 - `XIT_FRAME_GLOBAL_V("gmarker", "$demo/GMarker.svelte");`
 
@@ -39,21 +40,24 @@ Utility (UI only, holds no data logic):
 Suite lists the frame ids it wants (shorthand macros):
 ```cpp
 struct MySuite {
+  XIT_VIEWS("marker");                  // optional
   XIT_INPUTS("config","shared_cfg");    // optional
   XIT_OUTPUTS("result");                // optional
   XIT_EXPECTS("expected_circle");       // optional
   void setup();    // optional
   void teardown(); // optional
 };
+```
 
 `XIT_TEST` (no `_F`) = plain test (no frames).
 
-## Suite frame list macros (`XIT_INPUTS` / `XIT_OUTPUTS` / `XIT_EXPECTS`)
+## Suite frame list macros (`XIT_VIEWS` / `XIT_INPUTS` / `XIT_OUTPUTS` / `XIT_EXPECTS`)
 
 Inside a suite struct you declare which registered frame IDs you want via three optional macros:
 
 | Macro              | Expands To                                             |
 |--------------------|--------------------------------------------------------|
+| `XIT_VIEWS(...)`   | `using view_frames   = nil::xit::gtest::Views<...>;`   |
 | `XIT_INPUTS(...)`  | `using input_frames  = nil::xit::gtest::Inputs<...>;`  |
 | `XIT_OUTPUTS(...)` | `using output_frames = nil::xit::gtest::Outputs<...>;` |
 | `XIT_EXPECTS(...)` | `using expect_frames = nil::xit::gtest::Expects<...>;` |
@@ -69,6 +73,7 @@ Minimal pattern:
 ```cpp
 struct S
 {
+    XIT_VIEWS("marker");
     XIT_INPUTS("cfg");
     XIT_OUTPUTS("out");
     XIT_EXPECTS("expected_circle");
@@ -90,6 +95,7 @@ Some frame IDs are reserved by the test app/runtime and are created for you. Avo
   - tags: comma-separated list of installed tags
   - finalize(tag): signal to trigger finalize over inputs of a tag
 - frame_info (tagged): Per‑tag info frame exposing:
+  - views: comma-separated IDs registered for the tag
   - inputs: comma-separated IDs registered for the tag
   - outputs: comma-separated IDs registered for the tag
   - expects: comma-separated IDs registered for the tag
@@ -108,7 +114,7 @@ UI component paths: just identifiers. Keep short.
 | Global Input   | `XIT_FRAME_GLOBAL_INPUT(_V)`   | no        | yes     | input   |
 | Expect         | `XIT_FRAME_EXPECT(_V)`         | yes       | yes     | expect  |
 | Output         | `XIT_FRAME_OUTPUT(_V)`         | no        | no      | output  |
-| Utility (test) | `XIT_FRAME_TEST_V`             | yes       | seed    | UI only |
-| Utility (glob) | `XIT_FRAME_GLOBAL_V`           | no        | seed    | UI only |
+| View (test)    | `XIT_FRAME_TEST_V`             | yes       | no      | UI only |
+| View (glob)    | `XIT_FRAME_GLOBAL_V`           | no        | no      | UI only |
 
 Loader? = can take value / loader object (outputs ignore).

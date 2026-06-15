@@ -8,9 +8,9 @@
 #define XIT_IIFE(X) []() { X; return nullptr; }()
 #define XIT_WRAP_R(...) []() { return __VA_ARGS__; }
 #define XIT_FG(P) nil::xit::gtest::detail::get_file_info<P>()
-#define XIT_REGISTER_UI_GROUP(P)                                                      \
-    if constexpr (nil::xalt::starts_with<P, "$">()) {                               \
-        XIT_INSTANCE.paths.used_ui_groups.emplace(nil::xit::gtest::detail::get_fg_name<P>()); \
+#define XIT_REGISTER_UI_GROUP(P)                                                                \
+    if constexpr (nil::xalt::starts_with<P, "$">()) {                                           \
+        XIT_INSTANCE.paths.used_ui_groups.emplace(nil::xit::gtest::detail::get_fg_name<P>());   \
     }
 // clang-format on
 
@@ -18,10 +18,11 @@
 
 // clang-format off
 #define XIT_TEST_DETAIL(BASE, SUITE, CASE, PATH)                                                   \
-    static_assert(nil::xalt::starts_with<PATH, "$">());                                           \
-    static_assert(nil::xalt::find<PATH, "/">() < sizeof(PATH));                                   \
+    static_assert(nil::xalt::starts_with<PATH, "$">());                                            \
+    static_assert(nil::xalt::find<PATH, "/">() < sizeof(PATH));                                    \
     struct xit_test_##SUITE##_##CASE: XIT_WRAP(BASE)                                               \
     {                                                                                              \
+        using view_frames = nil::xit::gtest::detail::ViewFramesDefaulter<XIT_WRAP(BASE)>::type;    \
         using input_frames = nil::xit::gtest::detail::InputFramesDefaulter<XIT_WRAP(BASE)>::type;  \
         using output_frames = nil::xit::gtest::detail::OutputFramesDefaulter<XIT_WRAP(BASE)>::type;\
         using expect_frames = nil::xit::gtest::detail::ExpectFramesDefaulter<XIT_WRAP(BASE)>::type;\
@@ -42,6 +43,7 @@
         [[maybe_unused]] expect_frames::type& xit_expects                                          \
     )
 
+#define XIT_VIEWS(...) using view_frames = nil::xit::gtest::Views<__VA_ARGS__>
 #define XIT_INPUTS(...) using input_frames = nil::xit::gtest::Inputs<__VA_ARGS__>
 #define XIT_OUTPUTS(...) using output_frames = nil::xit::gtest::Outputs<__VA_ARGS__>
 #define XIT_EXPECTS(...) using expect_frames = nil::xit::gtest::Expects<__VA_ARGS__>
@@ -87,8 +89,6 @@
 #define XIT_FRAME_TEST_INPUT_V(ID, PATH, ...)                                                                   \
     XIT_ASSERT_NOT_UNIQUE(__VA_ARGS__)                                                                          \
     XIT_FRAME_DETAIL(ID, ":T:V", Input, PATH, create_test_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
-#define XIT_FRAME_TEST_V(ID, PATH)                                                                              \
-    XIT_FRAME_DETAIL(ID, ":T:V", Utility, PATH, create_test_input(ID, XIT_FG(PATH)))
 
 #define XIT_FRAME_GLOBAL_INPUT(ID, ...)                                                                         \
     XIT_ASSERT_NOT_TAGGED(__VA_ARGS__)                                                                          \
@@ -96,8 +96,11 @@
 #define XIT_FRAME_GLOBAL_INPUT_V(ID, PATH, ...)                                                                 \
     XIT_ASSERT_NOT_TAGGED(__VA_ARGS__)                                                                          \
     XIT_FRAME_DETAIL(ID, ":U:V", Input, PATH, create_global_input(ID, XIT_FG(PATH), XIT_WRAP_R(__VA_ARGS__)))
+
+#define XIT_FRAME_TEST_V(ID, PATH)                                                                              \
+    XIT_FRAME_DETAIL(ID, ":T:V", View, PATH, create_test_view(ID, XIT_FG(PATH)))
 #define XIT_FRAME_GLOBAL_V(ID, PATH)                                                                            \
-    XIT_FRAME_DETAIL(ID, ":U:V", Utility, PATH, create_global_input(ID, XIT_FG(PATH)))
+    XIT_FRAME_DETAIL(ID, ":U:V", View, PATH, create_global_view(ID, XIT_FG(PATH)))
 
 #define XIT_FRAME_EXPECT(ID, ...)                                                                               \
     XIT_ASSERT_NOT_UNIQUE(__VA_ARGS__)                                                                          \

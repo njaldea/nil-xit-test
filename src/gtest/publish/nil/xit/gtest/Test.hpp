@@ -54,6 +54,7 @@ namespace nil::xit::gtest
         enum class EFrameType
         {
             Utility,
+            View,
             Input,
             Output,
             Expect
@@ -87,6 +88,13 @@ namespace nil::xit::gtest
     }
 
     template <xalt::literal... T>
+        requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::View))
+    struct Views
+    {
+        using type = Data<const typename detail::Frame<T>::type...>;
+    };
+
+    template <xalt::literal... T>
         requires(true && ... && (detail::Frame<T>::frame_type == detail::EFrameType::Input))
     struct Inputs
     {
@@ -109,6 +117,19 @@ namespace nil::xit::gtest
 
     namespace detail
     {
+        template <typename T>
+        struct ViewFramesDefaulter
+        {
+            using type = Views<>;
+        };
+
+        template <typename T>
+            requires requires() { typename T::view_frames; }
+        struct ViewFramesDefaulter<T>
+        {
+            using type = T::view_frames;
+        };
+
         template <typename T>
         struct InputFramesDefaulter
         {

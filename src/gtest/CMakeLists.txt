@@ -10,21 +10,26 @@ add_library(
     publish/nil/xit/gtest/MACROS.hpp
     publish/nil/xit/gtest/main.hpp
     publish/nil/xit/gtest/Test.hpp
+    publish/nil/xit/gtest/TestTracker.hpp
     publish/nil/xit/gtest/utils/from_self.hpp
     publish/nil/xit/gtest/utils/from_file.hpp
     publish/nil/xit/gtest/utils/from_data.hpp
     publish/nil/xit/gtest/utils/from_member.hpp
     publish/nil/xit/gtest/headless/CacheManager.hpp
     publish/nil/xit/gtest/builders/install.hpp
+    publish/nil/xit/gtest/builders/none.hpp
     publish/nil/xit/gtest/builders/FrameBuilder.hpp
     publish/nil/xit/gtest/builders/MainBuilder.hpp
     publish/nil/xit/gtest/builders/TestBuilder.hpp
     publish/nil/xit/gtest/builders/frames/IFrame.hpp
+    publish/nil/xit/gtest/builders/frames/expect/Frame.hpp
     publish/nil/xit/gtest/builders/frames/main/Frame.hpp
     publish/nil/xit/gtest/builders/frames/output/Frame.hpp
     publish/nil/xit/gtest/builders/frames/input/Frame.hpp
     publish/nil/xit/gtest/builders/frames/input/global.hpp
     publish/nil/xit/gtest/builders/frames/input/test.hpp
+    publish/nil/xit/gtest/builders/frames/view/global.hpp
+    publish/nil/xit/gtest/builders/frames/view/test.hpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "nil-${PROJECT_NAME}")
