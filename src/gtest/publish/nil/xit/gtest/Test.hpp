@@ -83,7 +83,7 @@ namespace nil::xit::gtest
             static constexpr auto frame_type = EFrameType::Utility;
             static constexpr auto value = "tag_info";
             static constexpr auto* marked_value = "tag_info:T:N";
-            using type = bool;
+            using type = std::int64_t;
         };
     }
 

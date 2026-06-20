@@ -260,6 +260,7 @@ namespace nil::xit::test
                                     {
                                         return;
                                     }
+
                                     constexpr auto o_n = sizeof...(O);
                                     auto b = opt_outputs;
                                     auto r = cb(rest_i..., rest_e...);
@@ -410,11 +411,10 @@ namespace nil::xit::test
         {
             on_sub(
                 *s->frame,
-                [this, s, initialized = false](std::string_view tag, std::size_t count) mutable
+                [this, s](std::string_view tag, std::size_t count)
                 {
-                    if (!initialized && count > 1)
+                    if (count > 0)
                     {
-                        initialized = true;
                         for (const auto& f : this->installed_tag_inputs(tag))
                         {
                             if (const auto it = this->input_frames.find(f.substr(0, f.size() - 4));

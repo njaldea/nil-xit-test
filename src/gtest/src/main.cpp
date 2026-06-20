@@ -147,9 +147,9 @@ namespace nil::xit::gtest
             .buffer = 1024ul * 1024ul * 100ul //
         });
 
-        if (has_value(options, "assets-path"))
+        if (const auto path_assets = param(options, "path-assets"); !path_assets.empty())
         {
-            nil::xit::setup_server(*http_server, param(options, "assets-path"));
+            nil::xit::setup_server(*http_server, path_assets);
         }
         else
         {
@@ -214,7 +214,7 @@ namespace nil::xit::gtest
         number(node, "port", {.skey = 'p', .msg = "use port", .fallback = 0});
         number(node, "jobs", {.skey = 'j', .msg = "number of jobs", .fallback = 1, .implicit = 0});
         params(node, "path-group", {.skey = 'g', .msg = "add group path"});
-        param(node, "path-assets", {.skey = 'a', .msg = "path to local assets"});
+        param(node, "path-assets", {.skey = 'a', .msg = "path to local assets", .fallback = ""});
         use(node, run_gui);
     }
 

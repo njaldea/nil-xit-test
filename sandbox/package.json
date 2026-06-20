@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "@msgpack/msgpack": "3.1.1",
-    "@nil-/doc": "^2.0.6",
-    "@nil-/xit": "^0.4.35",
+    "@nil-/doc": "^2.0.7",
+    "@nil-/xit": "^0.4.41",
     "@types/plotly.js": "^2.35.14",
     "@xyflow/svelte": "^1.6.0",
     "svelte": "^5.56.3",

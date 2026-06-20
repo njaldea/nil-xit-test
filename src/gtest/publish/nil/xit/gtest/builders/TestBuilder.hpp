@@ -1,6 +1,7 @@
 #pragma once
 
-#include "install.hpp"
+#include <nil/xit/gtest/headless/CacheManager.hpp>
+#include <nil/xit/test/App.hpp>
 
 #include <nil/xalt/transparent_stl.hpp>
 #include <nil/xit/structs.hpp>
@@ -87,20 +88,11 @@ namespace nil::xit::gtest::builders
         const char* file;
         int line;
 
-        void install_info(test::App& app, const FileInfo& info)
-        {
-            builders::install<T>(app, suite_id, test_id, info);
-        }
+        void install_info(test::App& app, const FileInfo& info);
 
-        void install_info(headless::CacheManager& cache_manager, const FileInfo& info)
-        {
-            builders::install<T>(cache_manager, suite_id, test_id, info, file, line);
-        }
+        void install_info(headless::CacheManager& cache_manager, const FileInfo& info);
 
-        void install_info(std::ostream& oss, const FileInfo& info)
-        {
-            oss << to_tag(suite_id, test_id, info) << '\n';
-        }
+        void install_info(std::ostream& oss, const FileInfo& info);
 
         template <typename Context>
         void install_impl(
@@ -151,16 +143,7 @@ namespace nil::xit::gtest::builders
             FileInfo file_info,
             const char* file,
             int line
-        )
-        {
-            installer.push_back(std::make_unique<TestInstaller<Test<T>>>(
-                suite_id,
-                test_id,
-                std::move(file_info),
-                file,
-                line
-            ));
-        }
+        );
 
         void install(test::App& app, const group_map& groups) const;
         void install(headless::CacheManager& cache_manager, const group_map& groups) const;

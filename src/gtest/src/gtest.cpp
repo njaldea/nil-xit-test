@@ -1,4 +1,5 @@
 #include <nil/xit/gtest/Instances.hpp>
+#include <nil/xit/gtest/Test.hpp>
 #include <nil/xit/gtest/TestTracker.hpp>
 #include <nil/xit/gtest/builders/FrameBuilder.hpp>
 #include <nil/xit/gtest/builders/MainBuilder.hpp>
@@ -26,6 +27,27 @@ namespace nil::xit::gtest
         std::lock_guard lock(mutex_);
         const auto node = results_.extract(tid);
         return !node.empty() && node.mapped();
+    }
+
+    TestTrackerScope::TestTrackerScope(TestTracker* init_res)
+        : res(init_res)
+    {
+        res->set_result(true);
+    }
+
+    bool TestTrackerScope::pop()
+    {
+        const auto v = res->pop_result();
+        res = nullptr;
+        return v;
+    }
+
+    TestTrackerScope::~TestTrackerScope()
+    {
+        if (res != nullptr)
+        {
+            res->pop_result();
+        }
     }
 
     Instances& get_instance()
@@ -209,7 +231,7 @@ namespace nil::xit::gtest::builders
 
     FrameBuilder::FrameBuilder()
     {
-        this->create_output<bool>("tag_info", {});
+        this->create_output<std::uint64_t>("tag_info", {});
     }
 
     void FrameBuilder::install(test::App& app) const

@@ -30,31 +30,4 @@ namespace nil::xit::gtest
     };
 
     Instances& get_instance();
-
-    namespace builders
-    {
-        template <typename T, typename I, typename O, typename E>
-        bool run_test(I& inputs, O& outputs, E& expects)
-        {
-            get_instance().tracker.set_result(true);
-            try
-            {
-                T p;
-                p.setup();
-                p.run(inputs, outputs, expects);
-                p.teardown();
-            }
-            catch (const std::exception&)
-            {
-                // exception is thrown
-                return false;
-            }
-            catch (...)
-            {
-                // unknown exception is thrown
-                return false;
-            }
-            return get_instance().tracker.pop_result();
-        }
-    }
 }

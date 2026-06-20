@@ -12,11 +12,11 @@ importers:
         specifier: 3.1.1
         version: 3.1.1
       '@nil-/doc':
-        specifier: ^2.0.6
-        version: 2.0.6(svelte@5.56.3)
+        specifier: ^2.0.7
+        version: 2.0.7(svelte@5.56.3)
       '@nil-/xit':
-        specifier: ^0.4.35
-        version: 0.4.35(svelte@5.56.3)
+        specifier: ^0.4.41
+        version: 0.4.41(svelte@5.56.3)
       '@types/plotly.js':
         specifier: ^2.35.14
         version: 2.35.14
@@ -51,8 +51,8 @@ packages:
   '@codemirror/lint@6.9.7':
     resolution: {integrity: sha512-28/+iWLYxKxsvGYhSYL7zaCZqLz5+FFFDq9tVsvGv9kv8RY4fFAchJ5WX9M3YrrRlTIsECjsXPqeNgnSmNP2dg==}
 
-  '@codemirror/search@6.7.0':
-    resolution: {integrity: sha512-ZvGm99wc/s2cITtMT15LFdn8aH/aS+V+DqyGq/N5ZlV5vWtH+nILvC2nw0zX7ByNoHHDZ2IxxdW38O0tc5nVHg==}
+  '@codemirror/search@6.7.1':
+    resolution: {integrity: sha512-uMe5UO6PamJtSHrXhhHOzSX3ReWtiJrva6GnPMwSOrZtiExb5X5eExhr2OUZQVvdxPsKpY3Ro2mFbQadpPWmHA==}
 
   '@codemirror/state@6.6.0':
     resolution: {integrity: sha512-4nbvra5R5EtiCzr9BTHiTLc+MLXK2QGiAVYMyi8PkQd3SR+6ixar/Q/01Fa21TBIDOZXgeWV4WppsQolSreAPQ==}
@@ -123,13 +123,13 @@ packages:
     resolution: {integrity: sha512-DnBpqkMOUGayNVKyTLlkM6ILmU/m/+VUxGkuQlPQVAcvreLz5jn1OlQnWd8uHKL/ZSiljpM12rjRhr51VtvJUQ==}
     engines: {node: '>= 18'}
 
-  '@nil-/doc@2.0.6':
-    resolution: {integrity: sha512-ziX5e8ud3jt8a7bNEfO8hq/HYMFLuoku9as1c6Z2wyfr3Xnl+dBCcm/dUC+SztcroLRSB7BVsKiJVTBM2AWHXw==}
+  '@nil-/doc@2.0.7':
+    resolution: {integrity: sha512-Syvr+Tv3rtYwUoIMDg0q9EpI6gGeIgYIIgwdyEUIPKGNMrVJTYfWRD2txkKS/87T7DyAihbINn8SjEo3rRtr1w==}
     peerDependencies:
       svelte: ^5.7.1
 
-  '@nil-/xit@0.4.35':
-    resolution: {integrity: sha512-Bum9ZIiwIN6iyFSUHNgCNcQBZPI8NOMibKRZbah5cbPb14SV7Xq/ruZo8XhJZLST2rbrSot5e+4XcGmzo0pOFg==}
+  '@nil-/xit@0.4.41':
+    resolution: {integrity: sha512-fD8WasAQndNnLcMPQCXyAcjiY3KXoS2ae3T0AxqwhDMUjLPWp+PXz9LdkwhVOhds24LzLFmel0OA+t3afEO3Mg==}
     peerDependencies:
       svelte: ^5.7.1
 
@@ -177,8 +177,8 @@ packages:
   '@types/msgpack-lite@0.1.12':
     resolution: {integrity: sha512-DzYHfFOxK1UCm3pErFyGCQzsNYjcy1chCtO5bLdvL0IbD6L0l0IZzYMHvFAmEDLJ+k6XJosY0WKKmjkOBu9gKQ==}
 
-  '@types/node@25.9.3':
-    resolution: {integrity: sha512-603BddQMv3pUcr4U2dhujk83N2tTDVr/34wII2B6bJy6g+8WD6yUb11jszNs0gdi4PesVWl7ABt8nYMVpnLUcg==}
+  '@types/node@26.0.0':
+    resolution: {integrity: sha512-vf2YFi1iY9lHGwNJMs01biZFbKJkrZR1T6/MlzjhJLPdntOHLhTrDSnSVcdtvjihi4VQNlrFRIxLsDBlQpAipA==}
 
   '@types/plotly.js@2.35.14':
     resolution: {integrity: sha512-CcD/32JcK19+xWH4FFpmYez/5X9kOjUcBr8Hxh7gQ/3Z32gIoLLy/L9xvC7DG5YikPvJjq6QN05B9+MCRu/Ncw==}
@@ -341,8 +341,8 @@ packages:
     resolution: {integrity: sha512-w7JvrM5IFl5cmfbY0TLik9o7mjRUJmRMhOR51tBPu708Gr/MjbGs7VnJnr/B0CaXeI4vtnOh7RKxDr0cwhMdDA==}
     engines: {node: '>=18'}
 
-  undici-types@7.24.6:
-    resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
+  undici-types@8.3.0:
+    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   vanilla-jsoneditor@3.12.0:
     resolution: {integrity: sha512-3cLH1jdr2t1+t9XnPkF9EiR394ty8hcVNX/GTj83RjEmkUMZyL/HvQ3e1PvQ3Be8rfH3AKcgySZYLKFfpVnjqQ==}
@@ -392,7 +392,7 @@ snapshots:
       '@codemirror/view': 6.43.1
       crelt: 1.0.6
 
-  '@codemirror/search@6.7.0':
+  '@codemirror/search@6.7.1':
     dependencies:
       '@codemirror/state': 6.6.0
       '@codemirror/view': 6.43.1
@@ -468,12 +468,12 @@ snapshots:
 
   '@msgpack/msgpack@3.1.1': {}
 
-  '@nil-/doc@2.0.6(svelte@5.56.3)':
+  '@nil-/doc@2.0.7(svelte@5.56.3)':
     dependencies:
       svelte: 5.56.3
       vanilla-picker: 2.12.3
 
-  '@nil-/xit@0.4.35(svelte@5.56.3)':
+  '@nil-/xit@0.4.41(svelte@5.56.3)':
     dependencies:
       svelte: 5.56.3
 
@@ -518,11 +518,11 @@ snapshots:
 
   '@types/msgpack-lite@0.1.12':
     dependencies:
-      '@types/node': 25.9.3
+      '@types/node': 26.0.0
 
-  '@types/node@25.9.3':
+  '@types/node@26.0.0':
     dependencies:
-      undici-types: 7.24.6
+      undici-types: 8.3.0
 
   '@types/plotly.js@2.35.14': {}
 
@@ -678,7 +678,7 @@ snapshots:
     transitivePeerDependencies:
       - '@typescript-eslint/types'
 
-  undici-types@7.24.6: {}
+  undici-types@8.3.0: {}
 
   vanilla-jsoneditor@3.12.0:
     dependencies:
@@ -687,7 +687,7 @@ snapshots:
       '@codemirror/lang-json': 6.0.2
       '@codemirror/language': 6.12.3
       '@codemirror/lint': 6.9.7
-      '@codemirror/search': 6.7.0
+      '@codemirror/search': 6.7.1
       '@codemirror/state': 6.6.0
       '@codemirror/view': 6.43.1
       '@fortawesome/free-regular-svg-icons': 7.2.0

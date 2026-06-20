@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Instances.hpp"
 #include "../Test.hpp"
 #include "../headless/CacheManager.hpp"
 
@@ -21,10 +22,6 @@ namespace nil::xit::gtest::builders
         std::string_view test_id,
         const FileInfo& file_info
     );
-
-    // Defined in instances to avoid cyclic include
-    template <typename T, typename I, typename O, typename E>
-    bool run_test(I& inputs, O& outputs, E& expects);
 
     template <typename T>
     void install(
@@ -55,9 +52,16 @@ namespace nil::xit::gtest::builders
                 {Frame<E>::marked_value...}
             );
 
-            static constexpr auto node = //
-                [](const Frame<I>::type&... input_args, const Frame<E>::type&... expect_args)
+            auto* const tag_info
+                = app.get_output<typename Frame<"tag_info">::type>(Frame<"tag_info">::value);
+            auto node = //
+                [tag, tag_info](
+                    const Frame<I>::type&... input_args,
+                    const Frame<E>::type&... expect_args
+                )
             {
+                tag_info->post(tag, 0);
+
                 auto result = std::make_tuple(
                     typename Frame<"tag_info">::type(),
                     typename Frame<O>::type()...,
@@ -76,7 +80,31 @@ namespace nil::xit::gtest::builders
                     return typename expect_frames::type{{&get<1 + EI + sizeof...(O)>(result)...}};
                 }(std::make_index_sequence<sizeof...(E)>());
 
-                get<0>(result) = run_test<T>(inputs, outputs, expects);
+                try
+                {
+                    TestTrackerScope tracker(&get_instance().tracker);
+
+                    T p;
+                    p.setup();
+                    p.run(inputs, outputs, expects);
+                    p.teardown();
+
+                    get<0>(result) = tracker.pop();
+                    tag_info->post(tag, get<0>(result));
+                }
+                catch (const std::exception& ex)
+                {
+                    get<0>(result) = 3;
+                    tag_info->post(tag, get<0>(result));
+                    std::cerr << "exception thrown: " << ex.what() << std::endl;
+                }
+                catch (...)
+                {
+                    get<0>(result) = 4;
+                    tag_info->post(tag, get<0>(result));
+                    std::cerr << "exception thrown: unknown" << std::endl;
+                }
+
                 return result;
             };
 
@@ -155,7 +183,11 @@ namespace nil::xit::gtest::builders
                         [](auto&... ee) { return typename expect_frames::type{{&ee...}}; },
                         expect_d
                     );
-                    run_test<T>(inputs, outputs, expects);
+
+                    T p;
+                    p.setup();
+                    p.run(inputs, outputs, expects);
+                    p.teardown();
                 }
 
                 std::string tag;
@@ -195,5 +227,41 @@ namespace nil::xit::gtest::builders
         }(xalt::tlist<typename T::input_frames>(),
           xalt::tlist<typename T::output_frames>(),
           xalt::tlist<typename T::expect_frames>());
+    }
+
+    template <typename T>
+    void TestInstaller<T>::install_info(test::App& app, const FileInfo& info)
+    {
+        builders::install<T>(app, suite_id, test_id, info);
+    }
+
+    template <typename T>
+    void TestInstaller<T>::install_info(headless::CacheManager& cache_manager, const FileInfo& info)
+    {
+        builders::install<T>(cache_manager, suite_id, test_id, info, file, line);
+    }
+
+    template <typename T>
+    void TestInstaller<T>::install_info(std::ostream& oss, const FileInfo& info)
+    {
+        oss << to_tag(suite_id, test_id, info) << '\n';
+    }
+
+    template <typename T>
+    void TestBuilder::add_test(
+        std::string_view suite_id,
+        std::string_view test_id,
+        FileInfo file_info,
+        const char* file,
+        int line
+    )
+    {
+        installer.push_back(std::make_unique<TestInstaller<Test<T>>>(
+            suite_id,
+            test_id,
+            std::move(file_info),
+            file,
+            line
+        ));
     }
 }
