@@ -11,6 +11,16 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <string_view>
+
+namespace
+{
+    std::vector<std::string>& rest_args()
+    {
+        static std::vector<std::string> rest;
+        return rest;
+    }
+}
 
 namespace nil::xit::gtest
 {
@@ -20,12 +30,14 @@ namespace nil::xit::gtest
 
         if (!groups.empty())
         {
-            std::cout << "\nEXPECTED GROUPS:\n";
+            std::cout << "\n\nEXPECTED GROUPS:\n";
             for (const auto& group : groups)
             {
                 std::cout << " -  " << group << '\n';
             }
         }
+
+        std::cout << "\nany trailing parameters after -- are going to be passed to gtest\n";
         return 0;
     }
 
@@ -193,7 +205,25 @@ namespace nil::xit::gtest
         instance.frame_builder.install(cache_manager);
         instance.test_builder.install(cache_manager, instance.paths.groups);
         ::testing::GTEST_FLAG(list_tests) = flag(options, "list");
-        ::testing::InitGoogleTest();
+
+        auto& rest = rest_args();
+
+        if (rest.empty())
+        {
+            ::testing::InitGoogleTest();
+        }
+        else
+        {
+            std::vector<char*> gtest_argv;
+            gtest_argv.reserve(rest.size());
+            for (auto& arg : rest)
+            {
+                gtest_argv.push_back(arg.data());
+            }
+            auto gtest_argc = static_cast<int>(gtest_argv.size());
+            ::testing::InitGoogleTest(&gtest_argc, gtest_argv.data());
+        }
+
         const auto result = RUN_ALL_TESTS();
 
         if (flag(options, "list") && flag(options, "verbose"))
@@ -231,9 +261,27 @@ namespace nil::xit::gtest
 
     int main(int argc, const char* const* argv)
     {
+        auto& rest = rest_args();
+        rest.clear();
+        rest.emplace_back(argv[0]);
+
+        int clix_argc = argc - 1;
+        for (int i = 1; i < argc; ++i)
+        {
+            if (std::string_view(argv[i]) == "--")
+            {
+                clix_argc = i - 1;
+                for (int j = i + 1; j < argc; ++j)
+                {
+                    rest.emplace_back(argv[j]);
+                }
+                break;
+            }
+        }
+
         auto* node = nil::clix::create_node();
         node_headless(*node);
-        auto v = nil::clix::run(*node, argc - 1, argv + 1);
+        auto v = nil::clix::run(*node, clix_argc, argv + 1);
         clix::destroy_node(node);
         return v;
     }
