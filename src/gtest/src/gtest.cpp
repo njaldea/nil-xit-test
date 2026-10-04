@@ -1,3 +1,7 @@
+// Copyright (c) 2026, Neil Aldea <njaldea@gmail.com>
+// SPDX-License-Identifier: BSL-1.0
+// See the repository LICENSE and https://www.boost.org/LICENSE_1_0.txt.
+
 #include <nil/xit/gtest/Instances.hpp>
 #include <nil/xit/gtest/Test.hpp>
 #include <nil/xit/gtest/TestTracker.hpp>

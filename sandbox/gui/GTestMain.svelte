@@ -1,3 +1,63 @@
+<!-- Copyright (c) 2026, Neil Aldea <njaldea@gmail.com> -->
+<!-- SPDX-License-Identifier: BSL-1.0 -->
+<!-- See the repository LICENSE and https://www.boost.org/LICENSE_1_0.txt. -->
+
+<script lang="ts" module>
+    type ActionItem = {
+        name: string;
+        action: () => Promise<Action<HTMLElement>>;
+        url: (tag: string) => string;
+    };
+
+    type Frames = {
+        status: Frame | null;
+        views: ActionItem[];
+        inputs: ActionItem[];
+        expects: ActionItem[];
+        outputs: ActionItem[];
+    };
+    
+    const empty_frames: Frames = {
+        status: null,
+        views: [],
+        inputs: [],
+        expects: [],
+        outputs: []
+    };
+
+    const regex = /^([^.\[]+)\.([^\[\]]+)\[[^:\]]+:([^\]]+)\]$/;
+    const parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
+
+    const nil_xit_last_tag = "nil_xit_last_tag";
+    const nil_xit_last_frame = "nil_xit_last_frame";
+    const store_to_local_storage = (data: string | null, tag: string) => {
+        if (data != null) {
+            localStorage.setItem(tag, data);
+        } else {
+            localStorage.removeItem(tag);
+        }
+    };
+
+    const load_from_cache = <Key, Value>(key: Key, cache: Map<Key, Promise<Value>>, loader: () => Promise<Value>): Promise<Value> => {
+        if (!cache.has(key)) cache.set(key, loader());
+        return cache.get(key) as Promise<Value>;
+    };
+
+    const STATUS_MAP: Record<number, { style: string; label: string }> = {
+        0: { style: "background:#fff5e8;border-color:#f1c27d;color:#7a4a00;", label: "RUNNING" },
+        1: { style: "background:#e8f6ee;border-color:#8ad0a4;color:#0b5f2a;", label: "PASS" },
+        2: { style: "background:#fdecef;border-color:#f1a1ad;color:#8a1020;", label: "FAIL" },
+        3: { style: "background:#f4ecfb;border-color:#d0afea;color:#5b2b73;", label: "EXCEPTION" },
+        4: { style: "background:#f2f2f2;border-color:#c9c9c9;color:#4a4a4a;", label: "UNKNOWN EXCEPTION" }
+    };
+    const DISABLED = { style: "background:#f2f2f2;border-color:#d0d0d0;color:#999;", label: "DISABLED" };
+
+    const status_view = (active: boolean, value: number) =>
+        !active ? DISABLED : (STATUS_MAP[value] ?? { style: "background:#f2f2f2;border-color:#c9c9c9;color:#4a4a4a;", label: `UNKNOWN (${value})` });
+    const status_checkbox_style = (active: boolean) =>
+        active ? "opacity:1;background:#81c784;border-color:#4caf50;color:#fff;" : "opacity:0.5;";
+</script>
+
 <script lang="ts">
     import { derived, get, fromStore } from "svelte/store";
     import BareLayout from "@nil-/doc/layout/BareLayout.svelte";
@@ -10,38 +70,18 @@
     import { xit, codec_string, codec_number, type Action, type Frame } from "@nil-/xit";
     import { tick, untrack } from "svelte";
 
-    type ActionItem = {
-        name: string;
-        action: () => Promise<Action<HTMLElement>>;
-        url: (tag: string) => string;
-    };
 
     let { signals, values, load_frame_data, load_frame_ui } = xit();
 
     const finalize = signals("finalize", codec_string.encode);
 
     let current = $state(localStorage.getItem("nil_xit_last_tag"));
+    let last_frame = $state(localStorage.getItem("nil_xit_last_frame"));
     let current_frame = $state(null) as ActionItem | null;
     let status_active = $state(true);
 
     const tags = derived(values("tags", "", codec_string), (v) => v.split(","));
-    const regex = /^([^.\[]+)\.([^\[\]]+)\[[^:\]]+:([^\]]+)\]$/;
-    const parser = (v: string) => v.match(regex)?.slice(1, 4) ?? [];
 
-    type Frames = {
-        status: Frame | null;
-        views: ActionItem[];
-        inputs: ActionItem[];
-        expects: ActionItem[];
-        outputs: ActionItem[];
-    };
-    const empty_frames: Frames = {
-        status: null,
-        views: [],
-        inputs: [],
-        expects: [],
-        outputs: []
-    };
     let frames = $state<Frames>({ ...empty_frames });
 
     const cache_tag = new Map<string, Promise<Frames>>();
@@ -97,73 +137,8 @@
         };
     };
 
-    const load_from_cache = <Key, Value>(key: Key, cache: Map<Key, Value>, loader: () => Value) => {
-        if (!cache.has(key)) {
-            cache.set(key, loader());
-        }
-        return cache.get(key) as Promise<Value>;
-    };
-
-    const await_tag = async (tag: string) => load_from_cache(tag, cache_tag, () => frame_info(tag));
-    const await_action = async (info: ActionItem) =>
-        load_from_cache(info, cache_frame, info.action);
-
-    const status_view = (active: boolean, value: number) => {
-        if (!active) {
-            return {
-                style: "background:#f2f2f2;border-color:#d0d0d0;color:#999;",
-                label: "DISABLED"
-            };
-        }
-
-        if (value === 0) {
-            return {
-                style: "background:#fff5e8;border-color:#f1c27d;color:#7a4a00;",
-                label: "RUNNING"
-            };
-        }
-
-        if (value === 1) {
-            return {
-                style: "background:#e8f6ee;border-color:#8ad0a4;color:#0b5f2a;",
-                label: "PASS"
-            };
-        }
-
-        if (value === 2) {
-            return {
-                style: "background:#fdecef;border-color:#f1a1ad;color:#8a1020;",
-                label: "FAIL"
-            };
-        }
-
-        if (value === 3) {
-            return {
-                style: "background:#f4ecfb;border-color:#d0afea;color:#5b2b73;",
-                label: "EXCEPTION"
-            };
-        }
-
-        if (value === 4) {
-            return {
-                style: "background:#f2f2f2;border-color:#c9c9c9;color:#4a4a4a;",
-                label: "UNKNOWN EXCEPTION"
-            };
-        }
-
-        return {
-            style: "background:#f2f2f2;border-color:#c9c9c9;color:#4a4a4a;",
-            label: `UNKNOWN (${value})`
-        };
-    };
-
-    const status_checkbox_style = (active: boolean) => {
-        if (!active) {
-            return "opacity:0.5;";
-        }
-
-        return "opacity:1;background:#81c784;border-color:#4caf50;color:#fff;";
-    };
+    const await_tag = (tag: string) => load_from_cache(tag, cache_tag, () => frame_info(tag));
+    const await_action = (info: ActionItem) => load_from_cache(info, cache_frame, info.action);
 
     let onnavigate = async ({ detail }: { detail?: string }) => {
         if (detail == null) {
@@ -195,13 +170,15 @@
         current_frame = null;
         await tick();
         current_frame = info;
+        last_frame = info.name;
     };
 
+    $effect(() => store_to_local_storage(current, nil_xit_last_tag));
+    $effect(() => store_to_local_storage(last_frame, nil_xit_last_frame));
     $effect(() => {
         current;
         untrack(async () => {
             if (current != null) {
-                localStorage.setItem("nil_xit_last_tag", current);
                 const d = current;
                 const f = await await_tag(current);
                 if (current != null && current === d) {
@@ -219,9 +196,22 @@
                         frames.status.attach();
                     }
 
+                    if (last_frame != null) {
+                        const all_frames = [frames.views, frames.inputs, frames.expects, frames.outputs].flat();
+                        const frame = all_frames.find(f => f.name === last_frame);
+                        if (frame != null) {
+                            current_frame = frame;
+                            return;
+                        }
+                    }
+
                     if (frames.outputs.length > 0) {
                         current_frame = frames.outputs[0];
+                        last_frame = current_frame.name;
+                        return;
                     }
+
+                    last_frame = null;
                 }
             }
         });
@@ -281,10 +271,12 @@
 {/snippet}
 
 {#snippet frame(f: ActionItem[], s: string)}
-    <div hidden={f.length === 0}>{s} frames</div>
-    {#each f as a_v}
-        <button onclick={(e) => on_frame_click(e, a_v)}>{a_v.name}</button>
-    {/each}
+    {#if f.length > 0}
+        <div>{s} frames</div>
+        {#each f as a_v}
+            <button onclick={(e) => on_frame_click(e, a_v)}>{a_v.name}</button>
+        {/each}
+    {/if}
 {/snippet}
 
 {#snippet side_c()}
@@ -323,7 +315,14 @@
     {#snippet header()}
         <Header>
             {#snippet title()}
-                <span>nil-xit-gtest <b hidden={current == null}> - {current}</b><b hidden={current_frame == null}> - {current_frame?.name}</b></span>
+                <span>nil-xit-gtest
+                    {#if current != null}
+                        {" | "}<b>{current}</b>
+                    {/if}
+                    {#if current_frame != null}
+                        {" | "}<b>{current_frame?.name}</b>
+                    {/if}
+                </span>
             {/snippet}
             {#snippet title_misc()}
                 <ThemeToggle bind:theme />

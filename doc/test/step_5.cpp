@@ -1,3 +1,7 @@
+// Copyright (c) 2026, Neil Aldea <njaldea@gmail.com>
+// SPDX-License-Identifier: BSL-1.0
+// See the repository LICENSE and https://www.boost.org/LICENSE_1_0.txt.
+
 // Step 5: use loader from_file_with_update to persist edits
 #include "Circle.hpp"
 #include "nil/xit/gtest/utils/from_file.hpp"

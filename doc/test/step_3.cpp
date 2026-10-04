@@ -1,3 +1,7 @@
+// Copyright (c) 2026, Neil Aldea <njaldea@gmail.com>
+// SPDX-License-Identifier: BSL-1.0
+// See the repository LICENSE and https://www.boost.org/LICENSE_1_0.txt.
+
 // Step 3: introduce an output frame and assign to it
 #include "Circle.hpp"
 #include <nil/xit/gtest.hpp>
